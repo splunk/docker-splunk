@@ -12,7 +12,7 @@ one major drawback:  the overhead of running multiple operating systems on one h
 
 <img src="container-vm-whatcontainer_2.png" width="370"/><img src="docker-containerized-appliction-blue-border_2.png" width="370"/>
 
-###### source:[Docker](www.docker.com) ######
+###### source:[Docker](https://www.docker.com) ######
 
 Containers allow the application to be the only thing that runs in a "vm like" isolated environment. Unlike a hypervisor, the container-based system does not need to start the guest operating system. The lack of guest operating system
 allows a single host to dedicate more resources towards the application. The community has asked Splunk for container support, to provide the rich functionality Splunk Enterprise offers for dedicated hardware deployments. This project delivers on that request.
