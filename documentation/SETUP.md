@@ -36,7 +36,7 @@ Volumes used for persistence of the Splunk Enterprise data inside the Docker con
 2. If you intend for the containerized Splunk Enterprise deployment to be supported by your Enterprise Support Agreement, you must verify you meet all of the 
 above "supported" requirements. Failure to do so will render your deployment in an "unsupported" state.
 
-##### Install Splunk Enterprise Docker containers (Supported) ##### {#install} 
+##### Install Splunk Enterprise Docker containers (Supported) 
 
 Download the required image to your local Docker image library. 
 ```
@@ -50,7 +50,7 @@ Download the required image to your local Docker image library.
 $ docker pull splunk/splunk-uf:latest
 ```
 
-## Starting Splunk Enterprise ## {#run}
+## Starting Splunk Enterprise ##
 
 For a basic standalone Splunk environment, run the following command:
 ```
