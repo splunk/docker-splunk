@@ -1,0 +1,223 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  sh1:
+    networks:
+      splunknet:
+        aliases:
+          - sh1
+    image: splunk-debian-9:latest
+    hostname: sh1
+    container_name: sh1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_search_head_captain
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  sh2:
+    networks:
+      splunknet:
+        aliases:
+          - sh2
+    image: splunk-debian-9:latest
+    hostname: sh2
+    container_name: sh2
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_search_head
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  sh3:
+    networks:
+      splunknet:
+        aliases:
+          - sh3
+    image: splunk-debian-9:latest
+    hostname: sh3
+    container_name: sh3
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_search_head
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  dep1:
+    networks:
+      splunknet:
+        aliases:
+          - dep1
+    image: splunk-debian-9:latest
+    hostname: dep1
+    container_name: dep1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_deployer
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  cm1:
+    networks:
+      splunknet:
+        aliases:
+          - cm1
+    image: splunk-debian-9:latest
+    hostname: cm1
+    container_name: cm1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_cluster_master
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  idx1:
+    networks:
+      splunknet:
+        aliases:
+          - idx1
+    image: splunk-debian-9:latest
+    hostname: idx1
+    container_name: idx1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_indexer
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  idx2:
+    networks:
+      splunknet:
+        aliases:
+          - idx2
+    image: splunk-debian-9:latest
+    hostname: idx2
+    container_name: idx2
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_indexer
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  idx3:
+    networks:
+      splunknet:
+        aliases:
+          - idx3
+    image: splunk-debian-9:latest
+    hostname: idx3
+    container_name: idx3
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_indexer
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  idx4:
+    networks:
+      splunknet:
+        aliases:
+          - idx4
+    image: splunk-debian-9:latest
+    hostname: idx4
+    container_name: idx4
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_indexer
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults

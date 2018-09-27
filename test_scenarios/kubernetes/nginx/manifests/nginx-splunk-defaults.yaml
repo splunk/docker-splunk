@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: splunk-defaults
+spec:
+  selector:
+    matchLabels:
+      name: splunk-defaults
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: splunk-defaults
+    spec:
+      containers:
+      - name: splunk-defaults
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+        - name: nginx-data-www
+          mountPath: /data/www
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config 
+      - name: nginx-data-www
+        configMap: 
+          name: nginx-data-www 

@@ -1,0 +1,42 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  so1:
+    image: splunk-debian-9:beta
+    hostname: so1
+    container_name: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_HOME=/opt/splunkbeta
+      - SPLUNK_LICENSE_URI
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    volumes:
+      - /opt/splunkbeta/etc
+      - /opt/splunkbeta/var
+    ports:
+      - 8000
+      - 8089
+
+  uf1:
+    image: splunkforwarder-debian-9:beta
+    hostname: uf1
+    container_name: uf1
+    environment:
+      - SPLUNK_STANDALONE_URL=so1
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_HOME=/opt/splunkforwarder
+      - SPLUNK_LICENSE_URI
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    volumes:
+      - /opt/splunkforwarder/etc
+      - /opt/splunkforwarder/var
+    ports:
+      - 8089
+

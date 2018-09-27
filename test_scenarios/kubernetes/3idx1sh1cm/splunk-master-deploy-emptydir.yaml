@@ -1,0 +1,71 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: master 
+  #namespace: splunk
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: splunk
+        role: splunk_cluster_master
+        tier: idxcluster
+    spec:
+      hostname: master
+      dnsPolicy: ClusterFirst
+      dnsConfig:
+        searches:
+          - indexer.splunk.svc.cluster.local
+      serviceAccountName: splunk
+      containers:
+        - name: master
+          image: splunk/splunk:latest
+          env:
+            - name: SPLUNK_HOME
+              value: /opt/splunk
+            - name: SPLUNK_DEFAULTS_URL
+              value: http://splunk-defaults/default.yml
+            - name: SPLUNK_ROLE
+              value: splunk_cluster_master
+            - name: SPLUNK_PASSWORD
+              value: helloworld
+            - name: SPLUNK_START_ARGS
+              value: "--accept-license"
+            - name: SPLUNK_CLUSTER_MASTER_URL
+              value: master
+            - name: SPLUNK_INDEXER_URL
+              value: indexer-0,indexer-1,indexer-2 
+            - name: SPLUNK_SEARCH_HEAD_URL
+              value: search
+            - name: DEBUG
+              value: "true"
+          #resources:
+          #  requests:
+          #    cpu: 100m
+          #    memory: 256Mi
+          #readinessProbe:
+          #  httpGet:
+          #    path: /en-US/account/login
+          #    port: web
+          #  initialDelaySeconds: 5
+          #  periodSeconds: 5
+          #  failureThreshold: 20
+          ports:
+            - name: web
+              containerPort: 8000
+            - name: mgmt
+              containerPort: 8089
+            - name: kv
+              containerPort: 8191
+          volumeMounts: 
+            - name: splunk-master-data
+              mountPath: /opt/splunk/var
+            - name: splunk-master-config
+              mountPath: /opt/splunk/etc
+      volumes:
+        - name: splunk-master-config
+          emptyDir: {}
+        - name: splunk-master-data
+          emptyDir: {}

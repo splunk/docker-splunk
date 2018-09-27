@@ -1,0 +1,118 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  so1:
+    networks:
+      splunknet:
+        aliases:
+          - so1
+    image: splunk-debian-9:latest
+    command: start
+    hostname: so1
+    container_name: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1,so2
+      - SPLUNK_HEAVY_FORWARDER_URL=hf1,hf2
+      - SPLUNK_ROLE=splunk_standalone
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  so2:
+    networks:
+      splunknet:
+        aliases:
+          - so2
+    image: splunk-debian-9:latest
+    command: start
+    hostname: so2
+    container_name: so2
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1,so2
+      - SPLUNK_HEAVY_FORWARDER_URL=hf1,hf2
+      - SPLUNK_ROLE=splunk_standalone
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  so2:
+    networks:
+      splunknet:
+        aliases:
+          - so2
+    image: splunk-debian-9:latest
+    command: start
+    hostname: so2
+    container_name: so2
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1,so2
+      - SPLUNK_HEAVY_FORWARDER_URL=hf1,hf2
+      - SPLUNK_ROLE=splunk_standalone
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+      
+
+  hf1:
+    networks:
+      splunknet:
+        aliases:
+          - hf1
+    image: splunk-debian-9:latest
+    command: start
+    hostname: hf1
+    container_name: hf1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1,so2
+      - SPLUNK_HEAVY_FORWARDER_URL=hf1,hf2
+      - SPLUNK_ROLE=splunk_heavy_forwarder
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  hf2:
+    networks:
+      splunknet:
+        aliases:
+          - hf2
+    image: splunk-debian-9:latest
+    command: start
+    hostname: hf2
+    container_name: hf2
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1,so2
+      - SPLUNK_HEAVY_FORWARDER_URL=hf1,hf2
+      - SPLUNK_ROLE=splunk_heavy_forwarder
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults

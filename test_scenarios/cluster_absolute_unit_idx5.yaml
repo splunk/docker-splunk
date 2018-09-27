@@ -1,0 +1,31 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  idx5:
+    networks:
+      splunknet:
+        aliases:
+          - idx5
+    image: splunk-debian-9:latest
+    command: start
+    hostname: idx5
+    container_name: idx5
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4,idx5
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_indexer
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_LICENSE_URI
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089

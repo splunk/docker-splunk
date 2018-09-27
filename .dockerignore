@@ -1,0 +1,13 @@
+Makefile
+Jenkinsfile
+**/.git
+**/.gitignore
+**/test*
+**/.DS_Store
+**/*.pyc
+**/*.pyo
+**/.cache
+**/__pycache__
+**/.idea
+**/*.pytest_cache
+*.md

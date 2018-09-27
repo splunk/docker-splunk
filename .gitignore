@@ -1,0 +1,8 @@
+.vscode/
+splunk-ansible
+*.idea
+*.DS_Store
+**/*.log
+.pytest_cache
+**/*.pyc
+*.xml

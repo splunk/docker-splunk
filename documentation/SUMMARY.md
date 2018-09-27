@@ -1,0 +1,15 @@
+# Splunk Enterprise / Splunk Universal Forwarder Container Documentation 
+
+* [Getting Started](INTRODUCTION.md)
+    * [Prerequisites](SETUP.md)
+    * [Install](SETUP.md#install)
+    * [Run](SETUP.md#run)
+    * [Installing a Splunk Enterprise License](LICENSE_INSTALL.md)
+* [Advanced Usage](ADVANCED.md)
+	* [Environment Variables](ADVANCED.md#environment)
+	* [Entrypoint Functions](ADVANCED.md#entrypoint)
+* [Storing Data](STORAGE_OPTIONS.md)
+* [FAQ / Troubleshooting](TROUBLESHOOTING.md)
+* [Contributing](CONTRIBUTING.md)
+* [Licensing](LICENSING.md)
+* [Changelog](CHANGELOG.md)

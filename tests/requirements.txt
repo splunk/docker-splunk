@@ -1,0 +1,6 @@
+pytest
+requests
+docker
+PyYAML
+docker-compose
+pyasn1

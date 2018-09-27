@@ -1,0 +1,49 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  lm1:
+    networks:
+      splunknet:
+        aliases:
+          - lm1
+    image: splunk-debian-9:latest
+    command: start
+    hostname: lm1
+    container_name: lm1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1
+      - SPLUNK_LICENSE_MASTER_URL=lm1
+      - SPLUNK_ROLE=splunk_license_master
+      - SPLUNK_LICENSE_URI
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+
+  so1:
+    networks:
+      splunknet:
+        aliases:
+          - so1
+    image: splunk-debian-9:latest
+    command: start
+    hostname: so1
+    container_name: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1
+      - SPLUNK_LICENSE_MASTER_URL=lm1
+      - SPLUNK_ROLE=splunk_standalone
+      - SPLUNK_LICENSE_URI
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089

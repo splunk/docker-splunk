@@ -1,0 +1,18 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  uf1:
+    image: splunkforwarder-debian-9:latest
+    hostname: uf1
+    container_name: uf1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8089
