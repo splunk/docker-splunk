@@ -1,7 +1,7 @@
 ## Data Storage ##
 This section will cover examples of different options for configuring data persistance. This includes both indexed data and 
-configuration items. Splunk does not officially support data persistence in container environments. The following are 
-intended as examples and unofficial guidelines. 
+configuration items. Splunk only supports data persistence to volumes mounted outside of the container. Data persistence for 
+folders inside of the container are not supported. The following are intended as only as examples and unofficial guidelines. 
 
 ### Storing indexes and search artifacts ###
 Splunk Enterprise, by default, Splunk Enterprise uses the var directory for indexes, search artifacts, etc. In the public image, the Splunk Enterprise 
