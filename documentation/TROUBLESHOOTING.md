@@ -41,14 +41,14 @@ docker start <container-id>
 ```
 
 Once you've verified the container is running, connect to it either through an [interactive shell](Connecting an interactive shell to the container), or by using `docker exec`.
-If you've used an interactive shell or have access to the Splunk GUI, please use the [Generate a diagnostic file](http://docs.splunk.com/Documentation/Splunk/7.1.2/Troubleshooting/Generateadiag) documentation from docs.splunk.com.
+If you've used an interactive shell or have access to the Splunk GUI, please use the [Generate a diagnostic file](http://docs.splunk.com/Documentation/Splunk/latest/Troubleshooting/Generateadiag) documentation from docs.splunk.com.
 
 Call `splunk diag` direct without an interactive shell by running the following:
 
 ```
 docker exec ${SPLUNK_HOME}/bin/splunk diag 
 ```
-Please reference [Generate a diagnostic file](http://docs.splunk.com/Documentation/Splunk/7.1.2/Troubleshooting/Generateadiag) for any additonal flags you may wish to set.
+Please reference [Generate a diagnostic file](http://docs.splunk.com/Documentation/Splunk/latest/Troubleshooting/Generateadiag) for any additonal flags you may wish to set.
 If your Docker container / hosts have access to Splunk.com, you can now send the file directly to Splunk Support by using the following command:
 ```
 docker exec ${SPLUNK_HOME}/bin/splunk diag --upload --case-number=<case_num> --upload-user=<your_splunk_id> --upload-password=<passwd> --upload-description="Monday diag, as requested.

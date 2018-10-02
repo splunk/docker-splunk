@@ -7,7 +7,7 @@ networks:
 
 services:
   so1:
-    image: splunk-debian-9:beta
+    image: splunk/splunk:beta
     hostname: so1
     container_name: so1
     environment:
@@ -24,7 +24,7 @@ services:
       - 8089
 
   uf1:
-    image: splunkforwarder-debian-9:beta
+    image: splunk/universalforwarder:latest
     hostname: uf1
     container_name: uf1
     environment:
