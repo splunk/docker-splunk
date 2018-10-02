@@ -56,7 +56,7 @@ Replace "<password>" with the initial password to wish use for logging into the 
 user account. You can then access Splunk at http://localhost:8000 with those credentials.
 
 *Please note, the password supplied must conform to the default
-[Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/7.1.2/Security/Configurepasswordsinspecfile)*
+[Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile)*
 
 Notice that the license agreement has to be explicitly accepted. Splunk will not start
 unless you pass the argument `--accept-license` to every container.

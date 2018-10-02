@@ -15,7 +15,7 @@ services:
       splunknet:
         aliases:
           - so1
-    image: splunk-debian-9:latest
+    image: splunk/splunk:latest
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license

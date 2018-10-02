@@ -24,7 +24,7 @@ Linux kernel versions above 4.x.
 
 ##### Required Hardware #####
 
-All instances must be at or above the minimum server specifications found in the [Splunk installation manual](http://docs.splunk.com/Documentation/Splunk/7.0.0/Installation/SystemRequirements). 
+All instances must be at or above the minimum server specifications found in the [Splunk installation manual](http://docs.splunk.com/Documentation/Splunk/latest/Installation/SystemRequirements). 
 Additionally, the Docker container at this time is also limited to the following base installation chipsets:
 * x86-64
 * s390x (Universal Forwarder only)
@@ -36,18 +36,18 @@ Volumes used for persistence of the Splunk Enterprise data inside the Docker con
 2. If you intend for the containerized Splunk Enterprise deployment to be supported by your Enterprise Support Agreement, you must verify you meet all of the 
 above "supported" requirements. Failure to do so will render your deployment in an "unsupported" state.
 
-##### Install Splunk Enterprise Docker containers (Supported) 
+## Install Splunk Enterprise Docker container (Supported) ##
 
 Download the required image to your local Docker image library. 
 ```
 $ docker pull splunk/splunk:latest
 ```
 
-##### Install Splunk Univeral Forwarder Docker containers (Supported) #####
+## Install Splunk Universal Forwarder Docker container (Supported) ##
 
 Download the required image to your local Docker image library. 
 ```
-$ docker pull splunk/splunk-uf:latest
+$ docker pull splunk/universalforwarder:latest
 ```
 
 ## Starting Splunk Enterprise ##
@@ -56,7 +56,7 @@ For a basic standalone Splunk environment, run the following command:
 ```
 $ docker run -d -p 8000:8000 -e 'SPLUNK_START_ARGS=--accept-license' -e 'SPLUNK_PASSWORD=<password>' splunk/splunk:latest
 ```
-**Note:** The password supplied must conform to the default [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/7.1.2/Security/Configurepasswordsinspecfile)* 
+**Note:** The password supplied must conform to the default [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile)* 
 
 The output of Docker's run command will be a long hash of numbers and letters.  These numbers and letters are the container id for your
 Splunk Enterprise deployment.  Use "docker ps" to get the status of the new deployment. For example: 
@@ -91,7 +91,7 @@ Log in to your deployment with the Splunk credentials `admin` and use the passwo
 
 The Splunk Universal Forwarder is started in a similar way to Splunk Enterprise
 ```
-$ docker run -d  -p 9997:9997 -e 'SPLUNK_START_ARGS=--accept-license' -e 'SPLUNK_PASSWORD=<password>' splunk/splunk-uf:latest
+$ docker run -d  -p 9997:9997 -e 'SPLUNK_START_ARGS=--accept-license' -e 'SPLUNK_PASSWORD=<password>' splunk/universalforwarder:latest
 ```
 The Splunk Universal Forwarder however does not have a GUI, so you will not be able to access it through a web interface.
 Instead, you can access the container directly by using the `docker exec` command.  After the container is in a "healthy" state, run the following:
@@ -101,7 +101,7 @@ docker exec -it <container-id> /bin/bash
 ```
 splunk@<container-id>:/$
 ```
-You are now logged into the container as the splunk user. Please see the [Configure the Universal Forwarder](http://docs.splunk.com/Documentation/Forwarder/7.1.2/Forwarder/Configuretheuniversalforwarder) in the Splunk Forwarder Manual for more information on configuring the Splunk Universal Forwarder.
+You are now logged into the container as the splunk user. Please see the [Configure the Universal Forwarder](http://docs.splunk.com/Documentation/Forwarder/latest/Forwarder/Configuretheuniversalforwarder) in the Splunk Forwarder Manual for more information on configuring the Splunk Universal Forwarder.
 
 
 ## Enterprise Applications (Splunk Enterprise Security and Splunk IT Service Intelligence) ##
