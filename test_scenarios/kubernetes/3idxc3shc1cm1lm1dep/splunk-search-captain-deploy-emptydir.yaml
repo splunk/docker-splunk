@@ -14,7 +14,7 @@ spec:
         tier: search
     spec:
       hostname: captain
-      serviceAccountName: splunk
+      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst
       dnsConfig:
         searches:

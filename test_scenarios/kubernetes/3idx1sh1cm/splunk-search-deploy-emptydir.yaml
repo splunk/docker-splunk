@@ -18,7 +18,7 @@ spec:
       dnsConfig:
         searches:
           - indexer.splunk.svc.cluster.local
-      serviceAccountName: splunk
+      #serviceAccountName: splunk
       containers:
         - name: search
           image: splunk/splunk:latest

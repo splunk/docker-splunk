@@ -14,7 +14,7 @@ spec:
         tier: management 
     spec:
       hostname: license-master
-      serviceAccountName: splunk
+      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst
       dnsConfig:
         searches:
