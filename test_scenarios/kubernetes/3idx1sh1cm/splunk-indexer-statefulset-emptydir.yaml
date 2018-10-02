@@ -13,7 +13,7 @@ spec:
         role: splunk_indexer
         tier: idxcluster
     spec:
-      serviceAccountName: splunk
+      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst
       dnsConfig:
         searches:

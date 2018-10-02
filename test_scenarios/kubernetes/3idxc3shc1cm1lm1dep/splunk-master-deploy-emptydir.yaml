@@ -14,7 +14,7 @@ spec:
         tier: idxcluster
     spec:
       hostname: master
-      serviceAccountName: splunk
+      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst 
       dnsConfig:
         searches: 

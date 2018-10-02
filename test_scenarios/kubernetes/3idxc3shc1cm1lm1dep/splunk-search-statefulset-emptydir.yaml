@@ -13,7 +13,7 @@ spec:
         role: splunk_search_head
         tier: shcluster
     spec:
-      serviceAccountName: splunk
+      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst 
       dnsConfig:
         searches: 

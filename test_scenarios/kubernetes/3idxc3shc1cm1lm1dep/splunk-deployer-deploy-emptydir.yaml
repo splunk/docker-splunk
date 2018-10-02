@@ -14,7 +14,7 @@ spec:
         tier: management
     spec:
       hostname: deployer
-      serviceAccountName: splunk
+      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst
       dnsConfig:
         searches:
