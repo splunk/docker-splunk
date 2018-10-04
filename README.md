@@ -52,7 +52,7 @@ Use the following command to start a single instance of Splunk Enterprise:
 ```
  $> docker run -it -p 8000:8000 -e 'SPLUNK_START_ARGS=--accept-license' -e 'SPLUNK_PASSWORD=<password>' splunk-debian-9:latest start
 ```
-Replace "<password>" with the initial password that you wish to use for logging into the Splunk admin
+Replace `"<password>"` with the initial password that you wish to use for logging into the Splunk admin
 user account. You can then access Splunk at http://localhost:8000 with those credentials.
 
 *Please note, the password supplied must conform to the default
