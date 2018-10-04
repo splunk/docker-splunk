@@ -2,7 +2,7 @@ SHELL := /bin/bash
 IMAGE_VERSION ?= "latest"
 DOCKER_BUILD_FLAGS = 
 TEST_IMAGE_NAME = "spldocker"
-SPLUNK_ANSIBLE_BRANCH ?= the_next_century
+SPLUNK_ANSIBLE_BRANCH ?= master
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
