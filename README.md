@@ -52,7 +52,7 @@ Use the following command to start a single instance of Splunk Enterprise:
 ```
  $> docker run -it -p 8000:8000 -e 'SPLUNK_START_ARGS=--accept-license' -e 'SPLUNK_PASSWORD=<password>' splunk-debian-9:latest start
 ```
-Replace "<password>" with the initial password to wish use for logging into the Splunk admin
+Replace `"<password>"` with the initial password that you wish to use for logging into the Splunk admin
 user account. You can then access Splunk at http://localhost:8000 with those credentials.
 
 *Please note, the password supplied must conform to the default
@@ -63,11 +63,10 @@ unless you pass the argument `--accept-license` to every container.
 
 Use `Ctrl+C` to stop the container.
 
-For more detailed requirements, instructions and scenarios, please see
-`documentation/SETUP.md`
+For more detailed requirements, instructions and scenarios, please see [SETUP](documentation/SETUP.md)
 
 For information about more advanced deployments including search head and indexer
-clusters, please see `documentation/ADVANCED.md` 
+clusters, please see [ADVANCED](documentation/ADVANCED.md) 
 
 
 # Get help and support
@@ -79,22 +78,22 @@ If you have questions or need support, you can:
 * Visit the #splunk channel on [EFNet Internet Relay Chat](http://www.efnet.org)
 * Send an email to [docker-maint@splunk.com](mailto:docker-maint@splunk.com)
 
-Please also see `documentation/TROUBLESHOOTING.md`
+Please also see [TROUBLESHOOTING](documentation/TROUBLESHOOTING.md)
 
 
 # License
 
-See `documentation/LICENSING.md`
+See [LICENSING](documentation/LICENSING.md)
 
 
 # Contributing
 
-See `documentation/CONTRIBUTING.md`
+See [CONTRIBUTING](documentation/CONTRIBUTING.md)
 
 
 # History
 
-See `documentation/CHANGELOG.md`
+See [CHANGELOG](documentation/CHANGELOG.md)
 
 
 # Authors
