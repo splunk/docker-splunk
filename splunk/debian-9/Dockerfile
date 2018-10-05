@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 FROM base-debian-9:latest
+LABEL maintainer="support@splunk.com"
 
 ARG SPLUNK_FILENAME
 ARG SPLUNK_BUILD_URL
