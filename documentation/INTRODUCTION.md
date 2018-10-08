@@ -18,8 +18,7 @@ Containers allow the application to be the only thing that runs in a "vm like" i
 allows a single host to dedicate more resources towards the application. The community has asked Splunk for container support, to provide the rich functionality Splunk Enterprise offers for dedicated hardware deployments. This project delivers on that request.
 
 ##### History #####
-In 2015, Denis Gladkikh (@outcoldman) created in his spare time an open-source GitHub repository for installing Splunk Enterprise, Splunk Universal Forwarder and Splunk Light inside containers.
-In 2016 Denis Gladkikh transitioned ownership of Splunk Docker Image to Splunk, announcement was made at .conf16.
+In 2015, Denis Gladkikh (@outcoldman) created an open-source GitHub repository for installing Splunk Enterprise, Splunk Universal Forwarder and Splunk Light inside containers.
 Universal Forwarders and standalone instances
 were being brought online at a rapid pace, which introduced a new level of complexity into the enterprise environment. 
 In 2018, a new container image was created to improve the flexibility with which Splunk Enterprise could be operated in larger and more dynamic environments.
