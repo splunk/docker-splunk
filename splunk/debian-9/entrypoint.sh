@@ -42,6 +42,7 @@ prep_ansible() {
 		ansible-playbook --version
 		python inventory/environ.py --write-to-file
 		cat /opt/ansible/inventory/ansible_inventory.json
+		cat /opt/ansible/inventory/messages.txt || true
 		echo
 	fi
 }
