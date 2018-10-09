@@ -31,6 +31,7 @@ all: splunk uf
 ansible:
 	if [ -d "splunk-ansible" ]; then \
 		echo "Ansible directory exists - skipping clone"; \
+		(cd splunk-ansible; git pull; git checkout ${SPLUNK_ANSIBLE_BRANCH}) \
 	else \
 		git clone https://github.com/splunk/splunk-ansible.git --branch ${SPLUNK_ANSIBLE_BRANCH}; \
 	fi
