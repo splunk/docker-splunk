@@ -163,13 +163,13 @@ The Docker Container contains a script for the generation of random keys, hec to
 generate a set of defaults that you can use in your environment
 
 ```
-$ docker run splunk/splunk-debian-9:latest create-defaults > test_scenarios/defaults/default.yml
+$ docker run --rm splunk/splunk-debian-9:latest create-defaults > test_scenarios/defaults/default.yml
 ```
 
 you can also pre-seed the password in your default file:
 
 ```
-$ docker run -e "SPLUNK_PASSWORD=<password>" splunk/splunk-debian-9:latest create-defaults > <fullpath_to_images_repo>/test_scenarios/defaults/default.yml
+$ docker run --rm -e "SPLUNK_PASSWORD=<password>" splunk/splunk-debian-9:latest create-defaults > <fullpath_to_images_repo>/test_scenarios/defaults/default.yml
 ```
 
 ## Starting Splunk Enterprise with a default.yml file ##
