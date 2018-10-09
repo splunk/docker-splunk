@@ -7,6 +7,12 @@ Please note we have a code of conduct. Please follow it in all your interactions
 
 ## Pull Request Process
 
+We can only accept pull requests (a) that are submitted by splunk employees or (b) that have signed our contribution agreement:
+
+    for individuals: https://www.splunk.com/goto/individualcontributions
+    for organizations: https://www.splunk.com/goto/contributions
+
+- Steps
 1. Ensure any install or build dependencies are removed before the end of the layer when doing a build.
 2. Update  `documentation/CHANGELOG.md` with details of changes to the interface, including new environment variables, exposed ports, useful file locations, and container parameters. Also, update the necessary documentation.
 3. Increase the version numbers in `splunk/<template>/version.json`. The versioning scheme we use is [SemVer](http://semver.org/).
