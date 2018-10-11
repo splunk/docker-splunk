@@ -74,9 +74,9 @@ clusters, please see [ADVANCED](documentation/ADVANCED.md)
 If you have questions or need support, you can:
 
 * Post a question to [Splunk Answers](http://answers.splunk.com)
-* Join the [Splunk Slack channel](http://splunk-usergroups.slack.com)
-* Visit the #splunk channel on [EFNet Internet Relay Chat](http://www.efnet.org)
-* Send an email to [docker-maint@splunk.com](mailto:docker-maint@splunk.com)
+* Join the [#docker](https://splunk-usergroups.slack.com/messages/C1RH09ERM/) room in the [Splunk Slack channel](http://splunk-usergroups.slack.com)
+* If you are a Splunk Enterprise customer with a valid support entitlement contract, and have a Splunk related question you can also open a support case on the https://www.splunk.com/ support portal.
+* For details on the supported architectures, please refer to the documentation http://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms
 
 Please also see [TROUBLESHOOTING](documentation/TROUBLESHOOTING.md)
 
