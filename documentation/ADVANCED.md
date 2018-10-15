@@ -23,7 +23,7 @@ Splunk's Docker container has several functions that can be configured. These op
 by passing in environment variables. Below is a list of environment variables that may/must be used when starting the docker container. 
 
 #### Valid Enterprise Environment Variables
-|Environment Variable Name| Description | Required for Standalone| Required for Search Head Clustering | Required for Index Clustering |
+| Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
 |---|---|:---:|:---:|:---:|
 | SPLUNK_BUILD_URL | URL to Splunk build where we can fetch a Splunk build to install | no | no | no |
 | SPLUNK_DEFAULTS_URL | Defaults.yml URL | no | no | no |
@@ -39,11 +39,13 @@ by passing in environment variables. Below is a list of environment variables th
 | SPLUNK_DEPLOYER_URL | One Splunk Enterprise deployer host (network alias) | no | yes | no |
 | SPLUNK_CLUSTER_MASTER_URL | One Splunk Enterprise cluster master host (network alias) | no | no | yes |
 | SPLUNK_SEARCH_HEAD_CAPTAIN_URL | One Splunk Enterprise search head host (network alias). Passing this ENV variable will enable search head clustering. | no | yes | no |
-| SPLUNK_PASSWORD | Default password of the admin user| yes  | yes | yes |
+| SPLUNK_PASSWORD* | Default password of the admin user| yes | yes | yes |
 | SPLUNK_HEC_TOKEN | HEC (HTTP Event Collector) Token when enabled | no | no | no |
 | SPLUNK_SHC_SECRET | Search Head Clustering Shared secret | no | yes | no |
 | SPLUNK_IDXC_SECRET | Indexer Clustering Shared Secret | no | no | yes |
 | NO_HEALTHCHECK | Disable the Splunk healthcheck script | no | no | yes |
+
+* Password must be set either in defaults.yml or as the environment variable `SPLUNK_PASSWORD`
 
 #### Valid Universal Forwarder Environment Variables
 |Environment Variable Name| Description | Required for Standalone| Required for Search Head Clustering | Required for Index Clustering |
