@@ -39,6 +39,8 @@ by passing in environment variables. Below is a list of environment variables th
 | SPLUNK_DEPLOYER_URL | One Splunk Enterprise deployer host (network alias) | no | yes | no |
 | SPLUNK_CLUSTER_MASTER_URL | One Splunk Enterprise cluster master host (network alias) | no | no | yes |
 | SPLUNK_SEARCH_HEAD_CAPTAIN_URL | One Splunk Enterprise search head host (network alias). Passing this ENV variable will enable search head clustering. | no | yes | no |
+| SPLUNK_S2S_PORT | Default Forwarding Port | no | no | no |
+| SPLUNK_SVC_PORT | Default Admin Port | no | no | no |
 | SPLUNK_PASSWORD* | Default password of the admin user| yes | yes | yes |
 | SPLUNK_HEC_TOKEN | HEC (HTTP Event Collector) Token when enabled | no | no | no |
 | SPLUNK_SHC_SECRET | Search Head Clustering Shared secret | no | yes | no |
