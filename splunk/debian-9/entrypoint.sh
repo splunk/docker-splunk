@@ -20,7 +20,7 @@ setup() {
 	# Check if the user accepted the license
 	if [[ "$SPLUNK_START_ARGS" != *"--accept-license"* ]]; then
 		printf "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag\n"
-		printf "For example: docker run -e SPLUNK_START_ARGS=--accept-license splunk/splunk\n\n"
+		printf "For example: docker run -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD splunk/splunk\n\n"
 		printf "For additional information and examples, see the help: docker run -it splunk/splunk help\n"
 		exit 1
 	fi
