@@ -161,8 +161,12 @@ class TestDebian9(object):
                 return False
             healthy_count = 0
             for container in containers:
-                if "healthy" in container["Status"]:
+            	# If there's a healthcheck, validate healthy status
+                if "(" in container["Status"] and "healthy" in container["Status"]:
                     healthy_count += 1
+                # If there's no healthcheck, let it pass
+                elif "(" not in container["Status"]:
+                	healthy_count += 1
             if healthy_count == count:
                 break
             time.sleep(10)
@@ -391,7 +395,28 @@ class TestDebian9(object):
         splunk_hec_port = self.client.port(so1["Id"], 8088)
         resp = requests.post("https://localhost:{}/services/collector/event".format(splunk_hec_port[0]["HostPort"]), 
                              headers={"Authorization": "Splunk abcd1234"}, json={"event": "hello world"}, verify=False)
-        assert resp.status_code == 200 
+        assert resp.status_code == 200
+
+    def test_compose_1so_apps(self):
+        # Standup deployment
+        self.compose_file_name = "1so_apps.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to be healthy
+        assert self.wait_for_containers(container_count)
+        # Check to make sure the app got installed
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        assert len(containers) == 2
+        for container in containers:
+        	if "nginx" in container["Image"]:
+        		continue
+        	splunkd_port = self.client.port(container["Id"], 8089)
+        	resp = requests.get("https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port[0]["HostPort"]), 
+        						 auth=("admin", self.password), verify=False)
+        	assert resp.status_code == 200 
+        	output = json.loads(resp.content)
+        	assert output["entry"][0]["content"]["version"] == "0.0.1"
 
     def test_compose_1uf_hec(self):
         # Standup deployment
@@ -410,7 +435,28 @@ class TestDebian9(object):
         splunk_hec_port = self.client.port(uf1["Id"], 8088)
         resp = requests.post("https://localhost:{}/services/collector/event".format(splunk_hec_port[0]["HostPort"]), 
                              headers={"Authorization": "Splunk abcd1234"}, json={"event": "hello world"}, verify=False)
-        assert resp.status_code == 200 
+        assert resp.status_code == 200
+
+    def test_compose_1uf_apps(self):
+        # Standup deployment
+        self.compose_file_name = "1uf_apps.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to be healthy
+        assert self.wait_for_containers(container_count)
+        # Check to make sure the app got installed
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        assert len(containers) == 2
+        for container in containers:
+        	if "nginx" in container["Image"]:
+        		continue
+        	splunkd_port = self.client.port(container["Id"], 8089)
+        	resp = requests.get("https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port[0]["HostPort"]), 
+        						 auth=("admin", self.password), verify=False)
+        	assert resp.status_code == 200 
+        	output = json.loads(resp.content)
+        	assert output["entry"][0]["content"]["version"] == "0.0.1"
 
     def test_compose_1uf1so(self):
         # Standup deployment
