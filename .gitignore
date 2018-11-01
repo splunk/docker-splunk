@@ -6,3 +6,4 @@ splunk-ansible
 .pytest_cache
 **/*.pyc
 *.xml
+.env
