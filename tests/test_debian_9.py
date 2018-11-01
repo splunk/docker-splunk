@@ -18,6 +18,8 @@ from string import ascii_lowercase
 # Code to suppress insecure https warnings
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+import urllib3
+urllib3.disable_warnings()
 
 
 FILE_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -172,10 +174,7 @@ class TestDebian9(object):
         retries = 5
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         for container in containers:
-            splunkd_port = 0
-            for port in container["Ports"]:
-                if port["PrivatePort"] == 8089:
-                    splunkd_port = port["PublicPort"]
+            splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
             for i in range(retries):
                 self.logger.info("Attempt {} - checking splunkd on container {} at port {}".format(i, container["Names"][0], splunkd_port))
                 try:
@@ -351,17 +350,6 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
 
-    def test_compose_1so_namedvolumes(self):
-        # Standup deployment
-        self.compose_file_name = "1so_namedvolumes.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to be healthy
-        assert self.wait_for_containers(container_count)
-        # Check Splunkd on all the containers
-        assert self.check_splunkd("admin", self.password)
-
     def test_compose_1so_command_start(self):
         # Standup deployment
         self.compose_file_name = "1so_command_start.yaml"
@@ -383,6 +371,26 @@ class TestDebian9(object):
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+
+    def test_compose_1so_hec(self):
+        # Standup deployment
+        self.compose_file_name = "1so_hec.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to be healthy
+        assert self.wait_for_containers(container_count)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check HEC works - note the token "abcd1234" is hard-coded within the 1so_hec.yaml compose
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        assert len(containers) == 1
+        so1 = containers[0]
+        splunk_hec_port = self.client.port(so1["Id"], 8088)
+        print splunk_hec_port
+        resp = requests.post("https://localhost:{}/services/collector/event".format(splunk_hec_port[0]["HostPort"]), 
+                             headers={"Authorization": "Splunk abcd1234"}, json={"event": "hello world"}, verify=False)
+        assert resp.status_code == 200 
 
     def test_compose_1uf1so(self):
         # Standup deployment
