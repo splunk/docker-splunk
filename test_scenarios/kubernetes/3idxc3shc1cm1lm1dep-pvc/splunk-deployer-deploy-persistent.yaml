@@ -2,7 +2,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: license-master 
+  name: deployer 
   #namespace: splunk
 spec:
   replicas: 1
@@ -10,10 +10,10 @@ spec:
     metadata:
       labels:
         app: splunk
-        role: splunk_license_master
-        tier: management 
+        role: splunk_deployer
+        tier: management
     spec:
-      hostname: license-master
+      hostname: deployer
       #serviceAccountName: splunk
       dnsPolicy: ClusterFirst
       dnsConfig:
@@ -21,7 +21,7 @@ spec:
           - indexer.splunk.svc.cluster.local
           - search.splunk.svc.cluster.local
       containers:
-        - name: license-master
+        - name: deployer
           image: splunk/splunk:latest
           env:
             - name: SPLUNK_HOME
@@ -29,9 +29,13 @@ spec:
             - name: SPLUNK_DEFAULTS_URL
               value: http://splunk-defaults/default.yml
             - name: SPLUNK_ROLE
-              value: splunk_license_master
-            - name: SPLUNK_LICENSE_URI
-              value: http://splunk-defaults/mySplunkLicense.lic
+              value: splunk_deployer
+            - name: SPLUNK_SEARCH_HEAD_URL
+              value: search-0,search-1
+            - name: SPLUNK_DEPLOYER_URL
+              value: deployer
+            - name: SPLUNK_SEARCH_HEAD_CAPTAIN_URL
+              value: captain 
             - name: SPLUNK_PASSWORD
               value: helloworld
             - name: SPLUNK_START_ARGS
@@ -39,13 +43,7 @@ spec:
             - name: SPLUNK_CLUSTER_MASTER_URL
               value: master
             - name: SPLUNK_INDEXER_URL
-              value: indexer-0,indexer-1,indexer-2 
-            - name: SPLUNK_SEARCH_HEAD_URL
-              value: search-0,search-1
-            - name: SPLUNK_DEPLOYER_URL
-              value: deployer
-            - name: SPLUNK_SEARCH_HEAD_CAPTAIN_URL
-              value: captain
+              value: indexer-0,indexer-1,indexer-2
             - name: DEBUG
               value: "true"
           #resources:
@@ -64,17 +62,19 @@ spec:
               containerPort: 8000
             - name: mgmt
               containerPort: 8089
-          #  - name: kv
-          #    containerPort: 8191
+            - name: kv
+              containerPort: 8191
           #  - name: indexing
           #    containerPort: 9997
           volumeMounts:
-            - name: splunk-license-data
+            - name: splunk-deployer-data
               mountPath: /opt/splunk/var
-            - name: splunk-license-config
+            - name: splunk-deployer-config
               mountPath: /opt/splunk/etc
       volumes:
-        - name: splunk-license-config
-          emptyDir: {}
-        - name: splunk-license-data
-          emptyDir: {}
+        - name: splunk-deployer-config
+          persistentVolumeClaim:
+            claimName: splunk-deployer-config
+        - name: splunk-deployer-data
+          persistentVolumeClaim:
+            claimName: splunk-deployer-data

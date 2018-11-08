@@ -75,6 +75,8 @@ spec:
               mountPath: /opt/splunk/etc
       volumes:
         - name: splunk-license-config
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: splunk-license-config
         - name: splunk-license-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: splunk-license-data
