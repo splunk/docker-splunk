@@ -1,0 +1,13 @@
+steps:
+  # Pull splunk-ansible
+  - name: 'gcr.io/cloud-builders/git'
+    args: ['clone', 'https://github.com/splunk/splunk-ansible.git',  '--branch', 'master']
+    
+  # Provision CI runner
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-f', 'Dockerfile.ci-runner', '-t', 'ci-runner', '.']
+    dir: 'tests'
+
+  # Run tests
+  - name: "ci-runner"
+    args: [ "pytest", "-sv", "tests/test_debian_9.py::TestDebian9::test_splunk_entrypoint_help" ]
