@@ -46,17 +46,6 @@ spec:
               value: captain
             - name: DEBUG
               value: "true"
-          #resources:
-          #  requests:
-          #    cpu: 100m
-          #    memory: 256Mi
-          #readinessProbe:
-          #  httpGet:
-          #    path: /en-US/account/login
-          #    port: web
-          #  initialDelaySeconds: 5
-          #  periodSeconds: 5
-          #  failureThreshold: 20
           ports:
             - name: web
               containerPort: 8000
