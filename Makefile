@@ -1,4 +1,4 @@
-SHELL := /bin/bash
+SHELL := /bin/sh
 IMAGE_VERSION ?= "latest"
 DOCKER_BUILD_FLAGS = 
 TEST_IMAGE_NAME = "spldocker"
