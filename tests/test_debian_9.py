@@ -273,8 +273,8 @@ class TestDebian9(object):
         assert "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag" in output
     
     @pytest.mark.skipif(os.path.isfile("/.dockerenv"), reason="Volume mounting is wonky from within another container")
-    def test_adhoc_1so_using_defaults_yml(self):
-        # Generate defaults.yml
+    def test_adhoc_1so_using_default_yml(self):
+        # Generate default.yml
         cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
@@ -283,7 +283,7 @@ class TestDebian9(object):
         assert password
         with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
             f.write(output)
-        # Create the container and mount the defaults.yml
+        # Create the container and mount the default.yml
         cid = None
         try:
             splunk_container_name = generate_random_string()
