@@ -1,0 +1,34 @@
+image: docker:latest
+
+services:
+- docker:dind
+
+stages:
+- build
+- test
+- deploy
+
+before_script:
+- docker info
+- apk update
+- apk upgrade
+- apk add git python python-dev py-pip build-base
+- pip install docker-compose
+
+build:
+  stage: build
+  script: make splunk
+
+test:
+  stage: test
+  script:
+  - pip install -r tests/requirements.txt
+  - make test
+  artifacts:
+    reports:
+      junit: testresults.xml
+      
+deploy:
+  stage: deploy
+  script: echo "Reached deploy step, pipeline done"
+
