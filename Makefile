@@ -103,6 +103,9 @@ test_helper:
 	@echo 'Running the super awesome tests'
 	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "cd $(shell pwd); pytest -sv tests/ --junitxml testresults.xml"
 
+	@echo 'Copying test results from container'
+	docker cp ${TEST_IMAGE_NAME}:$(shell pwd)/testresults.xml . || echo "Cannot copy testresults.xml; no file on container"
+
 test_collection_cleanup:
 	docker cp ${TEST_IMAGE_NAME}:$(shell pwd)/testresults.xml testresults.xml || echo "no testresults.xml"
 
