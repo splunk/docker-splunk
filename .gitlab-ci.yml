@@ -17,7 +17,7 @@ before_script:
 
 build:
   stage: build
-  script: make base
+  script: make splunk
 
 test:
   stage: test
@@ -31,4 +31,3 @@ test:
 deploy:
   stage: deploy
   script: echo "Reached deploy step, pipeline done"
-
