@@ -23,6 +23,7 @@ SPLUNK_WIN_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 SPLUNK_WIN_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/windows/${SPLUNK_WIN_FILENAME}
 UF_WIN_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/windows/${UF_WIN_FILENAME}
+TESTS ?= tests/
 
 .PHONY: tests interactive_tutorials
 
@@ -101,7 +102,7 @@ test_helper:
 	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "pip install -r $(shell pwd)/tests/requirements.txt --upgrade"
 
 	@echo 'Running the super awesome tests'
-	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "cd $(shell pwd); pytest -sv tests/ --junitxml testresults.xml"
+	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "cd $(shell pwd); pytest -sv ${TESTS} --junitxml testresults.xml"
 
 	@echo 'Copying test results from container'
 	docker cp ${TEST_IMAGE_NAME}:$(shell pwd)/testresults.xml . || echo "Cannot copy testresults.xml; no file on container"

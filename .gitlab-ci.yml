@@ -23,8 +23,7 @@ test:
   stage: test
   script:
   - pip install -r tests/requirements.txt
-  - pytest -sv tests/test_debian_9.py::TestDebian9::test_compose_1so_trial --junitxml testresults.xml
-  - ls -al
+  - TESTS=tests/test_debian_9.py::TestDebian9::test_uf_entrypoint_help make test
   artifacts:
     reports:
       junit: testresults.xml
