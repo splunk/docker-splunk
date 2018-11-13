@@ -19,14 +19,14 @@ make splunk
 ```
 
 ## Advanced Configurations ##
-Splunk's Docker container has several functions that can be configured. These options are specified by either supplying a `defaults.yml` file or
+Splunk's Docker container has several functions that can be configured. These options are specified by either supplying a `default.yml` file or
 by passing in environment variables. Below is a list of environment variables that may/must be used when starting the docker container. 
 
 #### Valid Enterprise Environment Variables
 | Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
 |---|---|:---:|:---:|:---:|
 | SPLUNK_BUILD_URL | URL to Splunk build where we can fetch a Splunk build to install | no | no | no |
-| SPLUNK_DEFAULTS_URL | Defaults.yml URL | no | no | no |
+| SPLUNK_DEFAULTS_URL | default.yml URL | no | no | no |
 | SPLUNK_UPGRADE | If this is True, we won’t run any provisioning after installation. Use this to upgrade and redeploy containers with a newer version of Splunk. | no | no | no |
 | SPLUNK_ROLE | Specify the container’s current Splunk Enterprise role. Supported Roles: splunk_standalone, splunk_indexer, splunk_deployer, splunk_search_head, etc. | no | yes | yes |
 | DEBUG | Print Ansible vars to stdout (supports Docker logging) | no | no | no |
@@ -47,7 +47,7 @@ by passing in environment variables. Below is a list of environment variables th
 | SPLUNK_IDXC_SECRET | Indexer Clustering Shared Secret | no | no | yes |
 | NO_HEALTHCHECK | Disable the Splunk healthcheck script | no | no | yes |
 
-* Password must be set either in defaults.yml or as the environment variable `SPLUNK_PASSWORD`
+* Password must be set either in default.yml or as the environment variable `SPLUNK_PASSWORD`
 
 #### Valid Universal Forwarder Environment Variables
 |Environment Variable Name| Description | Required for Standalone| Required for Search Head Clustering | Required for Index Clustering |

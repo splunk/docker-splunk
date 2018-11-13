@@ -38,7 +38,7 @@ See https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-i
 
 The new Splunk Docker image contains logic that allows your default.yml and license files to be centrally served via url. 
 
-To demonstrate this capability, Nginx will be used to host our defaults.yml and our license.
+To demonstrate this capability, Nginx will be used to host our default.yml and our license.
 
 Assuming you have pulled splunk:latest successfully, you can navigate to the ```nginx-data-www``` folder and use the following command to generate a sample default.yml
 
