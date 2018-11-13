@@ -17,7 +17,7 @@ before_script:
 
 build:
   stage: build
-  script: make splunk
+  script: make base
 
 test:
   stage: test
