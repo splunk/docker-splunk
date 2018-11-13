@@ -23,7 +23,7 @@ test:
   stage: test
   script:
   - pip install -r tests/requirements.txt
-  - pytest -sv tests/test_debian_9.py::TestDebian9::test_splunk_entrypoint_help --junitxml testresults.xml
+  - pytest -sv tests/test_debian_9.py::TestDebian9::test_uf_entrypoint_help --junitxml testresults.xml
   - ls -al
   artifacts:
     reports:
