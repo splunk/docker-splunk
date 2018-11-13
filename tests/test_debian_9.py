@@ -10,6 +10,7 @@ import yaml
 import docker
 import requests
 import subprocess
+import tarfile
 import logging
 import logging.handlers
 import json
@@ -26,6 +27,8 @@ FILE_DIR = os.path.dirname(os.path.realpath(__file__))
 FIXTURES_DIR = os.path.join(FILE_DIR, "fixtures")
 REPO_DIR = os.path.join(FILE_DIR, "..")
 SCENARIOS_DIR = os.path.join(FILE_DIR, "..", "test_scenarios")
+EXAMPLE_APP = os.path.join(FIXTURES_DIR, "splunk_app_example")
+EXAMPLE_APP_TGZ = os.path.join(FIXTURES_DIR, "splunk_app_example.tgz")
 # Setup logging
 LOGGER = logging.getLogger("image_test")
 LOGGER.setLevel(logging.INFO)
@@ -398,6 +401,9 @@ class TestDebian9(object):
         assert resp.status_code == 200
 
     def test_compose_1so_apps(self):
+        # Tar the app before spinning up the scenario
+        with tarfile.open(EXAMPLE_APP_TGZ, "w:gz") as tar:
+            tar.add(EXAMPLE_APP, arcname=os.path.basename(EXAMPLE_APP))
         # Standup deployment
         self.compose_file_name = "1so_apps.yaml"
         self.project_name = generate_random_string()
@@ -417,6 +423,10 @@ class TestDebian9(object):
         	assert resp.status_code == 200 
         	output = json.loads(resp.content)
         	assert output["entry"][0]["content"]["version"] == "0.0.1"
+        try:
+            os.remove(EXAMPLE_APP_TGZ)
+        except OSError as e:
+            pass
 
     def test_compose_1uf_hec(self):
         # Standup deployment
@@ -438,6 +448,9 @@ class TestDebian9(object):
         assert resp.status_code == 200
 
     def test_compose_1uf_apps(self):
+        # Tar the app before spinning up the scenario
+        with tarfile.open(EXAMPLE_APP_TGZ, "w:gz") as tar:
+            tar.add(EXAMPLE_APP, arcname=os.path.basename(EXAMPLE_APP))
         # Standup deployment
         self.compose_file_name = "1uf_apps.yaml"
         self.project_name = generate_random_string()
@@ -457,6 +470,10 @@ class TestDebian9(object):
         	assert resp.status_code == 200 
         	output = json.loads(resp.content)
         	assert output["entry"][0]["content"]["version"] == "0.0.1"
+        try:
+            os.remove(EXAMPLE_APP_TGZ)
+        except OSError as e:
+            pass
 
     def test_compose_1uf1so(self):
         # Standup deployment
