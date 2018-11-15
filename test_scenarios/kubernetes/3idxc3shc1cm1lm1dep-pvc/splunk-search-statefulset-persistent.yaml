@@ -2,7 +2,6 @@ apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
   name: search
-  #namespace: splunk
 spec:
   replicas: 2 
   serviceName: search
@@ -28,13 +27,11 @@ spec:
         role: splunk_search_head
         tier: shcluster
     spec:
-      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst 
       dnsConfig:
         searches: 
           - indexer.splunk.svc.cluster.local
           - search.splunk.svc.cluster.local 
-        searches:   
       containers:
         - name: search
           image: splunk/splunk:latest

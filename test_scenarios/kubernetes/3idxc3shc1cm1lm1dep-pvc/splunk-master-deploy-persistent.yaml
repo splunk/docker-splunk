@@ -3,7 +3,6 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: master 
-  #namespace: splunk
 spec:
   replicas: 1
   template:
@@ -14,7 +13,6 @@ spec:
         tier: idxcluster
     spec:
       hostname: master
-      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst 
       dnsConfig:
         searches: 

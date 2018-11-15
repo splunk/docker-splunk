@@ -3,7 +3,6 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: master 
-  #namespace: splunk
 spec:
   replicas: 1
   template:
@@ -18,7 +17,6 @@ spec:
       dnsConfig:
         searches:
           - indexer.splunk.svc.cluster.local
-      #serviceAccountName: splunk
       containers:
         - name: master
           image: splunk/splunk:latest

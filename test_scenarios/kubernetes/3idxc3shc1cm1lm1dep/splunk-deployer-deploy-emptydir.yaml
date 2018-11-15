@@ -3,7 +3,6 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: deployer 
-  #namespace: splunk
 spec:
   replicas: 1
   template:
@@ -14,7 +13,6 @@ spec:
         tier: management
     spec:
       hostname: deployer
-      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst
       dnsConfig:
         searches:
