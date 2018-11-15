@@ -10,7 +10,7 @@ spec:
       labels:
         app: splunk
         role: splunk_cluster_master
-        tier: idxcluster
+        tier: management 
     spec:
       hostname: master
       dnsPolicy: ClusterFirst 

@@ -10,7 +10,7 @@ spec:
       labels:
         app: splunk
         role: splunk_search_head
-        tier: shcluster
+        tier: search 
     spec:
       dnsPolicy: ClusterFirst 
       dnsConfig:

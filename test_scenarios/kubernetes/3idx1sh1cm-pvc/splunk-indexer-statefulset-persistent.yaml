@@ -25,7 +25,7 @@ spec:
       labels:
         app: splunk
         role: splunk_indexer
-        tier: idxcluster
+        tier: indexer 
     spec:
       dnsPolicy: ClusterFirst
       dnsConfig:

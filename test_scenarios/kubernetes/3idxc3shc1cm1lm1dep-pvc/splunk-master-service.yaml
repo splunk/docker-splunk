@@ -5,7 +5,7 @@ metadata:
   name: master
   labels:
     app: splunk
-    tier: idxcluster 
+    tier: indexer 
 spec:
   selector:
     app: splunk

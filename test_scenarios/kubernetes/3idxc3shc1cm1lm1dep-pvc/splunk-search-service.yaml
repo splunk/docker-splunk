@@ -5,7 +5,7 @@ metadata:
   name: search 
   labels:
     app: splunk
-    tier: shcluster 
+    tier: search 
 spec:
   selector:
     app: splunk
