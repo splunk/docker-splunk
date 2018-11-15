@@ -3,7 +3,6 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: splunk-captain-data
-  namespace: splunk
 spec:
   accessModes:
   - ReadWriteOnce
@@ -15,7 +14,6 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: splunk-captain-config
-  namespace: splunk
 spec:
   accessModes:
   - ReadWriteOnce
