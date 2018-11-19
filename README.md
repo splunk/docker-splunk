@@ -81,6 +81,10 @@ If you have questions or need support, you can:
 
 Please also see [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
 
+# Documentation
+
+See [Docker Splunk Documentation](https://splunk.github.io/docker-splunk/)
+
 
 # License
 
