@@ -2,6 +2,10 @@ apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
   name: search
+  labels:
+    app: splunk
+    role: splunk_search_head
+    tier: search
 spec:
   replicas: 2 
   serviceName: search 

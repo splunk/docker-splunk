@@ -5,11 +5,13 @@ metadata:
   name: search 
   labels:
     app: splunk
+    role: splunk_search_head
     tier: search 
 spec:
   selector:
     app: splunk
     role: splunk_search_head
+    tier: search
   ports:
     - name: splunkweb
       port: 8000

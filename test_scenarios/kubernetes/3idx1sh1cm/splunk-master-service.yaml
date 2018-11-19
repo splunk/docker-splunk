@@ -5,11 +5,13 @@ metadata:
   name: master
   labels:
     app: splunk
+    role: splunk_cluster_master
     tier: management 
 spec:
   selector:
     app: splunk
     role: splunk_cluster_master
+    tier: management
   ports:
     - name: splunkweb
       port: 8000 

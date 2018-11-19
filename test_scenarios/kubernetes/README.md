@@ -22,7 +22,7 @@ The example yamls are configured to pull from ```splunk/splunk:latest```. Ensure
 
 * Namespace
 
-This deployment assumes you are deploying to a namespace called ```splunk```. If you would like to change the namespace, you can update the kubectl commands or update the yamls to include the namespace. You will also need to update the ```dnsConfig`` for the statefulsets accordingly:
+This deployment assumes you are deploying to a namespace called ```splunk```. If you would like to change the namespace, you can update the kubectl commands or update the yamls to include the namespace. You will also need to update the ```dnsConfig``` for the statefulsets accordingly:
 
 ``` 
 dnsPolicy: ClusterFirst

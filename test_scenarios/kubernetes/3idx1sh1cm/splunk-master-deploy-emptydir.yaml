@@ -3,6 +3,10 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: master 
+  labels:
+    app: splunk
+    role: splunk_cluster_master
+    tier: management
 spec:
   replicas: 1
   template:

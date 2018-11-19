@@ -2,7 +2,11 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: captain 
+  name: captain
+  labels:
+    app: splunk
+    role: splunk_search_head_captain
+    tier: search
 spec:
   replicas: 1
   template:

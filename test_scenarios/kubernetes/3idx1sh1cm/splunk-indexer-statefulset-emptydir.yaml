@@ -2,6 +2,10 @@ apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
   name: indexer
+  labels:
+    app: splunk
+    role: splunk_indexer
+    tier: indexer
 spec:
   replicas: 3
   serviceName: indexer

@@ -5,11 +5,13 @@ metadata:
   name: indexer 
   labels:
     app: splunk
+    role: splunk_indexer
     tier: indexer 
 spec:
   selector:
     app: splunk
     role: splunk_indexer
+    tier: indexer
   ports:
     - name: splunkweb
       port: 8000
