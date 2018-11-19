@@ -14,7 +14,7 @@ We can only accept pull requests (a) that are submitted by splunk employees or (
 
 - Steps
 1. Ensure any install or build dependencies are removed before the end of the layer when doing a build.
-2. Update  `documentation/CHANGELOG.md` with details of changes to the interface, including new environment variables, exposed ports, useful file locations, and container parameters. Also, update the necessary documentation.
+2. Update  `docs/CHANGELOG.md` with details of changes to the interface, including new environment variables, exposed ports, useful file locations, and container parameters. Also, update the necessary documentation.
 3. Increase the version numbers in `splunk/<template>/version.json`. The versioning scheme we use is [SemVer](http://semver.org/).
 4. You may merge the Pull Request in once you have the sign-off of two other developers. If you
 do not have permission to do that, you may request the second reviewer to merge it for you.

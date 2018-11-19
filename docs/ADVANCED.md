@@ -1,7 +1,7 @@
 ## Advanced Usage ##
 This section shows several of the advanced functions of the container, as well as how to build a container
 from the github repo.  
-** Note: ** Not all sections below will leave your container in a supported state. See `documentation/SETUP.md` for the list of officially supported configurations. 
+** Note: ** Not all sections below will leave your container in a supported state. See `docs/SETUP.md` for the list of officially supported configurations. 
 
 ##### Building From Source (Unsupported) #####
 1. Download the Splunk Docker GitHub repository to your local development environment:
