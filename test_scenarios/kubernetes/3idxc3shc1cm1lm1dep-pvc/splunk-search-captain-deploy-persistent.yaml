@@ -64,6 +64,8 @@ spec:
               mountPath: /opt/splunk/etc
       volumes:
         - name: splunk-captain-config
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: splunk-captain-config
         - name: splunk-captain-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: splunk-captain-data

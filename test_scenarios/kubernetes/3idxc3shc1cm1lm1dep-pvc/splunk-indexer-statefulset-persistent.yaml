@@ -9,6 +9,29 @@ metadata:
 spec:
   replicas: 3
   serviceName: indexer
+  volumeClaimTemplates:
+  - metadata:
+      name: splunk-idxcluster-data
+      labels:
+        app: splunk
+        role: splunk_indexer
+        tier: indexer
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Gi
+  - metadata: 
+      name: splunk-idxcluster-config
+      labels:
+        app: splunk
+        role: splunk_indexer
+        tier: indexer
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
   template:
     metadata:
       labels:
@@ -20,16 +43,19 @@ spec:
       dnsConfig:
         searches:
           - indexer.splunk.svc.cluster.local
+          - search.splunk.svc.cluster.local
       containers:
         - name: indexer
           image: splunk/splunk:latest
-          env:    
+          env:
             - name: SPLUNK_HOME
-              value: /opt/splunk
+              value: /opt/splunk/
             - name: SPLUNK_DEFAULTS_URL
               value: http://splunk-defaults/default.yml
             - name: SPLUNK_START_ARGS
               value: "--accept-license"
+            - name: SPLUNK_PASSWORD
+              value: helloworld
             - name: SPLUNK_ROLE
               value: splunk_indexer
             - name: SPLUNK_CLUSTER_MASTER_URL
@@ -37,23 +63,21 @@ spec:
             - name: SPLUNK_INDEXER_URL
               value: indexer-0,indexer-1,indexer-2
             - name: SPLUNK_SEARCH_HEAD_URL
-              value: search
-            - name: SPLUNK_PASSWORD
-              value: helloworld
+              value: search-0,search-1
+            - name: SPLUNK_DEPLOYER_URL
+              value: deployer
+            - name: SPLUNK_SEARCH_HEAD_CAPTAIN_URL
+              value: captain
             - name: DEBUG
               value: "true"
           ports:
+            - containerPort: 8000
             - containerPort: 8088
             - containerPort: 8089
             - containerPort: 9997
             - containerPort: 4001 
           volumeMounts:
-            - name: splunk-idxcluster-config  
+            - name: splunk-idxcluster-config
               mountPath: /opt/splunk/etc
             - name: splunk-idxcluster-data
               mountPath: /opt/splunk/var
-      volumes:
-        - name: splunk-idxcluster-config
-          emptyDir: {}
-        - name: splunk-idxcluster-data
-          emptyDir: {}

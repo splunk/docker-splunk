@@ -2,6 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: splunk-defaults
+  labels:
+    app: splunk
+    role: splunk-defaults
+    tier: management
 spec:
   selector:
     matchLabels:
@@ -10,6 +14,9 @@ spec:
   template:
     metadata:
       labels:
+        app: splunk
+        role: splunk-defaults
+        tier: management
         name: splunk-defaults
     spec:
       containers:

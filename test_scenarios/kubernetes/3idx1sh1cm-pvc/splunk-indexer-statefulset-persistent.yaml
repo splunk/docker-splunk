@@ -9,6 +9,29 @@ metadata:
 spec:
   replicas: 3
   serviceName: indexer
+  volumeClaimTemplates:
+  - metadata:
+      name: splunk-idxcluster-data
+      labels:
+        app: splunk
+        role: splunk_indexer
+        tier: indexer
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Gi
+  - metadata: 
+      name: splunk-idxcluster-config
+      labels:
+        app: splunk
+        role: splunk_indexer
+        tier: indexer
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
   template:
     metadata:
       labels:
@@ -52,8 +75,3 @@ spec:
               mountPath: /opt/splunk/etc
             - name: splunk-idxcluster-data
               mountPath: /opt/splunk/var
-      volumes:
-        - name: splunk-idxcluster-config
-          emptyDir: {}
-        - name: splunk-idxcluster-data
-          emptyDir: {}

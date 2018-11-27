@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: splunk-captain-data
+  labels:
+    app: splunk
+    role: splunk_search_head_captain
+    tier: search
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: splunk-captain-config
+  labels:
+    app: splunk
+    role: splunk_search_head_captain
+    tier: search
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+

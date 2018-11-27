@@ -1,42 +1,51 @@
----
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1beta1
+kind: StatefulSet
 metadata:
-  name: master
-  labels:
-    app: splunk
-    role: splunk_cluster_master
-    tier: management 
+  name: search
 spec:
-  replicas: 1
+  replicas: 2 
+  serviceName: search
+  volumeClaimTemplates:
+  - metadata:
+      name: splunk-search-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Gi
+  - metadata: 
+      name: splunk-search-config
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
   template:
     metadata:
       labels:
         app: splunk
-        role: splunk_cluster_master
-        tier: management 
+        role: splunk_search_head
+        tier: search 
     spec:
-      hostname: master
-      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst 
       dnsConfig:
         searches: 
           - indexer.splunk.svc.cluster.local
-          - search.splunk.svc.cluster.local
+          - search.splunk.svc.cluster.local 
       containers:
-        - name: master
+        - name: search
           image: splunk/splunk:latest
           env:
             - name: SPLUNK_HOME
               value: /opt/splunk
             - name: SPLUNK_DEFAULTS_URL
               value: http://splunk-defaults/default.yml
-            - name: SPLUNK_ROLE
-              value: splunk_cluster_master
             - name: SPLUNK_PASSWORD
               value: helloworld
             - name: SPLUNK_START_ARGS
               value: "--accept-license"
+            - name: SPLUNK_ROLE
+              value: splunk_search_head
             - name: SPLUNK_CLUSTER_MASTER_URL
               value: master
             - name: SPLUNK_INDEXER_URL
@@ -50,17 +59,12 @@ spec:
             - name: DEBUG
               value: "true"
           ports:
-            - name: web
-              containerPort: 8000
-            - name: mgmt
-              containerPort: 8089
-          volumeMounts: 
-            - name: splunk-master-data
-              mountPath: /opt/splunk/var
-            - name: splunk-master-config
+            - containerPort: 8088
+            - containerPort: 8089
+            - containerPort: 8191 
+            - containerPort: 4001
+          volumeMounts:
+            - name: splunk-search-config
               mountPath: /opt/splunk/etc
-      volumes:
-        - name: splunk-master-config
-          emptyDir: {}
-        - name: splunk-master-data
-          emptyDir: {}
+            - name: splunk-search-data
+              mountPath: /opt/splunk/var

@@ -2,28 +2,28 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: captain
+  name: license-master
   labels:
     app: splunk
-    role: splunk_search_head_captain
-    tier: search
+    role: splunk_license_master
+    tier: management
 spec:
   replicas: 1
   template:
     metadata:
       labels:
         app: splunk
-        role: splunk_search_head_captain
-        tier: search
+        role: splunk_license_master
+        tier: management 
     spec:
-      hostname: captain
+      hostname: license-master
       dnsPolicy: ClusterFirst
       dnsConfig:
         searches:
           - indexer.splunk.svc.cluster.local
           - search.splunk.svc.cluster.local
       containers:
-        - name: captain
+        - name: license-master
           image: splunk/splunk:latest
           env:
             - name: SPLUNK_HOME
@@ -31,7 +31,9 @@ spec:
             - name: SPLUNK_DEFAULTS_URL
               value: http://splunk-defaults/default.yml
             - name: SPLUNK_ROLE
-              value: splunk_search_head_captain
+              value: splunk_license_master
+            - name: SPLUNK_LICENSE_URI
+              value: http://splunk-defaults/mySplunkLicense.lic
             - name: SPLUNK_PASSWORD
               value: helloworld
             - name: SPLUNK_START_ARGS
@@ -41,7 +43,7 @@ spec:
             - name: SPLUNK_INDEXER_URL
               value: indexer-0,indexer-1,indexer-2 
             - name: SPLUNK_SEARCH_HEAD_URL
-              value: search-0,search-1 
+              value: search-0,search-1
             - name: SPLUNK_DEPLOYER_URL
               value: deployer
             - name: SPLUNK_SEARCH_HEAD_CAPTAIN_URL
@@ -53,17 +55,15 @@ spec:
               containerPort: 8000
             - name: mgmt
               containerPort: 8089
-            - name: shc
-              containerPort: 4001
-            - name: kv 
-              containerPort: 8191
           volumeMounts:
-            - name: splunk-captain-data
+            - name: splunk-license-data
               mountPath: /opt/splunk/var
-            - name: splunk-captain-config
+            - name: splunk-license-config
               mountPath: /opt/splunk/etc
       volumes:
-        - name: splunk-captain-config
-          emptyDir: {}
-        - name: splunk-captain-data
-          emptyDir: {}
+        - name: splunk-license-config
+          persistentVolumeClaim:
+            claimName: splunk-license-config
+        - name: splunk-license-data
+          persistentVolumeClaim:
+            claimName: splunk-license-data
