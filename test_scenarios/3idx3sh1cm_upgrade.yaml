@@ -4,7 +4,7 @@ networks:
   splunknet:
     driver: bridge
     attachable: true
-  
+
 volumes:
   so1-etc:
   so1-var:
@@ -28,6 +28,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_UPGRADE=true
     ports:
       - 8000
       - 8089
@@ -35,7 +36,6 @@ services:
       - ./defaults:/tmp/defaults
       - so1-etc:/opt/splunk/etc
       - so1-var:/opt/splunk/var
-      
 
   sh2:
     networks:
@@ -55,6 +55,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_UPGRADE=true
     ports:
       - 8000
       - 8089
@@ -81,6 +82,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_UPGRADE=true
     ports:
       - 8000
       - 8089
@@ -107,6 +109,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_UPGRADE=true
     ports:
       - 8000
       - 8089
@@ -133,6 +136,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_UPGRADE=true
     ports:
       - 8000
       - 8089
@@ -159,6 +163,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_UPGRADE=true
     ports:
       - 8000
       - 8089
@@ -185,6 +190,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_UPGRADE=true
     ports:
       - 8000
       - 8089
