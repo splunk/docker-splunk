@@ -36,7 +36,8 @@ RUN groupadd -r ${SPLUNK_GROUP} \
     && wget -qO /tmp/${SPLUNK_FILENAME}.sha512 ${SPLUNK_BUILD_URL}.sha512 \
     && (cd /tmp && sha512sum -c ${SPLUNK_FILENAME}.sha512) \
     && mv /tmp/${SPLUNK_FILENAME} /tmp/splunk.tgz \
-    && rm -rf /tmp/${SPLUNK_FILENAME}.sha512
+    && rm -rf /tmp/${SPLUNK_FILENAME}.sha512 \
+    && chown ${SPLUNK_USER}:${SPLUNK_GROUP} /tmp/splunk.tgz
 
 USER ${SPLUNK_USER}
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
