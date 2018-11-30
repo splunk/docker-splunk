@@ -30,7 +30,7 @@ apt-get update
 
 # put back tools for customer support
 apt-cache show ansible
-apt-get install -y --no-install-recommends ansible curl sudo libgssapi-krb5-2 busybox procps
+apt-get install -y --no-install-recommends ansible curl sudo libgssapi-krb5-2 busybox procps acl
 apt-get install -y --no-install-recommends python-requests
 
 cd /bin
