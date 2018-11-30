@@ -1,0 +1,3 @@
+[submodule "splunk-ansible"]
+	path = splunk-ansible
+	url = https://github.com/splunk/splunk-ansible.git
