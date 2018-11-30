@@ -27,10 +27,9 @@ ENV SPLUNK_HOME=/opt/splunkforwarder \
     SPLUNK_OPT=/opt
 
 # Setup users and download Splunk
-RUN groupadd -r ${SPLUNK_GROUP} \
+RUN mkdir -p opt \
+    groupadd -r ${SPLUNK_GROUP} \
     && useradd -r -m -g ${SPLUNK_GROUP} ${SPLUNK_USER} \
-    && usermod -aG sudo ${SPLUNK_USER} \
-    && sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /etc/sudoers \
     && echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}" \
     && wget -qO /tmp/${SPLUNK_FILENAME} ${SPLUNK_BUILD_URL} \
     && wget -qO /tmp/${SPLUNK_FILENAME}.sha512 ${SPLUNK_BUILD_URL}.sha512 \
@@ -38,7 +37,6 @@ RUN groupadd -r ${SPLUNK_GROUP} \
     && mv /tmp/${SPLUNK_FILENAME} /tmp/splunk.tgz \
     && rm -rf /tmp/${SPLUNK_FILENAME}.sha512
 
-USER ${SPLUNK_USER}
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
 COPY [ "uf/debian-9/entrypoint.sh", "uf/debian-9/checkstate.sh", "uf/debian-9/createdefaults.py", "/sbin/"]
 COPY [ "uf/debian-9/bin/ta-dockerlogs_fileinput.tar.gz", "uf/debian-9/bin/ta-dockerstats.tar.gz", "/tmp/" ]

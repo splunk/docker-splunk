@@ -27,10 +27,9 @@ ENV SPLUNK_HOME=/opt/splunk \
     SPLUNK_ANSIBLE_HOME=/opt/ansible
 
 # Setup users and download Splunk
-RUN groupadd -r ${SPLUNK_GROUP} \
+RUN mkdir -p opt \
+    && groupadd -r ${SPLUNK_GROUP} \
     && useradd -r -m -g ${SPLUNK_GROUP} ${SPLUNK_USER} \
-    && usermod -aG sudo ${SPLUNK_USER} \
-    && sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /etc/sudoers \
     && echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}" \
     && wget -qO /tmp/${SPLUNK_FILENAME} ${SPLUNK_BUILD_URL} \
     && wget -qO /tmp/${SPLUNK_FILENAME}.sha512 ${SPLUNK_BUILD_URL}.sha512 \
@@ -39,7 +38,6 @@ RUN groupadd -r ${SPLUNK_GROUP} \
     && rm -rf /tmp/${SPLUNK_FILENAME}.sha512 \
     && chown ${SPLUNK_USER}:${SPLUNK_GROUP} /tmp/splunk.tgz
 
-USER ${SPLUNK_USER}
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
 COPY [ "splunk/debian-9/entrypoint.sh", "splunk/debian-9/checkstate.sh", "splunk/debian-9/createdefaults.py", "/sbin/" ]
 

@@ -25,8 +25,8 @@ setup() {
 		exit 1
 	fi
 
-	sudo mkdir -p /opt 
-	sudo chown -R ${SPLUNK_USER}:${SPLUNK_GROUP} /opt 
+	mkdir -p /opt
+	chown -R ${SPLUNK_USER}:${SPLUNK_GROUP} /opt
 }
 
 teardown() {
@@ -48,7 +48,7 @@ prep_ansible() {
 
 watch_for_failure(){
 	if [[ $? -eq 0 ]]; then
-		sudo sh -c "echo 'started' > /var/run/splunk-container.state"
+		sh -c "echo 'started' > /var/run/splunk-container.state"
 	fi
 	echo ===============================================================================
 	echo
@@ -68,21 +68,21 @@ start_and_exit() {
     then
         echo "WARNING: No password ENV var.  Stack may fail to provision if splunk.password is not set in ENV or a default.yml"
     fi
-	sudo sh -c "echo 'starting' > /var/run/splunk-container.state"
+	sh -c "echo 'starting' > /var/run/splunk-container.state"
 	setup
     prep_ansible
 	ansible-playbook $ANSIBLE_EXTRA_FLAGS -i inventory/environ.py site.yml
 }
 
 start() {
-    trap teardown EXIT 
+    trap teardown EXIT
 	start_and_exit
     watch_for_failure
 }
 
 restart(){
-	trap teardown EXIT 
-	sudo sh -c "echo 'restarting' > /var/run/splunk-container.state"
+	trap teardown EXIT
+	sh -c "echo 'restarting' > /var/run/splunk-container.state"
     prep_ansible
   	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
 	ansible-playbook -i inventory/environ.py start.yml
@@ -104,7 +104,7 @@ Environment Variables:
   * SPLUNK_GROUP - group under which to run Splunk (default: splunk)
   * SPLUNK_HOME - home directory where Splunk gets installed (default: /opt/splunk)
   * SPLUNK_START_ARGS - arguments to pass into the Splunk start command; you must include '--accept-license' to start Splunk (default: none)
-  * SPLUNK_STANDALONE_URL, SPLUNK_INDEXER_URL, ... - comma-separated list of resolvable aliases to properly bring-up a distributed environment. 
+  * SPLUNK_STANDALONE_URL, SPLUNK_INDEXER_URL, ... - comma-separated list of resolvable aliases to properly bring-up a distributed environment.
                                                      This is optional for the UF, but necessary if you want to forward logs to another containerized Splunk instance
   * SPLUNK_BUILD_URL - URL to a Splunk Universal Forwarder build which will be installed (instead of the image's default build)
   * SPLUNK_DEPLOYMENT_SERVER - A network alias to Splunk deployment server
