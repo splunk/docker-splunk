@@ -24,7 +24,7 @@
 if [ -n "$NO_HEALTHCHECK" ]
 then
 	#If NO_HEALTHCHECK is NOT defined, then we want the healthcheck
-	state="$(< /var/run/splunk-container.state)"
+	state="$(< ${SPLUNK_HOME}/splunk-container.state)"
 
 	case "$state" in
 	running|started)

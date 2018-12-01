@@ -24,9 +24,6 @@ setup() {
 		printf "For additional information and examples, see the help: docker run -it splunk/splunk help\n"
 		exit 1
 	fi
-
-	sudo mkdir -p /opt 
-	sudo chown -R ${SPLUNK_USER}:${SPLUNK_GROUP} /opt 
 }
 
 teardown() {
@@ -48,7 +45,7 @@ prep_ansible() {
 
 watch_for_failure(){
 	if [[ $? -eq 0 ]]; then
-		sudo sh -c "echo 'started' > /var/run/splunk-container.state"
+		sh -c "echo 'started' > ${SPLUNK_HOME}/splunk-container.state"
 	fi
 	echo ===============================================================================
 	echo
@@ -68,7 +65,7 @@ start_and_exit() {
     then
         echo "WARNING: No password ENV var.  Stack may fail to provision if splunk.password is not set in ENV or a default.yml"
     fi
-	sudo sh -c "echo 'starting' > /var/run/splunk-container.state"
+	sh -c "echo 'starting' > ${SPLUNK_HOME}/splunk-container.state"
 	setup
     prep_ansible
 	ansible-playbook $ANSIBLE_EXTRA_FLAGS -i inventory/environ.py site.yml
@@ -82,7 +79,7 @@ start() {
 
 restart(){
 	trap teardown EXIT 
-	sudo sh -c "echo 'restarting' > /var/run/splunk-container.state"
+	sh -c "echo 'restarting' > ${SPLUNK_HOME}/splunk-container.state"
     prep_ansible
   	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
 	ansible-playbook -i inventory/environ.py start.yml
