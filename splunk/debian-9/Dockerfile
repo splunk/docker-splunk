@@ -40,7 +40,7 @@ RUN groupadd -r ${SPLUNK_GROUP} \
     && chown -R ${SPLUNK_USER}:${SPLUNK_GROUP} $SPLUNK_HOME
 
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
-RUN  chmod -R 755 $SPLUNK_ANSIBLE_HOME
+RUN  chmod -R 555 $SPLUNK_ANSIBLE_HOME
 USER ${SPLUNK_USER}
 COPY [ "splunk/debian-9/entrypoint.sh", "splunk/debian-9/checkstate.sh", "splunk/debian-9/createdefaults.py", "/sbin/" ]
 

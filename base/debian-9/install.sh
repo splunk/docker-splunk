@@ -46,7 +46,7 @@ ln -s busybox syslogd
 ln -s busybox tail
 ln -s busybox traceroute
 ln -s busybox vi
-
+chmod u+s /bin/ping
 
 apt-get clean autoclean
 rm -rf /var/lib/apt/lists/*

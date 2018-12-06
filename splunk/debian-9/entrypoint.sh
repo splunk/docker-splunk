@@ -38,8 +38,8 @@ prep_ansible() {
 	if [[ "$DEBUG" == "true" ]]; then
 		ansible-playbook --version
 		python inventory/environ.py --write-to-file
-		cat /tmp/ansible_inventory.json
-		cat /opt/ansible/inventory/messages.txt || true
+		cat /tmp/ansible_inventory.json 2>/dev/null
+		cat /opt/ansible/inventory/messages.txt || true 2>/dev/null
 		echo
 	fi
 }
