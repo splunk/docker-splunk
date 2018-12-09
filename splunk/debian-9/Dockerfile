@@ -29,6 +29,8 @@ ENV SPLUNK_HOME=/opt/splunk \
 # Setup users and download Splunk
 RUN groupadd -r ${SPLUNK_GROUP} \
     && useradd -r -m -g ${SPLUNK_GROUP} ${SPLUNK_USER} \
+    && usermod -aG sudo ${SPLUNK_USER} \
+    && sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /etc/sudoers \
     && echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}" \
     && wget -qO /tmp/${SPLUNK_FILENAME} ${SPLUNK_BUILD_URL} \
     && wget -qO /tmp/${SPLUNK_FILENAME}.sha512 ${SPLUNK_BUILD_URL}.sha512 \
