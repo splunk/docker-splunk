@@ -72,13 +72,13 @@ start_and_exit() {
 }
 
 start() {
-    trap teardown EXIT 
+    trap teardown EXIT
 	start_and_exit
     watch_for_failure
 }
 
 restart(){
-	trap teardown EXIT 
+	trap teardown EXIT
 	sh -c "echo 'restarting' > ${SPLUNK_HOME}/splunk-container.state"
     prep_ansible
   	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
@@ -101,7 +101,7 @@ Environment Variables:
   * SPLUNK_GROUP - group under which to run Splunk (default: splunk)
   * SPLUNK_HOME - home directory where Splunk gets installed (default: /opt/splunk)
   * SPLUNK_START_ARGS - arguments to pass into the Splunk start command; you must include '--accept-license' to start Splunk (default: none)
-  * SPLUNK_STANDALONE_URL, SPLUNK_INDEXER_URL, ... - comma-separated list of resolvable aliases to properly bring-up a distributed environment. 
+  * SPLUNK_STANDALONE_URL, SPLUNK_INDEXER_URL, ... - comma-separated list of resolvable aliases to properly bring-up a distributed environment.
                                                      This is optional for the UF, but necessary if you want to forward logs to another containerized Splunk instance
   * SPLUNK_BUILD_URL - URL to a Splunk Universal Forwarder build which will be installed (instead of the image's default build)
   * SPLUNK_DEPLOYMENT_SERVER - A network alias to Splunk deployment server
@@ -113,6 +113,11 @@ Environment Variables:
 EOF
     exit 1
 }
+
+if [[ "$SPLUNK_ENABLE_SUDO" != "true" ]]; then
+    sudo bash -c "sudo sed -i -e 's/%sudo ALL=NOPASSWD:ALL/%sudo ALL=(ALL:ALL) ALL/g' /etc/sudoers ; sudo deluser -q splunk sudo"
+fi
+
 case "$1" in
 	start|start-service)
 		shift

@@ -31,7 +31,7 @@ teardown() {
 	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
 }
 
-trap teardown SIGINT SIGTERM 
+trap teardown SIGINT SIGTERM
 
 prep_ansible() {
 	cd ${SPLUNK_ANSIBLE_HOME}
@@ -73,13 +73,13 @@ start_and_exit() {
 }
 
 start() {
-    trap teardown EXIT 
+    trap teardown EXIT
 	start_and_exit
     watch_for_failure
 }
 
 restart(){
-    trap teardown EXIT 
+    trap teardown EXIT
 	sh -c "echo 'restarting' > ${SPLUNK_HOME}/splunk-container.state"
     prep_ansible
   	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
@@ -89,15 +89,15 @@ restart(){
 
 help() {
 	cat << EOF
-  ____        _             _      __  
- / ___| _ __ | |_   _ _ __ | | __  \ \\ 
+  ____        _             _      __
+ / ___| _ __ | |_   _ _ __ | | __  \ \\
  \___ \| '_ \| | | | | '_ \| |/ /   \ \\
   ___) | |_) | | |_| | | | |   <    / /
- |____/| .__/|_|\__,_|_| |_|_|\_\  /_/ 
-       |_|                            
+ |____/| .__/|_|\__,_|_| |_|_|\_\  /_/
+       |_|
 ========================================
 
-Environment Variables: 
+Environment Variables:
   * SPLUNK_USER - user under which to run Splunk (default: splunk)
   * SPLUNK_GROUP - group under which to run Splunk (default: splunk)
   * SPLUNK_HOME - home directory where Splunk gets installed (default: /opt/splunk)
@@ -110,15 +110,15 @@ Environment Variables:
         - splunk_deployer
         - splunk_license_master
         - splunk_cluster_master
-        - splunk_heavy_forwarder 
+        - splunk_heavy_forwarder
   * SPLUNK_LICENSE_URI - URI or local file path (absolute path in the container) to a Splunk license
-  * SPLUNK_STANDALONE_URL, SPLUNK_INDEXER_URL, ... - comma-separated list of resolvable aliases to properly bring-up a distributed environment. 
+  * SPLUNK_STANDALONE_URL, SPLUNK_INDEXER_URL, ... - comma-separated list of resolvable aliases to properly bring-up a distributed environment.
                                                      This is optional for standalones, but required for multi-node Splunk deployments.
   * SPLUNK_BUILD_URL - URL to a Splunk build which will be installed (instead of the image's default build)
   * SPLUNK_APPS_URL - comma-separated list of URLs to Splunk apps which will be downloaded and installed
 
 Examples:
-  * docker run -it -p 8000:8000 splunk/splunk start 
+  * docker run -it -p 8000:8000 splunk/splunk start
   * docker run -it -e SPLUNK_START_ARGS=--accept-license -p 8000:8000 -p 8089:8089 splunk/splunk start
   * docker run -it -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_LICENSE_URI=http://example.com/splunk.lic -p 8000:8000 splunk/splunk start
   * docker run -it -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_INDEXER_URL=idx1,idx2 -e SPLUNK_SEARCH_HEAD_URL=sh1,sh2 -e SPLUNK_ROLE=splunk_search_head --hostname sh1 --network splunknet --network-alias sh1 -e SPLUNK_PASSWORD=helloworld -e SPLUNK_LICENSE_URI=http://example.com/splunk.lic splunk/splunk start
@@ -126,6 +126,11 @@ Examples:
 EOF
     exit 1
 }
+
+if [[ "$SPLUNK_ENABLE_SUDO" != "true" ]]; then
+    sudo bash -c "sudo sed -i -e 's/%sudo ALL=NOPASSWD:ALL/%sudo ALL=(ALL:ALL) ALL/g' /etc/sudoers ; sudo deluser -q splunk sudo"
+fi
+
 case "$1" in
 	start|start-service)
 		shift
