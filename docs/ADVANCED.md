@@ -1,7 +1,8 @@
 ## Advanced Usage ##
 This section shows several of the advanced functions of the container, as well as how to build a container
-from the github repo.  
-** Note: ** Not all sections below will leave your container in a supported state. See `docs/SETUP.md` for the list of officially supported configurations. 
+from the github repo.
+
+** Note: ** Not all sections below will leave your container in a supported state. See `docs/SETUP.md` for the list of officially supported configurations.
 
 ##### Building From Source (Unsupported) #####
 1. Download the Splunk Docker GitHub repository to your local development environment:
@@ -9,7 +10,7 @@ from the github repo.
 git clone https://github.com/splunk/docker-splunk
 ```
 The supplied `Makefile` located inside the root of the project provides the ability to download any of the remaining
-components. 
+components.
 
 ** WARNING:** Modifications to the "base" image may result in Splunk being unable to start or run correctly.
 
@@ -20,7 +21,7 @@ make splunk
 
 ## Advanced Configurations ##
 Splunk's Docker container has several functions that can be configured. These options are specified by either supplying a `default.yml` file or
-by passing in environment variables. Below is a list of environment variables that may/must be used when starting the docker container. 
+by passing in environment variables. Below is a list of environment variables that may/must be used when starting the docker container.
 
 #### Valid Enterprise Environment Variables
 | Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
@@ -46,6 +47,7 @@ by passing in environment variables. Below is a list of environment variables th
 | SPLUNK_SHC_SECRET | Search Head Clustering Shared secret | no | yes | no |
 | SPLUNK_IDXC_SECRET | Indexer Clustering Shared Secret | no | no | yes |
 | NO_HEALTHCHECK | Disable the Splunk healthcheck script | no | no | yes |
+| SPLUNK_ENABLE_SUDO | Enables the ability for the splunk user to run sudo | no | no | no |
 
 * Password must be set either in default.yml or as the environment variable `SPLUNK_PASSWORD`
 
@@ -177,7 +179,7 @@ $ docker run --rm -e "SPLUNK_PASSWORD=<password>" splunk/splunk-debian-9:latest 
 ```
 
 ## Starting Splunk Enterprise with a default.yml file ##
-The following command is used to supply an advanced configuration to the container, specify a url location of the `default.yml` file, or volume mount in a default. To use the 
+The following command is used to supply an advanced configuration to the container, specify a url location of the `default.yml` file, or volume mount in a default. To use the
 `default.yml` created on the previous section, use the following syntax:
 
 ```
@@ -205,14 +207,14 @@ You can create a simple cluster with Docker Swarm using the following command:
 ```
 Please note that the provisioning process will run for a few minutes after this command completes
 while the Ansible plays run. Also, be warned that this configuration requires a lot of resources
-so running this on your laptop may make it hot and slow. 
+so running this on your laptop may make it hot and slow.
 
-To view port mappings run: 
+To view port mappings run:
 ```
- $> docker ps 
+ $> docker ps
 ```
 After several minutes, you should be able to log into one of the search heads `sh#`
-using the default username `admin` and the password you input at installation, or set through the Splunk UI. 
+using the default username `admin` and the password you input at installation, or set through the Splunk UI.
 
 Once finished, you can remove the cluster by running:
 ```
@@ -220,7 +222,7 @@ Once finished, you can remove the cluster by running:
 ```
 
 The `cluster_absolute_unit.yaml` file located in the test_scenarios folder is a
-Docker Compose file that can be used to mimic this type of deployment. 
+Docker Compose file that can be used to mimic this type of deployment.
 
 ```
 version: "3.6"
@@ -260,7 +262,7 @@ services:
       - 8000
     volumes:
       - ./defaults:/tmp/defaults
-``` 
+```
 It's important to understand how Docker knows how to configure each major container. Below is the above template broken down into its simplest components:
 
 ```
@@ -307,7 +309,7 @@ docker-compose -f cluster_absolute_unit.yaml up -d
 ```
 
 To support Splunk Enterprise's complex configurations, the Docker container utilizes Ansible which performs the required provisioning
-commands. You can use the `docker log` command to follow these logs. 
+commands. You can use the `docker log` command to follow these logs.
 
 `docker ps` will show a list of all the current running instances on this node. The cluster master gives the best indication of cluster health without needing to check every container.
 ```
@@ -359,7 +361,7 @@ Wednesday 29 August 2018  09:28:29 +0000 (0:00:00.123)       0:01:23.447 ******
 changed: [localhost] => (item=USERNAME)
 changed: [localhost] => (item=PASSWORD)
 ```
-Once Ansible has finished running, a summary screen will be displayed. 
+Once Ansible has finished running, a summary screen will be displayed.
 
 ```
 PLAY RECAP *********************************************************************
@@ -402,6 +404,6 @@ fatal: [localhost]: FAILED! => {"cache_control": "private", "changed": false, "c
 	to retry, use: --limit @/opt/ansible/ansible-retry/site.retry
 ```
 
-In the above example, the `default.yml` file didn't contain a password, nor was an environment variable set. 
+In the above example, the `default.yml` file didn't contain a password, nor was an environment variable set.
 
 Please see the [troubleshooting](TROUBLESHOOTING.md) section for more common issues that can occur. There you will also find instructions for producing Splunk diagnostics for support such as `splunk diag`, as well as instructions for downloading the full Splunk `ansible.log` file.
