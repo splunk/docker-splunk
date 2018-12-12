@@ -1,7 +1,8 @@
 SHELL := /bin/bash
 IMAGE_VERSION ?= "latest"
-DOCKER_BUILD_FLAGS = 
+DOCKER_BUILD_FLAGS =
 TEST_IMAGE_NAME = "spldocker"
+SPLUNK_ANSIBLE_REPO ?= https://github.com/splunk/splunk-ansible.git
 SPLUNK_ANSIBLE_BRANCH ?= master
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
@@ -32,7 +33,7 @@ ansible:
 	if [ -d "splunk-ansible" ]; then \
 		echo "Ansible directory exists - skipping clone"; \
 	else \
-		git clone https://github.com/splunk/splunk-ansible.git --branch ${SPLUNK_ANSIBLE_BRANCH}; \
+		git clone ${SPLUNK_ANSIBLE_REPO} --branch ${SPLUNK_ANSIBLE_BRANCH}; \
 	fi
 
 ##### Base images #####
