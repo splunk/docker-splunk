@@ -37,16 +37,19 @@ ansible:
 	fi
 
 ##### Base images #####
-base: base-debian-9 base-windows-2016
+base: base-debian-9 base-centos-7 base-windows-2016
 
 base-debian-9:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-9:${IMAGE_VERSION} ./base/debian-9
+
+base-centos-7:
+	docker build ${DOCKER_BUILD_FLAGS} -t base-centos-7:${IMAGE_VERSION} ./base/centos-7
 
 base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
 
 ##### Splunk images #####
-splunk: ansible splunk-debian-9
+enterprise: ansible splunk-debian-9 splunk-centos-7
 
 splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -54,6 +57,13 @@ splunk-debian-9: base-debian-9 ansible
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
 		-t splunk-debian-9:${IMAGE_VERSION} .
+
+splunk-centos-7: base-centos-7 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/centos-7/Dockerfile \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
+		-t splunk-centos-7:${IMAGE_VERSION} .
 
 splunk-windows-2016: base-windows-2016 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -63,7 +73,7 @@ splunk-windows-2016: base-windows-2016 ansible
 		-t splunk-windows-2016:${IMAGE_VERSION} .
 
 ##### UF images #####
-uf: ansible uf-debian-9
+uf: ansible uf-debian-9 uf-centos-7
 
 uf-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -71,6 +81,13 @@ uf-debian-9: base-debian-9 ansible
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		--build-arg SPLUNK_FILENAME=${UF_LINUX_FILENAME} \
 		-t splunkforwarder-debian-9:${IMAGE_VERSION} .
+
+uf-centos-7: base-centos-7 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f uf/centos-7/Dockerfile \
+		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
+		--build-arg SPLUNK_FILENAME=${UF_LINUX_FILENAME} \
+		-t splunkforwarder-centos-7:${IMAGE_VERSION} .
 
 uf-windows-2016: base-windows-2016 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \

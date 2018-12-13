@@ -53,7 +53,7 @@ RUN groupadd -r ${SPLUNK_GROUP} \
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
 RUN  chmod -R 555 ${SPLUNK_ANSIBLE_HOME}
 USER ${ANSIBLE_USER}
-COPY [ "splunk/debian-9/entrypoint.sh", "splunk/debian-9/checkstate.sh", "splunk/debian-9/createdefaults.py", "/sbin/" ]
+COPY [ "splunk/common-files/entrypoint.sh", "splunk/common-files/checkstate.sh", "splunk/common-files/createdefaults.py", "/sbin/" ]
 
 EXPOSE 4001 8000 8065 8088 8089 8191 9887 9997
 
