@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM base-debian-9:latest
+FROM base-centos-7:latest
 LABEL maintainer="support@splunk.com"
 
 ARG SPLUNK_FILENAME
@@ -69,4 +69,3 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=3m --retries=5 CMD /sbin
 
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]
 CMD [ "start-service" ]
-
