@@ -49,6 +49,7 @@ by passing in environment variables. Below is a list of environment variables th
 | NO_HEALTHCHECK | Disable the Splunk healthcheck script | no | no | yes |
 | STEPDOWN_ANSIBLE_USER | Removes Ansible user from the sudo group when set to true. This means that no other users than root will have root access. | no | no | no |
 | SPLUNK_HOME_OWNERSHIP_ENFORCEMENT | Recursively enforces ${SPLUNK_HOME} to be owned by the user "splunk". Default value is true. | no | no | no |
+| HIDE_PASSWORD | Set to true to hide all Ansible task logs with Splunk password in them in order to secure our output to stdout. | no | no | no |
 
 * Password must be set either in default.yml or as the environment variable `SPLUNK_PASSWORD`
 
