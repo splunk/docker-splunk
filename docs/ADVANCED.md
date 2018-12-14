@@ -24,6 +24,7 @@ Splunk's Docker container has several functions that can be configured. These op
 by passing in environment variables. Below is a list of environment variables that may/must be used when starting the docker container.
 
 #### Valid Enterprise Environment Variables
+
 | Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
 | --- | --- | --- | --- | --- |
 | SPLUNK_BUILD_URL | URL to Splunk build where we can fetch a Splunk build to install | no | no | no |
@@ -54,9 +55,10 @@ by passing in environment variables. Below is a list of environment variables th
 * Password must be set either in default.yml or as the environment variable `SPLUNK_PASSWORD`
 
 #### Valid Universal Forwarder Environment Variables
+
 | Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
 | --- | --- | --- | --- | --- |
-| SPLUNK_DEPLOYMENT_SERVER | One Splunk host (network alias) that we use as a deployment server. (http://docs.Splunk.com/Documentation/Splunk/latest/Updating/Configuredeploymentclients) | no | no | no |
+| SPLUNK_DEPLOYMENT_SERVER | One Splunk host (network alias) that we use as a deployment server. (http://docs.splunk.com/Documentation/Splunk/latest/Updating/Configuredeploymentclients) | no | no | no |
 | SPLUNK_ADD | List of items to add to monitoring separated by comma. Example, SPLUNK_ADD=udp 1514,monitor /var/log/*. This will monitor udp 1514 port and /var/log/* files. | no | no | no |
 | SPLUNK_BEFORE_START_CMD | List of commands to run before Splunk starts separated by comma. Ansible will run “{{splunk.exec}} {{item}}”. | no | no | no |
 | SPLUNK_CMD | List of commands to run after Splunk starts separated by comma. Ansible will run “{{splunk.exec}} {{item}}”. | no | no | no |
@@ -79,7 +81,7 @@ Example:
 
 The major object "splunk" in the YAML file will contain variables that influence how Splunk operates. Example:
 ```
-    Splunk:
+    splunk:
         opt: /opt
         home: /opt/splunk
         user: splunk
@@ -93,9 +95,11 @@ The major object "splunk" in the YAML file will contain variables that influence
         hec_port: 8088
         hec_disabled: 0
         hec_enableSSL: 1
-        #The hec_token here is used for INGESTION only. By that I mean receiving Splunk events.
-        #Setting up your environment to forward events out of the cluster is another matter entirely
+        # The hec_token here is used for INGESTION only. By that I mean receiving Splunk events.
+        # Setting up your environment to forward events out of the cluster is another matter entirely
         hec_token: <default_hec_token>
+        # This option here is to enable the SmartStore feature
+        smartstore: null
 ```
 
 | Variable Name | Description | Parent Object | Default Value | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
@@ -114,6 +118,7 @@ The major object "splunk" in the YAML file will contain variables that influence
 | hec_disabled | Enable / Disable HEC | splunk | 0 | no | no | no |
 | hec_enableSSL | Force HEC to use encryption | splunk | 1 | no | no | no |
 | hec_token | Token to enable for HEC inputs | splunk | **none** | no | no | no |
+| smartstore | Configuration params for [SmartStore](https://docs.splunk.com/Documentation/Splunk/latest/Indexer/AboutSmartStore) bootstrapping | splunk | null | no | no | no |
 
 The app_paths section is located as part of the "splunk" parent object. The settings located in this section will directly influence how apps are installed inside the container. Example:
 ```
@@ -121,7 +126,7 @@ The app_paths section is located as part of the "splunk" parent object. The sett
             default: /opt/splunk/etc/apps
             shc: /opt/splunk/etc/shcluster/apps
             idxc: /opt/splunk/etc/master-apps
-            httpinput: /opt/splunk/etc/apps/Splunk_httpinput
+            httpinput: /opt/splunk/etc/apps/splunk_httpinput
 ```
 
 | Variable Name | Description | Parent Object | Default Value | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
@@ -163,6 +168,26 @@ Lastly, Index Clustering is configured with the `idxc` sub-object. Example:
 | replication_factor | Bucket replication factor used between index peers | splunk.idxc | 3 | no | no | yes |
 | replication_port | Bucket replication Port between index peers | splunk.idxc | 9887 | no | no | yes |
 
+#### Enabling SmartStore
+SmartStore utilizes S3-compliant object storage in order to store indexed data. This is a capability only available if you're using an indexer cluster (cluster_master + indexers). For more information, please see the [blog post](https://www.splunk.com/blog/2018/10/11/splunk-smartstore-cut-the-cord-by-decoupling-compute-and-storage.html) as well as [technical overview](https://docs.splunk.com/Documentation/Splunk/latest/Indexer/AboutSmartStore).
+
+This docker image is capable of support SmartStore, as long as you bring-your-own backend storage provider. Due to the complexity of this option, this is only enabled if you specify all the parameters in your `default.yml` file. 
+
+Here's an overview of what this looks like if you want to persist *all* your indexes (default) with a SmartStore backend:
+```
+---
+splunk:
+  smartstore:
+    - indexName: default
+      remoteName: remote_store
+      scheme: s3
+      remoteLocation: <bucket-name>
+      s3:
+        access_key: <access_key>
+        secret_key: <secret_key>
+        endpoint: http://s3-us-west-2.amazonaws.com
+  ...
+```
 
 ---
 
@@ -230,7 +255,7 @@ Docker Compose file that can be used to mimic this type of deployment.
 version: "3.6"
 
 networks:
-  Splunknet:
+  splunknet:
     driver: bridge
     attachable: true
 ```
@@ -244,10 +269,10 @@ In `cluster_absolute_unit.yaml`, all instances of Splunk Enterprise are created 
 services:
   sh1:
     networks:
-      Splunknet:
+      splunknet:
         aliases:
           - sh1
-    image: Splunk:latest
+    image: splunk/splunk:latest
     hostname: sh1
     container_name: sh1
     environment:
@@ -256,7 +281,7 @@ services:
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
-      - SPLUNK_ROLE=Splunk_search_head_captain
+      - SPLUNK_ROLE=splunk_search_head_captain
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI=<license uri> http://foo.com/splunk.lic
       - DEBUG=true
