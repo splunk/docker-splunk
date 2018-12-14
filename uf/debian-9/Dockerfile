@@ -35,8 +35,14 @@ RUN groupadd -r ${SPLUNK_GROUP} \
     && wget -qO /tmp/${SPLUNK_FILENAME} ${SPLUNK_BUILD_URL} \
     && wget -qO /tmp/${SPLUNK_FILENAME}.sha512 ${SPLUNK_BUILD_URL}.sha512 \
     && (cd /tmp && sha512sum -c ${SPLUNK_FILENAME}.sha512) \
-    && mv /tmp/${SPLUNK_FILENAME} /tmp/splunk.tgz \
-    && rm -rf /tmp/${SPLUNK_FILENAME}.sha512
+    && tar -zxf /tmp/${SPLUNK_FILENAME} -C /opt \
+    && mkdir /opt/splunkforwarder/var \
+    && rm -f /tmp/${SPLUNK_FILENAME} \
+    && rm -f /tmp/${SPLUNK_FILENAME}.sha512 \
+    && chown -R ${SPLUNK_USER}:${SPLUNK_GROUP} $SPLUNK_HOME \
+    && (cd /opt && tar -cvzf /tmp/splunk.tgz splunkforwarder/etc) \
+    && rm -Rf /opt/splunkforwarder/etc/* \
+    && chown ${SPLUNK_USER}:${SPLUNK_GROUP} /tmp/splunk.tgz
 
 USER ${SPLUNK_USER}
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
