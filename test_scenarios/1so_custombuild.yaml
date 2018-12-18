@@ -11,7 +11,7 @@ services:
       splunknet:
         aliases:
           - so1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: so1
     container_name: so1
     environment:

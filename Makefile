@@ -3,7 +3,7 @@ IMAGE_VERSION ?= "latest"
 DOCKER_BUILD_FLAGS =
 TEST_IMAGE_NAME = "spldocker"
 SPLUNK_ANSIBLE_REPO ?= https://github.com/splunk/splunk-ansible.git
-SPLUNK_ANSIBLE_BRANCH ?= master
+SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
