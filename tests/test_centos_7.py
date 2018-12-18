@@ -287,8 +287,6 @@ class TestCentos7(object):
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         password = re.search("  password: (.*)", output).group(1).strip()
         assert password
-        # Set the splunk.secret key
-        output = re.sub(r'  secret: null', r'  secret: hello-world', output)
         # Write the default.yml to a file
         with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
             f.write(output)
@@ -318,10 +316,6 @@ class TestCentos7(object):
             splunkd_port = self.client.port(cid.get("Id"), 8089)
             resp = requests.get("https://localhost:{}/services/server/info".format(splunkd_port[0]["HostPort"]), auth=("admin", password), verify=False)
             assert resp.status_code == 200
-            # Check the splunk.secret file
-            exec_obj = self.client.exec_create(cid, "cat /opt/splunk/etc/auth/splunk.secret", user="splunk")
-            stdout = self.client.exec_start(exec_obj)
-            assert "hello-world" in stdout
         except Exception as e:
             print e
             self.logger.error(e)
