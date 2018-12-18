@@ -90,6 +90,7 @@ restart(){
 
 user_permission_change(){
 	if [[ "$STEPDOWN_ANSIBLE_USER" == "true" ]]; then
+		echo "jojo"
     	bash -c "sudo deluser -q ansible sudo"
 	fi
 }
