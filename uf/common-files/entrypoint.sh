@@ -38,21 +38,22 @@ prep_ansible() {
 	if [[ "$DEBUG" == "true" ]]; then
 		ansible-playbook --version
 		python inventory/environ.py --write-to-file
-		cat /tmp/ansible_inventory.json 2>/dev/null
+		cat /opt/container_artifact/ansible_inventory.json 2>/dev/null
 		echo
 	fi
 }
 
 watch_for_failure(){
 	if [[ $? -eq 0 ]]; then
-		sh -c "echo 'started' > ${SPLUNK_HOME}/splunk-container.state"
+		sh -c "echo 'started' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
 	fi
 	echo ===============================================================================
 	echo
 	echo Ansible playbook complete, will begin streaming var/log/splunk/splunkd_stderr.log
 	echo
+	user_permission_change
 	# Any crashes/errors while Splunk is running should get logged to splunkd_stderr.log and sent to the container's stdout
-	tail -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
+	sudo -u splunk tail -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
 	wait
 }
 
@@ -65,7 +66,7 @@ start_and_exit() {
     then
         echo "WARNING: No password ENV var.  Stack may fail to provision if splunk.password is not set in ENV or a default.yml"
     fi
-	sh -c "echo 'starting' > ${SPLUNK_HOME}/splunk-container.state"
+	sh -c "echo 'starting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
 	setup
     prep_ansible
 	ansible-playbook $ANSIBLE_EXTRA_FLAGS -i inventory/environ.py site.yml
@@ -79,11 +80,17 @@ start() {
 
 restart(){
 	trap teardown EXIT
-	sh -c "echo 'restarting' > ${SPLUNK_HOME}/splunk-container.state"
+	sh -c "echo 'restarting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
     prep_ansible
   	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
 	ansible-playbook -i inventory/environ.py start.yml
 	watch_for_failure
+}
+
+user_permission_change(){
+	if [[ "$STEPDOWN_ANSIBLE_USER" == "true" ]]; then
+		bash -c "sudo deluser -q ansible sudo"
+	fi
 }
 
 help() {
@@ -114,10 +121,6 @@ EOF
     exit 1
 }
 
-if [[ "$SPLUNK_ENABLE_SUDO" != "true" ]]; then
-    sudo bash -c "sudo sed -i -e 's/%sudo ALL=NOPASSWD:ALL/%sudo ALL=(ALL:ALL) ALL/g' /etc/sudoers ; sudo deluser -q splunk sudo"
-fi
-
 case "$1" in
 	start|start-service)
 		shift
@@ -135,6 +138,7 @@ case "$1" in
 	    restart $@
 	    ;;
 	no-provision)
+		user_permission_change
 		tail -n 0 -f /etc/hosts &
 		wait
 		;;
