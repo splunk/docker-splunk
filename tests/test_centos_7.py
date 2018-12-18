@@ -38,9 +38,9 @@ file_handler.setFormatter(formatter)
 LOGGER.addHandler(file_handler)
 
 # Docker varaibles
-BASE_IMAGE_NAME = "base-debian-9"
-SPLUNK_IMAGE_NAME = "splunk-debian-9"
-UF_IMAGE_NAME = "splunkforwarder-debian-9"
+BASE_IMAGE_NAME = "base-centos-7"
+SPLUNK_IMAGE_NAME = "splunk-centos-7"
+UF_IMAGE_NAME = "splunkforwarder-centos-7"
 # Splunk variables
 SPLUNK_VERSION = "7.2.0"
 SPLUNK_BUILD = "8c86330ac18"
@@ -54,7 +54,7 @@ def generate_random_string():
 
 
 @pytest.mark.large
-class TestDebian9(object):
+class TestCentos7(object):
     """
     Test suite to validate the Splunk Docker image
     """
@@ -65,19 +65,19 @@ class TestDebian9(object):
     def setup_class(cls):
         cls.client = docker.APIClient()
         # Build base
-        response = cls.client.build(path=os.path.join(REPO_DIR, "base", "debian-9"), 
+        response = cls.client.build(path=os.path.join(REPO_DIR, "base", "centos-7"), 
                                     buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
                                     tag=BASE_IMAGE_NAME)
         for line in response:
             print line,
         # Build splunk
-        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("splunk", "debian-9", "Dockerfile"), 
+        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("splunk", "centos-7", "Dockerfile"), 
                                     buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
                                     tag=SPLUNK_IMAGE_NAME)
         for line in response:
             print line,
         # Build splunkforwarder
-        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("uf", "debian-9", "Dockerfile"), 
+        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("uf", "centos-7", "Dockerfile"), 
                                     buildargs={"SPLUNK_BUILD_URL": UF_BUILD_URL, "SPLUNK_FILENAME": UF_FILENAME},
                                     tag=UF_IMAGE_NAME)
         for line in response:
@@ -197,8 +197,6 @@ class TestDebian9(object):
                         continue
                     self.logger.error(e)
                     return False
-                finally:
-                    time.sleep(5)
         return True
     
     def get_container_logs(self, container_id):
@@ -325,6 +323,7 @@ class TestDebian9(object):
             stdout = self.client.exec_start(exec_obj)
             assert "hello-world" in stdout
         except Exception as e:
+            print e
             self.logger.error(e)
             assert False
         finally:

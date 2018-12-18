@@ -3,7 +3,7 @@ IMAGE_VERSION ?= "latest"
 DOCKER_BUILD_FLAGS =
 TEST_IMAGE_NAME = "spldocker"
 SPLUNK_ANSIBLE_REPO ?= https://github.com/splunk/splunk-ansible.git
-SPLUNK_ANSIBLE_BRANCH ?= master
+SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
@@ -107,13 +107,7 @@ test: clean ansible test_helper test_collection_cleanup
 
 test_helper:
 	@echo 'Starting container to run tests...'
-	docker run -d --rm --name=${TEST_IMAGE_NAME} --net=host -v /var/run/docker.sock:/var/run/docker.sock --entrypoint /bin/sh python:2.7.15-alpine3.7 -c 'tail -f /dev/null'
-
-	@echo 'Create directories'
-	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "mkdir -p $(shell pwd)"
-
-	@echo 'Copy source code into container'
-	docker cp . ${TEST_IMAGE_NAME}:$(shell pwd)
+	docker run -d --rm --name=${TEST_IMAGE_NAME} --net=host -v /var/run/docker.sock:/var/run/docker.sock -v $(shell pwd):$(shell pwd) --entrypoint /bin/sh python:2.7.15-alpine3.7 -c 'tail -f /dev/null'
 
 	@echo 'Install test requirements'
 	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "pip install -r $(shell pwd)/tests/requirements.txt --upgrade"
