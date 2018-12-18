@@ -281,7 +281,6 @@ class TestDebian9(object):
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag" in output
     
-    @pytest.mark.skipif(os.path.isfile("/.dockerenv"), reason="Volume mounting is wonky from within another container")
     def test_adhoc_1so_using_default_yml(self):
         # Generate default.yml
         cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
