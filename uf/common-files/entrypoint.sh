@@ -20,13 +20,10 @@ setup() {
 	# Check if the user accepted the license
 	if [[ "$SPLUNK_START_ARGS" != *"--accept-license"* ]]; then
 		printf "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag\n"
-		printf "For example: docker run -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD splunk/splunk\n\n"
+		printf "For example: docker run -e SPLUNK_START_ARGS=--accept-license splunk/splunk\n\n"
 		printf "For additional information and examples, see the help: docker run -it splunk/splunk help\n"
 		exit 1
 	fi
-
-	sudo mkdir -p /opt 
-	sudo chown -R ${SPLUNK_USER}:${SPLUNK_GROUP} /opt 
 }
 
 teardown() {
@@ -34,29 +31,29 @@ teardown() {
 	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
 }
 
-trap teardown SIGINT SIGTERM 
+trap teardown SIGINT SIGTERM
 
 prep_ansible() {
 	cd ${SPLUNK_ANSIBLE_HOME}
 	if [[ "$DEBUG" == "true" ]]; then
 		ansible-playbook --version
 		python inventory/environ.py --write-to-file
-		cat /opt/ansible/inventory/ansible_inventory.json
-		cat /opt/ansible/inventory/messages.txt || true
+		cat /opt/container_artifact/ansible_inventory.json 2>/dev/null
 		echo
 	fi
 }
 
 watch_for_failure(){
 	if [[ $? -eq 0 ]]; then
-		sudo sh -c "echo 'started' > /var/run/splunk-container.state"
+		sh -c "echo 'started' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
 	fi
 	echo ===============================================================================
 	echo
 	echo Ansible playbook complete, will begin streaming var/log/splunk/splunkd_stderr.log
 	echo
+	user_permission_change
 	# Any crashes/errors while Splunk is running should get logged to splunkd_stderr.log and sent to the container's stdout
-	tail -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
+	sudo -u splunk tail -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
 	wait
 }
 
@@ -69,66 +66,61 @@ start_and_exit() {
     then
         echo "WARNING: No password ENV var.  Stack may fail to provision if splunk.password is not set in ENV or a default.yml"
     fi
-	sudo sh -c "echo 'starting' > /var/run/splunk-container.state"
+	sh -c "echo 'starting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
 	setup
     prep_ansible
 	ansible-playbook $ANSIBLE_EXTRA_FLAGS -i inventory/environ.py site.yml
 }
 
 start() {
-    trap teardown EXIT 
+    trap teardown EXIT
 	start_and_exit
     watch_for_failure
 }
 
 restart(){
-    trap teardown EXIT 
-	sudo sh -c "echo 'restarting' > /var/run/splunk-container.state"
+	trap teardown EXIT
+	sh -c "echo 'restarting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
     prep_ansible
   	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
 	ansible-playbook -i inventory/environ.py start.yml
 	watch_for_failure
 }
 
+user_permission_change(){
+	if [[ "$STEPDOWN_ANSIBLE_USER" == "true" ]]; then
+		bash -c "sudo deluser -q ansible sudo"
+	fi
+}
+
 help() {
 	cat << EOF
-  ____        _             _      __  
- / ___| _ __ | |_   _ _ __ | | __  \ \\ 
+  ____        _             _      __
+ / ___| _ __ | |_   _ _ __ | | __  \ \\
  \___ \| '_ \| | | | | '_ \| |/ /   \ \\
   ___) | |_) | | |_| | | | |   <    / /
- |____/| .__/|_|\__,_|_| |_|_|\_\  /_/ 
-       |_|                            
+ |____/| .__/|_|\__,_|_| |_|_|\_\  /_/
+       |_|
 ========================================
 
-Environment Variables: 
+Environment Variables:
   * SPLUNK_USER - user under which to run Splunk (default: splunk)
   * SPLUNK_GROUP - group under which to run Splunk (default: splunk)
   * SPLUNK_HOME - home directory where Splunk gets installed (default: /opt/splunk)
   * SPLUNK_START_ARGS - arguments to pass into the Splunk start command; you must include '--accept-license' to start Splunk (default: none)
-  * SPLUNK_ROLE - the role of this Splunk instance (default: splunk_standalone)
-      Acceptable values:
-        - splunk_standalone
-        - splunk_search_head
-        - splunk_indexer
-        - splunk_deployer
-        - splunk_license_master
-        - splunk_cluster_master
-        - splunk_heavy_forwarder 
-  * SPLUNK_LICENSE_URI - URI or local file path (absolute path in the container) to a Splunk license
-  * SPLUNK_STANDALONE_URL, SPLUNK_INDEXER_URL, ... - comma-separated list of resolvable aliases to properly bring-up a distributed environment. 
-                                                     This is optional for standalones, but required for multi-node Splunk deployments.
-  * SPLUNK_BUILD_URL - URL to a Splunk build which will be installed (instead of the image's default build)
-  * SPLUNK_APPS_URL - comma-separated list of URLs to Splunk apps which will be downloaded and installed
-
-Examples:
-  * docker run -it -p 8000:8000 splunk/splunk start 
-  * docker run -it -e SPLUNK_START_ARGS=--accept-license -p 8000:8000 -p 8089:8089 splunk/splunk start
-  * docker run -it -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_LICENSE_URI=http://example.com/splunk.lic -p 8000:8000 splunk/splunk start
-  * docker run -it -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_INDEXER_URL=idx1,idx2 -e SPLUNK_SEARCH_HEAD_URL=sh1,sh2 -e SPLUNK_ROLE=splunk_search_head --hostname sh1 --network splunknet --network-alias sh1 -e SPLUNK_PASSWORD=helloworld -e SPLUNK_LICENSE_URI=http://example.com/splunk.lic splunk/splunk start
+  * SPLUNK_STANDALONE_URL, SPLUNK_INDEXER_URL, ... - comma-separated list of resolvable aliases to properly bring-up a distributed environment.
+                                                     This is optional for the UF, but necessary if you want to forward logs to another containerized Splunk instance
+  * SPLUNK_BUILD_URL - URL to a Splunk Universal Forwarder build which will be installed (instead of the image's default build)
+  * SPLUNK_DEPLOYMENT_SERVER - A network alias to Splunk deployment server
+  * SPLUNK_ADD - '<monitor|add> <what_to_monitor|what_to_add>' - list of monitors separated by commas
+  * SPLUNK_CMD - 'any splunk command' - execute any splunk commands separated by commas
+  * SPLUNK_BEFORE_START_CMD - 'any splunk command to execute before Splunk starts' - execute any splunk commands separated by commas
+  * DOCKER_MONITORING - 'true or false' - enable docker monitoring
 
 EOF
     exit 1
 }
+
 case "$1" in
 	start|start-service)
 		shift
@@ -146,6 +138,7 @@ case "$1" in
 	    restart $@
 	    ;;
 	no-provision)
+		user_permission_change
 		tail -n 0 -f /etc/hosts &
 		wait
 		;;

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM base-debian-9:latest
+FROM base-centos-7:latest
 
 ARG SPLUNK_FILENAME
 ARG SPLUNK_BUILD_URL
@@ -56,8 +56,6 @@ COPY [ "uf/common-files/bin/ta-dockerlogs_fileinput.tar.gz", "uf/common-files/bi
 
 EXPOSE 8089 8088 9997
 
-# Create the dirs before VOLUME tags so we can control permissions
-# on those folders
 RUN sudo mkdir $SPLUNK_HOME/etc \
     && sudo mkdir $SPLUNK_HOME/var \
     && sudo chown -R ${SPLUNK_USER}:${SPLUNK_GROUP} $SPLUNK_HOME
