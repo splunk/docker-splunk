@@ -49,9 +49,10 @@ RUN groupadd -r ${SPLUNK_GROUP} \
     && chown -R ${ANSIBLE_USER}:${ANSIBLE_GROUP} $CONTAINER_ARTIFACT_DIR 
 
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
-RUN  chmod -R 555 ${SPLUNK_ANSIBLE_HOME}
-USER ${ANSIBLE_USER}
+RUN chmod -R 555 ${SPLUNK_ANSIBLE_HOME}
 COPY [ "uf/common-files/entrypoint.sh", "uf/common-files/checkstate.sh", "uf/common-files/createdefaults.py", "/sbin/"]
+RUN chmod 755 "/sbin/entrypoint.sh"
+USER ${ANSIBLE_USER}
 COPY [ "uf/common-files/bin/ta-dockerlogs_fileinput.tar.gz", "uf/common-files/bin/ta-dockerstats.tar.gz", "/tmp/" ]
 
 EXPOSE 8089 8088 9997

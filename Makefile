@@ -50,7 +50,7 @@ base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
 
 ##### Splunk images #####
-enterprise: ansible splunk-debian-9 splunk-centos-7
+splunk: ansible splunk-debian-9 splunk-centos-7
 
 splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
