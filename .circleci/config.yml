@@ -1,15 +1,26 @@
 version: 2
 jobs:
-  build:
+  test_centos7:
     machine:
       image: circleci/classic:latest
       docker_layer_caching: true
-    branches:
-      only:
-        - master
-        - circleci
     steps:
       - checkout
       - run:
-          name: run tests
-          command: make test
+          name: running tests CentOS 7
+          command: make test_centos7
+  test_debian9:
+    machine:
+      image: circleci/classic:latest
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - run:
+          name: running tests Debian 9 
+          command: make test_debian9
+workflows:
+  version: 2
+  run_tests:
+    jobs:
+      - test_centos7
+      - test_debian9
