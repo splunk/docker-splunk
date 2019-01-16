@@ -1,7 +1,6 @@
 SHELL := /bin/bash
 IMAGE_VERSION ?= "latest"
 DOCKER_BUILD_FLAGS =
-TEST_IMAGE_NAME = "spldocker"
 SPLUNK_ANSIBLE_REPO ?= https://github.com/splunk/splunk-ansible.git
 SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
@@ -104,31 +103,24 @@ sample-compose-up: sample-compose-down
 sample-compose-down:
 	docker-compose -f test_scenarios/${SPLUNK_COMPOSE} down --volumes --remove-orphans || true
 
-test: clean ansible test_helper run_tests_centos7 run_tests_debian9 test_collection_cleanup
+test: clean ansible test_install run_tests_centos7 run_tests_debian9
 
-test_centos7: clean ansible test_helper run_tests_centos7 test_collection_cleanup
+test_centos7: clean ansible test_install run_tests_centos7
 
-test_debian9: clean ansible test_helper run_tests_debian9 test_collection_cleanup
+test_debian9: clean ansible test_install run_tests_debian9
 
-test_helper:
-	@echo 'Starting container to run tests...'
-	docker run -d --rm --name=${TEST_IMAGE_NAME} --net=host -v /var/run/docker.sock:/var/run/docker.sock -v $(shell pwd):$(shell pwd) --entrypoint /bin/sh python:2.7.15-alpine3.7 -c 'tail -f /dev/null'
-
+test_install:
 	@echo 'Install test requirements'
-	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "pip install -r $(shell pwd)/tests/requirements.txt --upgrade"
+	pip install -r tests/requirements.txt --upgrade
 
 run_tests_centos7:
 	@echo 'Running the super awesome tests; CentOS 7'
-	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "cd $(shell pwd); pytest -sv tests/test_centos_7.py --junitxml testresults_centos7.xml"
+	pytest -sv tests/test_centos_7.py --junitxml testresults_centos7.xml
 
 run_tests_debian9:
 	@echo 'Running the super awesome tests; Debian 9'
-	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "cd $(shell pwd); pytest -sv tests/test_debian_9.py --junitxml testresults_debian9.xml"
-
-test_collection_cleanup:
-	docker cp ${TEST_IMAGE_NAME}:$(shell pwd)/testresults.xml testresults.xml || echo "no testresults.xml"
+	pytest -sv tests/test_debian_9.py --junitxml testresults_debian9.xml
 
 clean:
 	rm -rf testresults.xml
-	docker rm -f ${TEST_IMAGE_NAME} || true
 	docker system prune -f --volumes
