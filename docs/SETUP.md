@@ -111,7 +111,7 @@ Please contact Splunk Services for more information on using these applications 
 
 ## Clusters and Other Advanced Deployments ##
 
-For information about more advanced deployments including search head and indexer clusters, please see `docs/ADVANCED.md`. 
+For information about more advanced deployments including search head and indexer clusters, please see [ADVANCED](docs/ADVANCED.md). 
 
 ## Help ##
 
