@@ -7,5 +7,4 @@ splunk-ansible
 **/*.pyc
 *.xml
 *clair-scanner*
-*test-results*
 .env
