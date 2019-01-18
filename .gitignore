@@ -6,4 +6,6 @@ splunk-ansible
 .pytest_cache
 **/*.pyc
 *.xml
+*clair-scanner*
+*test-results*
 .env
