@@ -22,7 +22,6 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 import urllib3
 urllib3.disable_warnings()
 
-
 FILE_DIR = os.path.dirname(os.path.realpath(__file__))
 FIXTURES_DIR = os.path.join(FILE_DIR, "fixtures")
 REPO_DIR = os.path.join(FILE_DIR, "..")
@@ -200,11 +199,13 @@ class TestDebian9(object):
                 finally:
                     time.sleep(5)
         return True
-    
+
     def get_container_logs(self, container_id):
         stream = self.client.logs(container_id, stream=True)
         output = ""
         for char in stream:
+            if "PLAY [Run default Splunk provisioning]" in char:
+                break
             output += char
         return output
 
@@ -222,6 +223,22 @@ class TestDebian9(object):
                 if n < RETRIES-1:
                     continue
         return (resp.status_code, resp.content)
+    def get_json_from_file(self, file_name):
+        if os.path.isdir("tests/test_output/%s" % file_name):
+            with open('tests/test_output/%s/%s_so1.json' % (file_name, file_name)) as so1, open('tests/test_output/%s/%s_uf1.json' % (file_name, file_name)) as uf1:
+                data_so1 = json.load(so1)
+                data_uf1 = json.load(uf1)
+            return data_so1, data_uf1
+        else:
+            with open("tests/test_output/%s.json" % file_name) as json_data:
+                data = json.load(json_data)
+            return data
+
+    def extract_json(self, log_output):
+        re_str = re.compile(r"(\{.+\})",re.DOTALL)
+        json_log = re_str.search(log_output).group()
+        output = json.loads(json_log)
+        return output
     
     def test_splunk_entrypoint_help(self):
         # Run container
@@ -403,72 +420,125 @@ class TestDebian9(object):
                 os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
             except OSError:
                 pass
-
+   
     def test_compose_1so_trial(self):
         # Standup deployment
         self.compose_file_name = "1so_trial.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        output = self.get_container_logs("so1")
+        log_json = self.extract_json(output)
+        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        assert "ansible-playbook 2.7" in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
+        # Check log output against saved files
+        assert log_json == desired_json
     
     def test_compose_1so_custombuild(self):
         # Standup deployment
         self.compose_file_name = "1so_custombuild.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        output = self.get_container_logs("so1")
+        log_json = self.extract_json(output)
+        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        assert "ansible-playbook 2.7" in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
+        # Check log output against saved files
+        assert log_json == desired_json
         
     def test_compose_1so_namedvolumes(self):
         # Standup deployment
         self.compose_file_name = "1so_namedvolumes.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        output = self.get_container_logs("so1")
+        log_json = self.extract_json(output)
+        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        assert "ansible-playbook 2.7" in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
+        # Check log output against saved files
+        assert log_json == desired_json
 
     def test_compose_1so_command_start(self):
         # Standup deployment
         self.compose_file_name = "1so_command_start.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        output = self.get_container_logs("so1")
+        log_json = self.extract_json(output)
+        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        assert "ansible-playbook 2.7" in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
+        # Check log output against saved files
+        assert log_json == desired_json
 
     def test_compose_1so_command_start_service(self):
         # Standup deployment
         self.compose_file_name = "1so_command_start_service.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        output = self.get_container_logs("so1")
+        log_json = self.extract_json(output)
+        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        assert "ansible-playbook 2.7" in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
+        # Check log output against saved files
+        assert log_json == desired_json
 
     def test_compose_1so_hec(self):
         # Standup deployment
         self.compose_file_name = "1so_hec.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        output = self.get_container_logs("so1")
+        log_json = self.extract_json(output)
+        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        assert "ansible-playbook 2.7" in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
+        # Check log output against saved files
+        assert log_json == desired_json
         # Check HEC works - note the token "abcd1234" is hard-coded within the 1so_hec.yaml compose
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 1
@@ -496,9 +566,19 @@ class TestDebian9(object):
         self.compose_file_name = "1so_apps.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        output = self.get_container_logs("so1")
+        log_json = self.extract_json(output)
+        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
+        # Check ansible version & configs
+        assert "ansible-playbook 2.7" in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
+        # Check log output against saved files
+        assert log_json == desired_json
         # Check to make sure the app got installed
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 2
@@ -531,11 +611,21 @@ class TestDebian9(object):
         self.compose_file_name = "1uf_hec.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        output = self.get_container_logs("uf1")
+        log_json = self.extract_json(output)
+        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        assert "ansible-playbook 2.7" in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
+        # Check log output against saved files
+        assert log_json == desired_json
         # Check HEC works - note the token "abcd1234" is hard-coded within the 1so_hec.yaml compose
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 1
@@ -563,9 +653,19 @@ class TestDebian9(object):
         self.compose_file_name = "1uf_apps.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        output = self.get_container_logs("uf1")
+        log_json = self.extract_json(output)
+        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
+        # Check ansible version & configs
+        assert "ansible-playbook 2.7" in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
+        # Check log output against saved files
+        assert log_json == desired_json
         # Check to make sure the app got installed
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 2
@@ -598,9 +698,19 @@ class TestDebian9(object):
         self.compose_file_name = "1uf1so.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+
+        output_so = self.get_container_logs("so1")
+        output_uf = self.get_container_logs("uf1")
+        log_json_so = self.extract_json(output_so)
+        log_json_uf = self.extract_json(output_uf)
+        desired_json_so, desired_json_uf = self.get_json_from_file(self.compose_file_name[:-5])
+    
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
-
+        assert "ansible-playbook 2.7" in output_so and "ansible-playbook 2.7" in output_uf
+        assert "config file = /opt/ansible/ansible.cfg" in output_so and "config file = /opt/ansible/ansible.cfg" in output_uf
+        # Check log output against saved files
+        assert log_json_so == desired_json_so and log_json_uf == desired_json_uf
