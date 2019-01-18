@@ -136,7 +136,6 @@ test_collection_cleanup:
 	docker cp ${TEST_IMAGE_NAME}:$(shell pwd)/testresults.xml testresults.xml || echo "no testresults.xml"
 
 setup_clair_scanner:
-	pip install junit-xml
 	docker stop clair_db || true
 	docker rm clair_db || true
 	docker stop clair || true
