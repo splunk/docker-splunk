@@ -368,16 +368,35 @@ class TestDebian9(object):
                 finally:
                     time.sleep(5)
             # Check splunkd
-            time.sleep(10)
-            splunkd_port = self.client.port(cid.get("Id"), 8089)
-            resp = requests.get("https://localhost:{}/services/server/info".format(splunkd_port[0]["HostPort"]), auth=("admin", password), verify=False)
-            assert resp.status_code == 200
+            time.sleep(15)
+            retry_attempts = 10
+            for i in range(retry_attempts):
+                try:
+                    splunkd_port = self.client.port(cid.get("Id"), 8089)
+                    resp = requests.get("https://localhost:{}/services/server/info".format(splunkd_port[0]["HostPort"]), auth=("admin", password), verify=False)
+                    assert resp.status_code == 200
+                    break
+                except Exception as e:
+                    self.logger.error(e)
+                    if i == retry_attempts-1:
+                        assert False
+                finally:
+                    time.sleep(5)
             # Check HEC
-            hec_port = self.client.port(cid.get("Id"), 8088)
-            resp = requests.post("http://localhost:{}/services/collector/event".format(hec_port[0]["HostPort"]), 
-                                 headers={"Authorization": "Splunk {}".format(hec_token)},
-                                 json={"event": "hello world"})
-            assert resp.status_code == 200
+            for i in range(retry_attempts):
+                try:
+                    hec_port = self.client.port(cid.get("Id"), 8088)
+                    resp = requests.post("http://localhost:{}/services/collector/event".format(hec_port[0]["HostPort"]), 
+                                         headers={"Authorization": "Splunk {}".format(hec_token)},
+                                         json={"event": "hello world"})
+                    assert resp.status_code == 200
+                    break
+                except Exception as e:
+                    self.logger.error(e)
+                    if i == retry_attempts-1:
+                        assert False
+                finally:
+                    time.sleep(5)
         except Exception as e:
             self.logger.error(e)
             assert False
