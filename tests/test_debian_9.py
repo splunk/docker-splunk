@@ -47,6 +47,8 @@ SPLUNK_FILENAME = "splunk-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_
 SPLUNK_BUILD_URL = "https://download.splunk.com/products/splunk/releases/{}/linux/{}".format(SPLUNK_VERSION, SPLUNK_FILENAME)
 UF_FILENAME = "splunkforwarder-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
 UF_BUILD_URL = "https://download.splunk.com/products/universalforwarder/releases/{}/linux/{}".format(SPLUNK_VERSION, UF_FILENAME)
+# Ansible version
+ANSIBLE_VERSION = "2.7.6"
 
 def generate_random_string():
     return ''.join(choice(ascii_lowercase) for b in range(20))
@@ -439,13 +441,14 @@ class TestDebian9(object):
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
         desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7.6" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -464,7 +467,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7.6" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -484,7 +487,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7.6" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -504,7 +507,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7.6" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -524,7 +527,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7.6" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -545,7 +548,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7.6" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -585,7 +588,7 @@ class TestDebian9(object):
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7.6" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -632,7 +635,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7.6" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -672,7 +675,7 @@ class TestDebian9(object):
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7.6" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -720,7 +723,7 @@ class TestDebian9(object):
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
-        assert "ansible-playbook 2.7.6" in output_so and "ansible-playbook 2.7.6" in output_uf
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output_so and "ansible-playbook {}".format(ANSIBLE_VERSION) in output_uf
         assert "config file = /opt/ansible/ansible.cfg" in output_so and "config file = /opt/ansible/ansible.cfg" in output_uf
         # Check log output against saved files
         assert log_json_so == desired_json_so and log_json_uf == desired_json_uf
