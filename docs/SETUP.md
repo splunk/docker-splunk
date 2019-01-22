@@ -20,7 +20,7 @@ Linux kernel versions above 4.x.
 
 ** Note: ** Splunk Support does not provide assistance with the advanced usage of an operator such as the scale command. Splunk Support will only provide assistance with the functionality of running the container on the systems listed above, and cannot support setup and configuration of the a service level object to be used for docker-compose or kubectl. Please consult the Docker or Kubernetes documentation regarding best practices for building services. 
 
-**Note:** Splunk Support only provides support for the single instance Splunk Validated Architectures (S-Type). For all other configurations, please contact Splunk Professional Services.
+**Note:** Splunk Support only provides support for the single instance Splunk Validated Architectures (S-Type), Universal Forwarders and Heavy Forwarders. For all other configurations, please contact Splunk Professional Services.
 
 ##### Required Hardware #####
 
