@@ -42,23 +42,10 @@
             "splunk": {
                 "app_paths": {
                     "default": "/opt/splunk/etc/apps",
+                    "deployment": "/opt/splunk/etc/deployment-apps",
                     "httpinput": "/opt/splunk/etc/apps/splunk_httpinput",
                     "idxc": "/opt/splunk/etc/master-apps",
                     "shc": "/opt/splunk/etc/shcluster/apps"
-                },
-                "apps": {
-                    "deployment": {
-                        "path": "/opt/splunk/etc/deployment-apps"
-                    },
-                    "local": {
-                        "path": "/opt/splunk/etc/apps"
-                    },
-                    "master": {
-                        "path": "/opt/splunk/etc/master-apps"
-                    },
-                    "shcluster": {
-                        "path": "/opt/splunk/etc/shcluster/apps"
-                    }
                 },
                 "apps_location": [],
                 "build_location": "/tmp/splunk.tgz",
@@ -85,9 +72,12 @@
                     "search_factor": 3,
                     "secret": null
                 },
+                "ignore_license": false,
                 "indexer_cluster": false,
+                "license_download_dest": "/tmp/splunk.lic",
                 "license_master_included": false,
-                "license_uri": "",
+                "license_uri": null,
+                "nfr_license": "/tmp/nfr_enterprise.lic",
                 "opt": "/opt",
                 "password": "**************",
                 "pid": "/opt/splunk/var/run/splunk/splunkd.pid",
@@ -104,6 +94,7 @@
                 },
                 "smartstore": null,
                 "svc_port": 8089,
+                "tar_dir": "splunk",
                 "upgrade": false,
                 "user": "splunk"
             },

@@ -226,15 +226,9 @@ class TestDebian9(object):
                     continue
         return (resp.status_code, resp.content)
     def get_json_from_file(self, file_name):
-        if os.path.isdir("tests/test_output/%s" % file_name):
-            with open('tests/test_output/%s/%s_so1.json' % (file_name, file_name)) as so1, open('tests/test_output/%s/%s_uf1.json' % (file_name, file_name)) as uf1:
-                data_so1 = json.load(so1)
-                data_uf1 = json.load(uf1)
-            return data_so1, data_uf1
-        else:
-            with open("tests/test_output/%s.json" % file_name) as json_data:
-                data = json.load(json_data)
-            return data
+        with open("tests/test_output/%s" % file_name) as json_data:
+            data = json.load(json_data)
+        return data
 
     def extract_json(self, container_name):
         retries = 5
@@ -440,7 +434,7 @@ class TestDebian9(object):
         container_count, rc = self.compose_up()
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_trial.json")
 
         assert rc == 0
         # Wait for containers to be healthy
@@ -460,7 +454,7 @@ class TestDebian9(object):
         container_count, rc = self.compose_up()
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_custombuild.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
@@ -480,7 +474,7 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_namedvolumes.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
@@ -500,7 +494,7 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_command_start.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
@@ -520,7 +514,7 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_command_start_service.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
@@ -540,7 +534,7 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_hec.json")
 
         assert rc == 0
         # Wait for containers to be healthy
@@ -582,7 +576,7 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_apps.json")
 
         assert rc == 0
         # Wait for containers to be healthy
@@ -627,7 +621,7 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("uf1")
         output = self.get_container_logs("uf1")
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1uf_hec.json")
 
         assert rc == 0
         # Wait for containers to be healthy
@@ -669,7 +663,7 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("uf1")
         output = self.get_container_logs("uf1")
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1uf_apps.json")
 
         assert rc == 0
         # Wait for containers to be healthy
@@ -716,7 +710,8 @@ class TestDebian9(object):
         output_uf = self.get_container_logs("uf1")
         log_json_so = self.extract_json("so1")
         log_json_uf = self.extract_json("uf1")
-        desired_json_so, desired_json_uf = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json_so = self.get_json_from_file("1uf1so_so1.json")
+        desired_json_uf = self.get_json_from_file("1uf1so_uf1.json")
     
         assert rc == 0
         # Wait for containers to be healthy
