@@ -204,7 +204,7 @@ class TestDebian9(object):
         stream = self.client.logs(container_id, stream=True)
         output = ""
         for char in stream:
-            if "PLAY [Run default Splunk provisioning]" in char:
+            if "Ansible playbook complete" in char:
                 break
             output += char
         return output
@@ -234,11 +234,21 @@ class TestDebian9(object):
                 data = json.load(json_data)
             return data
 
-    def extract_json(self, log_output):
-        re_str = re.compile(r"(\{.+\})",re.DOTALL)
-        json_log = re_str.search(log_output).group()
-        output = json.loads(json_log)
-        return output
+    def extract_json(self, container_name):
+        retries = 5
+        for i in range(retries):
+            exec_command = self.client.exec_create(container_name, "cat opt/container_artifact/ansible_inventory.json")
+            json_data = self.client.exec_start(exec_command)
+            if "No such file or directory" in json_data:
+                time.sleep(5)
+            else: 
+                break
+        try:
+            data = json.loads(json_data)
+            return data
+        except Exception as e:
+            self.logger.error(e)
+            return None
     
     def test_splunk_entrypoint_help(self):
         # Run container
@@ -426,8 +436,8 @@ class TestDebian9(object):
         self.compose_file_name = "1so_trial.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
         desired_json = self.get_json_from_file(self.compose_file_name[:-5])
         assert rc == 0
         # Wait for containers to be healthy
@@ -435,7 +445,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook 2.7.6" in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -445,8 +455,8 @@ class TestDebian9(object):
         self.compose_file_name = "1so_custombuild.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
         desired_json = self.get_json_from_file(self.compose_file_name[:-5])
         assert rc == 0
         # Wait for containers to be healthy
@@ -454,7 +464,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook 2.7.6" in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -465,8 +475,8 @@ class TestDebian9(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
         desired_json = self.get_json_from_file(self.compose_file_name[:-5])
         assert rc == 0
         # Wait for containers to be healthy
@@ -474,7 +484,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook 2.7.6" in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -485,8 +495,8 @@ class TestDebian9(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
         desired_json = self.get_json_from_file(self.compose_file_name[:-5])
         assert rc == 0
         # Wait for containers to be healthy
@@ -494,7 +504,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook 2.7.6" in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -505,8 +515,8 @@ class TestDebian9(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
         desired_json = self.get_json_from_file(self.compose_file_name[:-5])
         assert rc == 0
         # Wait for containers to be healthy
@@ -514,7 +524,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook 2.7.6" in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -525,8 +535,8 @@ class TestDebian9(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
         desired_json = self.get_json_from_file(self.compose_file_name[:-5])
 
         assert rc == 0
@@ -535,7 +545,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook 2.7.6" in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -567,15 +577,15 @@ class TestDebian9(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
         desired_json = self.get_json_from_file(self.compose_file_name[:-5])
 
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook 2.7.6" in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -612,8 +622,8 @@ class TestDebian9(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("uf1")
         output = self.get_container_logs("uf1")
-        log_json = self.extract_json(output)
         desired_json = self.get_json_from_file(self.compose_file_name[:-5])
 
         assert rc == 0
@@ -622,7 +632,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook 2.7.6" in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -654,15 +664,15 @@ class TestDebian9(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("uf1")
         output = self.get_container_logs("uf1")
-        log_json = self.extract_json(output)
         desired_json = self.get_json_from_file(self.compose_file_name[:-5])
 
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook 2.7.6" in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -701,8 +711,8 @@ class TestDebian9(object):
 
         output_so = self.get_container_logs("so1")
         output_uf = self.get_container_logs("uf1")
-        log_json_so = self.extract_json(output_so)
-        log_json_uf = self.extract_json(output_uf)
+        log_json_so = self.extract_json("so1")
+        log_json_uf = self.extract_json("uf1")
         desired_json_so, desired_json_uf = self.get_json_from_file(self.compose_file_name[:-5])
     
         assert rc == 0
@@ -710,7 +720,7 @@ class TestDebian9(object):
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
-        assert "ansible-playbook 2.7" in output_so and "ansible-playbook 2.7" in output_uf
+        assert "ansible-playbook 2.7.6" in output_so and "ansible-playbook 2.7.6" in output_uf
         assert "config file = /opt/ansible/ansible.cfg" in output_so and "config file = /opt/ansible/ansible.cfg" in output_uf
         # Check log output against saved files
         assert log_json_so == desired_json_so and log_json_uf == desired_json_uf

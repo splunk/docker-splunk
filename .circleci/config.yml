@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: running tests CentOS 7
+          name: Running tests CentOS 7
           command: make test_centos7
       - store_artifacts:
           path: testresults_centos7.xml
@@ -18,7 +18,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: running tests Debian 9 
+          name: Running tests Debian 9 
           command: make test_debian9
       - store_artifacts:
           path: testresults_debian9.xml
