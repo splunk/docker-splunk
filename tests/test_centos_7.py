@@ -38,9 +38,9 @@ file_handler.setFormatter(formatter)
 LOGGER.addHandler(file_handler)
 
 # Docker varaibles
-BASE_IMAGE_NAME = "base-debian-9"
-SPLUNK_IMAGE_NAME = "splunk-debian-9"
-UF_IMAGE_NAME = "splunkforwarder-debian-9"
+BASE_IMAGE_NAME = "base-centos-7"
+SPLUNK_IMAGE_NAME = "splunk-centos-7"
+UF_IMAGE_NAME = "splunkforwarder-centos-7"
 # Splunk variables
 SPLUNK_VERSION = "7.2.0"
 SPLUNK_BUILD = "8c86330ac18"
@@ -54,7 +54,7 @@ def generate_random_string():
 
 
 @pytest.mark.large
-class TestDebian9(object):
+class TestCentos7(object):
     """
     Test suite to validate the Splunk Docker image
     """
@@ -65,19 +65,19 @@ class TestDebian9(object):
     def setup_class(cls):
         cls.client = docker.APIClient()
         # Build base
-        response = cls.client.build(path=os.path.join(REPO_DIR, "base", "debian-9"), 
+        response = cls.client.build(path=os.path.join(REPO_DIR, "base", "centos-7"), 
                                     buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
                                     tag=BASE_IMAGE_NAME)
         for line in response:
             print line,
         # Build splunk
-        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("splunk", "debian-9", "Dockerfile"), 
+        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("splunk", "centos-7", "Dockerfile"), 
                                     buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
                                     tag=SPLUNK_IMAGE_NAME)
         for line in response:
             print line,
         # Build splunkforwarder
-        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("uf", "debian-9", "Dockerfile"), 
+        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("uf", "centos-7", "Dockerfile"), 
                                     buildargs={"SPLUNK_BUILD_URL": UF_BUILD_URL, "SPLUNK_FILENAME": UF_FILENAME},
                                     tag=UF_IMAGE_NAME)
         for line in response:
@@ -197,8 +197,6 @@ class TestDebian9(object):
                         continue
                     self.logger.error(e)
                     return False
-                finally:
-                    time.sleep(5)
         return True
     
     def get_container_logs(self, container_id):
@@ -319,66 +317,7 @@ class TestDebian9(object):
             resp = requests.get("https://localhost:{}/services/server/info".format(splunkd_port[0]["HostPort"]), auth=("admin", password), verify=False)
             assert resp.status_code == 200
         except Exception as e:
-            self.logger.error(e)
-            assert False
-        finally:
-            if cid:
-                self.client.remove_container(cid.get("Id"), v=True, force=True)
-            try:
-                os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
-            except OSError:
-                pass
-
-    def test_adhoc_1so_using_default_yml_hec_ssl_disabled(self):
-        # Generate default.yml
-        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
-        self.client.start(cid.get("Id"))
-        output = self.get_container_logs(cid.get("Id"))
-        self.client.remove_container(cid.get("Id"), v=True, force=True)
-        # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
-        # Get the HEC token
-        hec_token = re.search("  hec_token: (.*)", output).group(1).strip()
-        assert hec_token
-        # Make sure hec_enableSSL is disabled
-        output = re.sub(r'  hec_enableSSL: 1', r'  hec_enableSSL: 0', output)
-        # Write the default.yml to a file
-        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
-            f.write(output)
-        # Create the container and mount the default.yml
-        cid = None
-        try:
-            splunk_container_name = generate_random_string()
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="start", ports=[8089, 8088], 
-                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
-                                            environment={"SPLUNK_START_ARGS": "--accept-license"},
-                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
-                                                                                       port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
-                                            )
-            self.client.start(cid.get("Id"))
-            # Poll for the container to be healthy
-            for _ in range(10):
-                try:
-                    containers = self.client.containers(filters={"name": splunk_container_name})
-                    if "healthy" in containers[0]["Status"]:
-                        break
-                except Exception as e:
-                    self.logger.error(e)
-                finally:
-                    time.sleep(5)
-            # Check splunkd
-            time.sleep(10)
-            splunkd_port = self.client.port(cid.get("Id"), 8089)
-            resp = requests.get("https://localhost:{}/services/server/info".format(splunkd_port[0]["HostPort"]), auth=("admin", password), verify=False)
-            assert resp.status_code == 200
-            # Check HEC
-            hec_port = self.client.port(cid.get("Id"), 8088)
-            resp = requests.post("http://localhost:{}/services/collector/event".format(hec_port[0]["HostPort"]), 
-                                 headers={"Authorization": "Splunk {}".format(hec_token)},
-                                 json={"event": "hello world"})
-            assert resp.status_code == 200
-        except Exception as e:
+            print e
             self.logger.error(e)
             assert False
         finally:

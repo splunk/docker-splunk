@@ -3,17 +3,18 @@ IMAGE_VERSION ?= "latest"
 DOCKER_BUILD_FLAGS =
 TEST_IMAGE_NAME = "spldocker"
 SPLUNK_ANSIBLE_REPO ?= https://github.com/splunk/splunk-ansible.git
-SPLUNK_ANSIBLE_BRANCH ?= master
+SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
-SPLUNK_VERSION := 7.2.1
-SPLUNK_BUILD := be11b2c46e23
+SPLUNK_VERSION := 7.2.3
+SPLUNK_BUILD := 06d57c595b80
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
 	SPLUNK_ARCH = x86_64
 endif
+
 # Linux Splunk arguments
 SPLUNK_LINUX_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz
 SPLUNK_LINUX_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/linux/${SPLUNK_LINUX_FILENAME}
@@ -49,7 +50,7 @@ base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
 
 ##### Splunk images #####
-enterprise: ansible splunk-debian-9 splunk-centos-7
+splunk: ansible splunk-debian-9 splunk-centos-7
 
 splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -107,13 +108,7 @@ test: clean ansible test_helper test_collection_cleanup
 
 test_helper:
 	@echo 'Starting container to run tests...'
-	docker run -d --rm --name=${TEST_IMAGE_NAME} --net=host -v /var/run/docker.sock:/var/run/docker.sock --entrypoint /bin/sh python:2.7.15-alpine3.7 -c 'tail -f /dev/null'
-
-	@echo 'Create directories'
-	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "mkdir -p $(shell pwd)"
-
-	@echo 'Copy source code into container'
-	docker cp . ${TEST_IMAGE_NAME}:$(shell pwd)
+	docker run -d --rm --name=${TEST_IMAGE_NAME} --net=host -v /var/run/docker.sock:/var/run/docker.sock -v $(shell pwd):$(shell pwd) --entrypoint /bin/sh python:2.7.15-alpine3.7 -c 'tail -f /dev/null'
 
 	@echo 'Install test requirements'
 	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "pip install -r $(shell pwd)/tests/requirements.txt --upgrade"
