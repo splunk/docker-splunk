@@ -207,6 +207,21 @@ class TestDebian9(object):
         for char in stream:
             output += char
         return output
+
+    def handle_request_retry(self, method, url, kwargs):
+        RETRIES = 15
+        IMPLICIT_WAIT = 5
+        for n in range(RETRIES):
+            try:
+                resp = requests.request(method, url, **kwargs)
+                resp.raise_for_status()
+                return (resp.status_code, resp.content)
+            except Exception as e:
+                self.logger.error(e)
+                time.sleep(IMPLICIT_WAIT)
+                if n < RETRIES-1:
+                    continue
+        return (resp.status_code, resp.content)
     
     def test_splunk_entrypoint_help(self):
         # Run container
@@ -369,15 +384,15 @@ class TestDebian9(object):
                     time.sleep(5)
             # Check splunkd
             time.sleep(10)
-            splunkd_port = self.client.port(cid.get("Id"), 8089)
-            resp = requests.get("https://localhost:{}/services/server/info".format(splunkd_port[0]["HostPort"]), auth=("admin", password), verify=False)
-            assert resp.status_code == 200
+            splunkd_port = self.client.port(cid.get("Id"), 8089)[0]["HostPort"]
+            status, content = self.handle_request_retry("GET", "https://localhost:{}/services/server/info".format(splunkd_port), 
+                                                        {"auth": ("admin", password), "verify": False})
+            assert status == 200
             # Check HEC
-            hec_port = self.client.port(cid.get("Id"), 8088)
-            resp = requests.post("http://localhost:{}/services/collector/event".format(hec_port[0]["HostPort"]), 
-                                 headers={"Authorization": "Splunk {}".format(hec_token)},
-                                 json={"event": "hello world"})
-            assert resp.status_code == 200
+            hec_port = self.client.port(cid.get("Id"), 8088)[0]["HostPort"]
+            status, content = self.handle_request_retry("POST", "http://localhost:{}/services/collector/event".format(hec_port), 
+                                                        {"json": {"event": "hello world"}, "headers": {"Authorization": "Splunk {}".format(hec_token)}})
+            assert status == 200
         except Exception as e:
             self.logger.error(e)
             assert False
