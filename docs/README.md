@@ -7,6 +7,7 @@
 * Deployment of Splunk Enterprise that can be run on your laptop or desktop, or pushed to a large orchestrator
 * Support for multiple Splunk Enterprise topologies including:
     * Standalone Splunk Enterprise server
+    * Standalone Universal and Heavy forwarders
     * See [Splunk Validated Architectures](https://www.splunk.com/pdfs/white-papers/splunk-validated-architectures.pdf) for more information.  Currently only the S1 architecture is supported, with new architectures following soon.
 * Automatic installation of all upcoming versions of Splunk Enterprise / Splunk Universal Forwarder (beginning with version 7.2)
     * Defaults to the latest official Splunk Enterprise/Splunk Universal Forwarder release
