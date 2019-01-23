@@ -22,10 +22,10 @@ jobs:
           command: |
             make all
 
-      #- run:
-      #    name: run tests
-      #    command: |
-      #      make test
+      - run:
+          name: run tests
+          command: |
+            make test
 
       - run:
           name: Run Vulnerability Scanner

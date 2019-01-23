@@ -29,12 +29,25 @@ def main():
         if os.path.exists(args.clairfile):
             with open(args.clairfile) as clairfile:
                 clair_parsed_file = json.load(clairfile)
+        if os.path.exists(os.path.join("clair-scanner-logs", "/clair_setup_errors.log")):
+            with open(os.path.join("clair-scanner-logs", "/clair_setup_errors.log"), 'r') as clairfile_errors:
+                clair_parsed_error_file = clairfile_errors.readlines()
     except:
-        logger.exception("Failed to parse clair file.  Exiting.")
+        logger.exception("Failed to parse clair / clair_error file.  Exiting.")
 
     current_sorted_level = None
     current_suite = None
     test_suites = []
+    if clair_parsed_error_file:
+        current_suite = TestSuite("SetupError")
+        new_step = TestCase(name="SetupError", classname="SetupError", status="unapproved", stderr=clair_parsed_error_file)
+        new_step.log = clair_parsed_error_file
+        new_step.category = "SetupError"
+        new_step.failure_type = "unapproved"
+        new_step.failure_message = "Please have the following security issue reviewed by Splunk: {}".format(vuln["link"])
+        new_step.failure_output = clair_parsed_error_file
+        current_suite.test_cases.append(new_step)
+        test_suites.append(current_suite)
     for vuln in clair_parsed_file["vulnerabilities"]:
         if current_sorted_level != vuln["severity"]:
             if current_suite:
