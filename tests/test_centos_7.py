@@ -42,8 +42,8 @@ BASE_IMAGE_NAME = "base-centos-7"
 SPLUNK_IMAGE_NAME = "splunk-centos-7"
 UF_IMAGE_NAME = "splunkforwarder-centos-7"
 # Splunk variables
-SPLUNK_VERSION = "7.2.0"
-SPLUNK_BUILD = "8c86330ac18"
+SPLUNK_VERSION = "7.2.3"
+SPLUNK_BUILD = "06d57c595b80"
 SPLUNK_FILENAME = "splunk-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
 SPLUNK_BUILD_URL = "https://download.splunk.com/products/splunk/releases/{}/linux/{}".format(SPLUNK_VERSION, SPLUNK_FILENAME)
 UF_FILENAME = "splunkforwarder-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
