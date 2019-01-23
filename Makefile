@@ -141,7 +141,7 @@ setup_clair_scanner:
 	docker rm clair_db || true
 	docker stop clair || true
 	docker rm clair || true
-	docker pull arminc/clair-db:${SCANNER_DATE} || docker pull arminc/clair-db:${SCANNER_DATE_YEST} 
+	docker pull arminc/clair-db:${SCANNER_DATE} || docker pull arminc/clair-db:${SCANNER_DATE_YEST} || docker pull arminc/clair-db:`date +%Y:%m:%d -d "yesterday"` || echo "WARNING:Failed to pull daily image, defaulting to latest" ; docker pull arminc/clair-db:latest
 	docker run -d --name clair_db arminc/clair-db:${SCANNER_DATE} || docker run -d --name clair_db arminc/clair-db:${SCANNER_DATE_YEST}
 	docker run -p 6060:6060 --link clair_db:postgres -d --name clair --restart on-failure arminc/clair-local-scan:v2.0.6
 	wget https://github.com/arminc/clair-scanner/releases/download/${SCANNER_VERSION}/${SCANNER_FILE}
