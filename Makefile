@@ -29,7 +29,7 @@ UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/rele
 
 # Security Scanner Variables
 SCANNER_DATE := `date +%Y-%m-%d`
-SCANNER_DATE_YEST := `date -v-1d +%Y:%m:%d`
+SCANNER_DATE_YEST := `TZ=GMT+24 +%Y:%m:%d`
 SCANNER_VERSION := v8
 SCANNER_LOCALIP := $(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $1}' | head -n 1)
 SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-centos-7 splunkforwarder-debian-9 splunkforwarder-centos-7
@@ -137,12 +137,14 @@ test_collection_cleanup:
 	docker cp ${TEST_IMAGE_NAME}:$(shell pwd)/testresults.xml testresults.xml || echo "no testresults.xml"
 
 setup_clair_scanner:
+	mkdir clair-scanner-logs
+	mkdir test-results/cucumber
 	docker stop clair_db || true
 	docker rm clair_db || true
 	docker stop clair || true
 	docker rm clair || true
-	docker pull arminc/clair-db:${SCANNER_DATE} || docker pull arminc/clair-db:${SCANNER_DATE_YEST} || docker pull arminc/clair-db:`date +%Y:%m:%d -d "yesterday"` || echo "WARNING:Failed to pull daily image, defaulting to latest" ; docker pull arminc/clair-db:latest
-	docker run -d --name clair_db arminc/clair-db:${SCANNER_DATE} || docker run -d --name clair_db arminc/clair-db:${SCANNER_DATE_YEST}
+	docker pull arminc/clair-db:${SCANNER_DATE} || docker pull arminc/clair-db:${SCANNER_DATE_YEST} || docker pull arminc/clair-db:`date +%Y:%m:%d -d "yesterday"` || echo "WARNING: Failed to pull daily image, defaulting to latest" >> clair-scanner-logs/clair_setup_errors.log ; docker pull arminc/clair-db:latest
+	docker run -d --name clair_db arminc/clair-db:${SCANNER_DATE} || docker run -d --name clair_db arminc/clair-db:${SCANNER_DATE_YEST} || docker run -d --name clair_db arminc/clair-db:latest
 	docker run -p 6060:6060 --link clair_db:postgres -d --name clair --restart on-failure arminc/clair-local-scan:v2.0.6
 	wget https://github.com/arminc/clair-scanner/releases/download/${SCANNER_VERSION}/${SCANNER_FILE}
 	mv ${SCANNER_FILE} clair-scanner
@@ -152,8 +154,6 @@ setup_clair_scanner:
 	echo "Daemon started."
 
 run_clair_scan:
-	mkdir clair-scanner-logs
-	mkdir test-results/cucumber
 	$(foreach image,${SCANNER_IMAGES_TO_SCAN}, mkdir test-results/clair-scanner-${image}; ./clair-scanner -c http://0.0.0.0:6060 --ip ${SCANNER_LOCALIP} -r test-results/clair-scanner-${image}/results.json -l clair-scanner-logs/${image}.log -w clair-whitelist.yml ${image}:${NONQUOTE_IMAGE_VERSION} || true ; python clair_to_junit_parser.py test-results/clair-scanner-${image}/results.json --output test-results/clair-scanner-${image}/results.xml ; )
 
 setup_and_run_clair: setup_clair_scanner run_clair_scan
