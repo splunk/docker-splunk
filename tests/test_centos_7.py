@@ -49,7 +49,7 @@ SPLUNK_BUILD_URL = "https://download.splunk.com/products/splunk/releases/{}/linu
 UF_FILENAME = "splunkforwarder-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
 UF_BUILD_URL = "https://download.splunk.com/products/universalforwarder/releases/{}/linux/{}".format(SPLUNK_VERSION, UF_FILENAME)
 # Ansible version
-ANSIBLE_VERSION = "2.7.6"
+ANSIBLE_VERSION = "2.7.5"
 
 def generate_random_string():
     return ''.join(choice(ascii_lowercase) for b in range(20))
