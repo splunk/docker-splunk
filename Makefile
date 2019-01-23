@@ -29,7 +29,7 @@ UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/rele
 
 # Security Scanner Variables
 SCANNER_DATE := `date +%Y-%m-%d`
-SCANNER_DATE_YEST := `date +%Y-%m-%d -d`
+SCANNER_DATE_YEST := `date -v-1d +%Y:%m:%d`
 SCANNER_VERSION := v8
 SCANNER_LOCALIP := $(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $1}' | head -n 1)
 SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-centos-7 splunkforwarder-debian-9 splunkforwarder-centos-7
