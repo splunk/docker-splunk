@@ -120,9 +120,9 @@ sample-compose-up: sample-compose-down
 sample-compose-down:
 	docker-compose -f test_scenarios/${SPLUNK_COMPOSE} down --volumes --remove-orphans || true
 
-test: clean ansible test_helper test_collection_cleanup
+test: clean ansible test_setup test_runner test_collection_cleanup
 
-test_helper:
+test_helper_container:
 	@echo 'Starting container to run tests...'
 	docker run -d --rm --name=${TEST_IMAGE_NAME} --net=host -v /var/run/docker.sock:/var/run/docker.sock -v $(shell pwd):$(shell pwd) --entrypoint /bin/sh python:2.7.15-alpine3.7 -c 'tail -f /dev/null'
 
@@ -132,6 +132,18 @@ test_helper:
 	@echo 'Running the super awesome tests'
 	mkdir test-results/pytest
 	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "cd $(shell pwd); pytest -sv tests/ --junitxml test-results/pytest/results.xml"
+
+test_collection_container_cleanup:
+	docker cp ${TEST_IMAGE_NAME}:$(shell pwd)/testresults.xml testresults.xml || echo "no testresults.xml"
+
+test_setup:
+	@echo 'Install test requirements'
+	pip install -r $(shell pwd)/tests/requirements.txt --upgrade
+	mkdir test-results/pytest
+
+test_runner:
+	@echo 'Running the super awesome tests'
+	cd $(shell pwd); pytest -sv tests/ --junitxml test-results/pytest/results.xml
 
 test_collection_cleanup:
 	docker cp ${TEST_IMAGE_NAME}:$(shell pwd)/testresults.xml testresults.xml || echo "no testresults.xml"

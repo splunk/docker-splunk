@@ -23,9 +23,14 @@ jobs:
             make all
 
       - run:
-          name: run tests
+          name: Setup Tests / Scanner Requirements
           command: |
-            make test
+            make test_setup
+
+      #- run:
+      #    name: run tests
+      #    command: |
+      #      make test
 
       - run:
           name: Run Vulnerability Scanner
