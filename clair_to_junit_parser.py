@@ -32,6 +32,8 @@ def main():
         if os.path.exists(os.path.join("clair-scanner-logs", "/clair_setup_errors.log")):
             with open(os.path.join("clair-scanner-logs", "/clair_setup_errors.log"), 'r') as clairfile_errors:
                 clair_parsed_error_file = clairfile_errors.readlines()
+        else:
+            clair_parsed_error_file = None
     except:
         logger.exception("Failed to parse clair / clair_error file.  Exiting.")
 
