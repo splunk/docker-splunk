@@ -1,5 +1,5 @@
 ## Troubleshooting ##
-**Note:** Splunk Support only provides support for the single instance Splunk Validated Architectures (S-Type). For all other configurations, please contact Splunk Professional Services.
+**Note:** Splunk Support only provides support for the single instance Splunk Validated Architectures (S-Type), Universal Forwarders and Heavy Forwarders. For all other configurations, please contact Splunk Professional Services.
 
 #### Validate your environment ####
 The most important step in troubleshooting is to validate the environment.

@@ -11,7 +11,7 @@ services:
       splunknet:
         aliases:
           - sh1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: sh1
     container_name: sh1
     environment:
@@ -23,6 +23,7 @@ services:
       - SPLUNK_ROLE=splunk_search_head_captain
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - SPLUNK_APPS_URL
       - DEBUG=true
     ports:
       - 8000
@@ -35,7 +36,7 @@ services:
       splunknet:
         aliases:
           - sh2
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: sh2
     container_name: sh2
     environment:
@@ -47,6 +48,7 @@ services:
       - SPLUNK_ROLE=splunk_search_head
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - SPLUNK_APPS_URL
       - DEBUG=true
     ports:
       - 8000
@@ -59,7 +61,7 @@ services:
       splunknet:
         aliases:
           - sh3
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: sh3
     container_name: sh3
     environment:
@@ -71,6 +73,7 @@ services:
       - SPLUNK_ROLE=splunk_search_head
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - SPLUNK_APPS_URL
       - DEBUG=true
     ports:
       - 8000
@@ -83,7 +86,7 @@ services:
       splunknet:
         aliases:
           - dep1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: dep1
     container_name: dep1
     environment:
@@ -95,6 +98,7 @@ services:
       - SPLUNK_ROLE=splunk_deployer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - SPLUNK_APPS_URL
       - DEBUG=true
     ports:
       - 8000
@@ -107,7 +111,7 @@ services:
       splunknet:
         aliases:
           - cm1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: cm1
     container_name: cm1
     environment:
@@ -119,6 +123,7 @@ services:
       - SPLUNK_ROLE=splunk_cluster_master
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - SPLUNK_APPS_URL
       - DEBUG=true
     ports:
       - 8000
@@ -131,7 +136,7 @@ services:
       splunknet:
         aliases:
           - idx1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: idx1
     container_name: idx1
     environment:
@@ -143,6 +148,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - SPLUNK_APPS_URL
       - DEBUG=true
     ports:
       - 8000
@@ -155,7 +161,7 @@ services:
       splunknet:
         aliases:
           - idx2
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: idx2
     container_name: idx2
     environment:
@@ -167,6 +173,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - SPLUNK_APPS_URL
       - DEBUG=true
     ports:
       - 8000
@@ -179,7 +186,7 @@ services:
       splunknet:
         aliases:
           - idx3
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: idx3
     container_name: idx3
     environment:
@@ -191,6 +198,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - SPLUNK_APPS_URL
       - DEBUG=true
     ports:
       - 8000
@@ -203,7 +211,7 @@ services:
       splunknet:
         aliases:
           - idx4
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: idx4
     container_name: idx4
     environment:
@@ -215,6 +223,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - SPLUNK_APPS_URL
       - DEBUG=true
     ports:
       - 8000
