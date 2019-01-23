@@ -48,6 +48,8 @@ SPLUNK_FILENAME = "splunk-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_
 SPLUNK_BUILD_URL = "https://download.splunk.com/products/splunk/releases/{}/linux/{}".format(SPLUNK_VERSION, SPLUNK_FILENAME)
 UF_FILENAME = "splunkforwarder-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
 UF_BUILD_URL = "https://download.splunk.com/products/universalforwarder/releases/{}/linux/{}".format(SPLUNK_VERSION, UF_FILENAME)
+# Ansible version
+ANSIBLE_VERSION = "2.7.6"
 
 def generate_random_string():
     return ''.join(choice(ascii_lowercase) for b in range(20))
@@ -203,27 +205,31 @@ class TestCentos7(object):
         stream = self.client.logs(container_id, stream=True)
         output = ""
         for char in stream:
-            if "PLAY [Run default Splunk provisioning]" in char:
+            if "Ansible playbook complete" in char:
                 break
             output += char
         return output
 
     def get_json_from_file(self, file_name):
-        if os.path.isdir("tests/test_output/%s" % file_name):
-            with open('tests/test_output/%s/%s_so1.json' % (file_name, file_name)) as so1, open('tests/test_output/%s/%s_uf1.json' % (file_name, file_name)) as uf1:
-                data_so1 = json.load(so1)
-                data_uf1 = json.load(uf1)
-            return data_so1, data_uf1
-        else:
-            with open("tests/test_output/%s.json" % file_name) as json_data:
-                data = json.load(json_data)
-            return data
+        with open("tests/test_output/%s" % file_name) as json_data:
+            data = json.load(json_data)
+        return data
 
-    def extract_json(self, log_output):
-        re_str = re.compile(r"(\{.+\})",re.DOTALL)
-        json_log = re_str.search(log_output).group()
-        output = json.loads(json_log)
-        return output
+    def extract_json(self, container_name):
+        retries = 5
+        for i in range(retries):
+            exec_command = self.client.exec_create(container_name, "cat opt/container_artifact/ansible_inventory.json")
+            json_data = self.client.exec_start(exec_command)
+            if "No such file or directory" in json_data:
+                time.sleep(5)
+            else: 
+                break
+        try:
+            data = json.loads(json_data)
+            return data
+        except Exception as e:
+            self.logger.error(e)
+            return None
     
     def test_splunk_entrypoint_help(self):
         # Run container
@@ -351,35 +357,36 @@ class TestCentos7(object):
         self.compose_file_name = "1so_trial.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_trial.json")
+
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
-
+    
     def test_compose_1so_custombuild(self):
         # Standup deployment
         self.compose_file_name = "1so_custombuild.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_custombuild.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -390,16 +397,16 @@ class TestCentos7(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_namedvolumes.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -410,16 +417,16 @@ class TestCentos7(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_command_start.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -430,16 +437,16 @@ class TestCentos7(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_command_start_service.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -450,9 +457,9 @@ class TestCentos7(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_hec.json")
 
         assert rc == 0
         # Wait for containers to be healthy
@@ -460,7 +467,7 @@ class TestCentos7(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -492,15 +499,15 @@ class TestCentos7(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        log_json = self.extract_json(output)
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1so_apps.json")
 
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -537,9 +544,9 @@ class TestCentos7(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("uf1")
         output = self.get_container_logs("uf1")
-        log_json = self.extract_json(output)
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1uf_hec.json")
 
         assert rc == 0
         # Wait for containers to be healthy
@@ -547,7 +554,7 @@ class TestCentos7(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -579,15 +586,15 @@ class TestCentos7(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         # Get container logs
+        log_json = self.extract_json("uf1")
         output = self.get_container_logs("uf1")
-        log_json = self.extract_json(output)
-        desired_json = self.get_json_from_file(self.compose_file_name[:-5])
+        desired_json = self.get_json_from_file("1uf_apps.json")
 
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check ansible version & configs
-        assert "ansible-playbook 2.7" in output
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
         assert log_json == desired_json
@@ -626,16 +633,17 @@ class TestCentos7(object):
 
         output_so = self.get_container_logs("so1")
         output_uf = self.get_container_logs("uf1")
-        log_json_so = self.extract_json(output_so)
-        log_json_uf = self.extract_json(output_uf)
-        desired_json_so, desired_json_uf = self.get_json_from_file(self.compose_file_name[:-5])
+        log_json_so = self.extract_json("so1")
+        log_json_uf = self.extract_json("uf1")
+        desired_json_so = self.get_json_from_file("1uf1so_so1.json")
+        desired_json_uf = self.get_json_from_file("1uf1so_uf1.json")
     
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
-        assert "ansible-playbook 2.7" in output_so and "ansible-playbook 2.7" in output_uf
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output_so and "ansible-playbook {}".format(ANSIBLE_VERSION) in output_uf
         assert "config file = /opt/ansible/ansible.cfg" in output_so and "config file = /opt/ansible/ansible.cfg" in output_uf
         # Check log output against saved files
         assert log_json_so == desired_json_so and log_json_uf == desired_json_uf
