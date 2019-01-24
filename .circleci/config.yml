@@ -31,3 +31,9 @@ jobs:
           path: test-results
       - store_test_results:
           path: test-results
+
+workflows:
+  version: 2
+  run_tests:
+    jobs:
+      - docker-splunk-test
