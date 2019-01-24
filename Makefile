@@ -132,6 +132,7 @@ run_tests_centos7:
 test_setup:
 	@echo 'Install test requirements'
 	pip install -r $(shell pwd)/tests/requirements.txt --upgrade
+	mkdir test-results
 	mkdir test-results/pytest
 	mkdir test-results/centos7-result
 	mkdir test-results/debian9-result
@@ -169,6 +170,6 @@ clean:
 	docker rm clair || true
 	rm -rf clair-scanner || true
 	rm -rf clair-scanner-logs || true
-	rm -rf test-results/* || true
+	rm -rf test-results || true
 	docker rm -f ${TEST_IMAGE_NAME} || true
 	docker system prune -f --volumes
