@@ -11,7 +11,7 @@ services:
       splunknet:
         aliases:
           - sh1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: sh1
     container_name: sh1
@@ -34,7 +34,7 @@ services:
       splunknet:
         aliases:
           - sh2
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: sh2
     container_name: sh2
@@ -57,7 +57,7 @@ services:
       splunknet:
         aliases:
           - sh3
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: sh3
     container_name: sh3
@@ -81,7 +81,7 @@ services:
       splunknet:
         aliases:
           - dep1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: dep1
     container_name: dep1
@@ -104,7 +104,7 @@ services:
       splunknet:
         aliases:
           - cm1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: cm1
     container_name: cm1
@@ -127,7 +127,7 @@ services:
       splunknet:
         aliases:
           - idx1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx1
     container_name: idx1
@@ -150,7 +150,7 @@ services:
       splunknet:
         aliases:
           - idx2
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx2
     container_name: idx2
@@ -173,7 +173,7 @@ services:
       splunknet:
         aliases:
           - idx3
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx3
     container_name: idx3
@@ -196,7 +196,7 @@ services:
       splunknet:
         aliases:
           - idx4
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx4
     container_name: idx4
@@ -219,7 +219,7 @@ services:
       splunknet:
         aliases:
           - idx5
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx5
     container_name: idx5
@@ -241,7 +241,7 @@ services:
       splunknet:
         aliases:
           - idx6
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx6
     container_name: idx6
@@ -264,7 +264,7 @@ services:
       splunknet:
         aliases:
           - idx7
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx7
     container_name: idx7
@@ -287,7 +287,7 @@ services:
       splunknet:
         aliases:
           - idx8
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx8
     container_name: idx8
@@ -310,7 +310,7 @@ services:
       splunknet:
         aliases:
           - idx9
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx9
     container_name: idx9
@@ -333,7 +333,7 @@ services:
       splunknet:
         aliases:
           - idx10
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx10
     container_name: idx10

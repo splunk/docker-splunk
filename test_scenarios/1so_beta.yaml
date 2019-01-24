@@ -24,7 +24,7 @@ services:
       - 8089
 
   uf1:
-    image: splunk/universalforwarder:latest
+    image: ${UF_IMAGE:-splunk/universalforwarder:latest}
     hostname: uf1
     container_name: uf1
     environment:
