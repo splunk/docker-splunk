@@ -300,7 +300,6 @@ class TestDebian9(object):
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "home: /opt/splunk" in output
         assert "password: " in output
-        assert False
     
     def test_uf_entrypoint_start_no_password(self):
         # Run container
