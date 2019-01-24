@@ -8,4 +8,3 @@ splunk-ansible
 *.xml
 *clair-scanner*
 .env
-test-results/*
