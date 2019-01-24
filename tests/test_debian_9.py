@@ -445,7 +445,11 @@ class TestDebian9(object):
         assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
-        assert log_json == desired_json
+        try:
+            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
     
     def test_compose_1so_custombuild(self):
         # Standup deployment
@@ -464,7 +468,13 @@ class TestDebian9(object):
         assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
-        assert log_json == desired_json
+        try:
+            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
+            assert log_json["all"]["vars"]["splunk"]["build_location"] == desired_json["all"]["vars"]["splunk"]["build_location"]
+            assert log_json["all"]["vars"]["splunk"]["build_remote_src"] == desired_json["all"]["vars"]["splunk"]["build_remote_src"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
         
     def test_compose_1so_namedvolumes(self):
         # Standup deployment
@@ -484,7 +494,11 @@ class TestDebian9(object):
         assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
-        assert log_json == desired_json
+        try:
+            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
 
     def test_compose_1so_command_start(self):
         # Standup deployment
@@ -504,7 +518,11 @@ class TestDebian9(object):
         assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
-        assert log_json == desired_json
+        try:
+            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
 
     def test_compose_1so_command_start_service(self):
         # Standup deployment
@@ -524,7 +542,11 @@ class TestDebian9(object):
         assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
-        assert log_json == desired_json
+        try:
+            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
 
     def test_compose_1so_hec(self):
         # Standup deployment
@@ -545,7 +567,12 @@ class TestDebian9(object):
         assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
-        assert log_json == desired_json
+        try:
+            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
+            assert log_json["all"]["vars"]["splunk"]["hec_token"] == desired_json["all"]["vars"]["splunk"]["hec_token"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
         # Check HEC works - note the token "abcd1234" is hard-coded within the 1so_hec.yaml compose
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 1
@@ -577,7 +604,6 @@ class TestDebian9(object):
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
         desired_json = self.get_json_from_file("1so_apps.json")
-
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
@@ -585,7 +611,14 @@ class TestDebian9(object):
         assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
-        assert log_json == desired_json
+        try:
+            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
+            assert log_json["all"]["vars"]["splunk"]["apps_location"] == desired_json["all"]["vars"]["splunk"]["apps_location"]
+            assert log_json["all"]["vars"]["splunk"]["app_paths"] == desired_json["all"]["vars"]["splunk"]["app_paths"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
+
         # Check to make sure the app got installed
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 2
@@ -632,7 +665,12 @@ class TestDebian9(object):
         assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
-        assert log_json == desired_json
+        try:
+            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
+            assert log_json["all"]["vars"]["splunk"]["hec_token"] == desired_json["all"]["vars"]["splunk"]["hec_token"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
         # Check HEC works - note the token "abcd1234" is hard-coded within the 1so_hec.yaml compose
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 1
@@ -672,7 +710,14 @@ class TestDebian9(object):
         assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
         assert "config file = /opt/ansible/ansible.cfg" in output
         # Check log output against saved files
-        assert log_json == desired_json
+        try:
+            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
+            assert log_json["all"]["vars"]["splunk"]["apps_location"] == desired_json["all"]["vars"]["splunk"]["apps_location"]
+            assert log_json["all"]["vars"]["splunk"]["app_paths"] == desired_json["all"]["vars"]["splunk"]["app_paths"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
+
         # Check to make sure the app got installed
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 2
@@ -721,4 +766,11 @@ class TestDebian9(object):
         assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output_so and "ansible-playbook {}".format(ANSIBLE_VERSION) in output_uf
         assert "config file = /opt/ansible/ansible.cfg" in output_so and "config file = /opt/ansible/ansible.cfg" in output_uf
         # Check log output against saved files
-        assert log_json_so == desired_json_so and log_json_uf == desired_json_uf
+        try:
+            assert log_json_so["all"]["vars"]["splunk"]["role"] == desired_json_so["all"]["vars"]["splunk"]["role"]
+            assert log_json_uf["all"]["vars"]["splunk"]["role"] == desired_json_uf["all"]["vars"]["splunk"]["role"]
+            assert log_json_so["splunk_standalone"] == desired_json_so["splunk_standalone"]
+            assert log_json_uf["splunk_standalone"] == desired_json_uf["splunk_standalone"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
