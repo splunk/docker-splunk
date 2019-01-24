@@ -10,7 +10,9 @@ jobs:
           name: Running tests CentOS 7
           command: make test_centos7
       - store_artifacts:
-          path: testresults_centos7.xml
+          path: test-results
+      - store_test_results:
+          path: test-results
   test_debian9:
     machine:
       image: circleci/classic:latest
@@ -21,10 +23,43 @@ jobs:
           name: Running tests Debian 9 
           command: make test_debian9
       - store_artifacts:
-          path: testresults_debian9.xml
+          path: test-results
+      - store_test_results:
+          path: test-results
+  security_vulnerability_scan:
+    machine:
+      image: circleci/classic:latest
+      docker_layer_caching: true
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Build Container
+          command: |
+            make all
+      - run:
+          name: Setup Tests / Scanner Requirements
+          command: |
+            make test_setup
+      - run:
+          name: Run Vulnerability Scanner
+          command: |
+            make setup_and_run_clair
+      - store_test_results:
+          name: Store Test Results
+          path: test-results
+      - store_artifacts:
+          name: Store Scanner Logs
+          path: clair-scanner-logs
+          destintation: clair-scanner-logs
+      - store_artifacts:
+          name: Test-Artifacts
+          path: test-results
+          destintation: test-results
 workflows:
   version: 2
   run_tests:
     jobs:
       - test_centos7
       - test_debian9
+      - security_vulnerability_scan
