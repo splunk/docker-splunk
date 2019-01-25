@@ -66,25 +66,24 @@ class TestCentos7(object):
     @classmethod
     def setup_class(cls):
         cls.client = docker.APIClient()
-        if '--no-build' not in sys.argv:
-            # Build base
-            response = cls.client.build(path=os.path.join(REPO_DIR, "base", "centos-7"), 
-                                        buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
-                                        tag=BASE_IMAGE_NAME)
-            for line in response:
-                print line,
-            # Build splunk
-            response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("splunk", "centos-7", "Dockerfile"), 
-                                        buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
-                                        tag=SPLUNK_IMAGE_NAME)
-            for line in response:
-                print line,
-            # Build splunkforwarder
-            response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("uf", "centos-7", "Dockerfile"), 
-                                        buildargs={"SPLUNK_BUILD_URL": UF_BUILD_URL, "SPLUNK_FILENAME": UF_FILENAME},
-                                        tag=UF_IMAGE_NAME)
-            for line in response:
-                print line,
+        # Build base
+        response = cls.client.build(path=os.path.join(REPO_DIR, "base", "centos-7"), 
+                                    buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
+                                    tag=BASE_IMAGE_NAME)
+        for line in response:
+            print line,
+        # Build splunk
+        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("splunk", "centos-7", "Dockerfile"), 
+                                    buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
+                                    tag=SPLUNK_IMAGE_NAME)
+        for line in response:
+            print line,
+        # Build splunkforwarder
+        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("uf", "centos-7", "Dockerfile"), 
+                                    buildargs={"SPLUNK_BUILD_URL": UF_BUILD_URL, "SPLUNK_FILENAME": UF_FILENAME},
+                                    tag=UF_IMAGE_NAME)
+        for line in response:
+            print line,
         # Setup password
         cls.password = generate_random_string()
         with open(os.path.join(REPO_DIR, ".env"), "w") as f:
