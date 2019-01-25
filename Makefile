@@ -125,6 +125,10 @@ test_centos7: clean ansible test_setup run_tests_centos7
 
 test_debian9: clean ansible test_setup run_tests_debian9
 
+test_centos7_no_build: clean ansible test_setup run_tests_centos7_no_build
+
+test_debian9_no_build: clean ansible test_setup run_tests_debian9_no_build
+
 run_tests_centos7:
 	@echo 'Running the super awesome tests; CentOS 7'
 	pytest -sv tests/test_centos_7.py --junitxml test-results/centos7-result/testresults_centos7.xml
