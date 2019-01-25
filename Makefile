@@ -129,6 +129,10 @@ run_tests_centos7:
 	@echo 'Running the super awesome tests; CentOS 7'
 	pytest -sv tests/test_centos_7.py --junitxml test-results/centos7-result/testresults_centos7.xml
 
+run_tests_centos7_no_build:
+	@echo 'Running the super awesome tests without build; CentOS 7'
+	pytest -sv tests/test_centos_7.py --junitxml test-results/centos7-result/testresults_centos7.xml --no-build
+
 test_setup:
 	@echo 'Install test requirements'
 	pip install -r $(shell pwd)/tests/requirements.txt --upgrade
@@ -138,6 +142,10 @@ test_setup:
 run_tests_debian9:
 	@echo 'Running the super awesome tests; Debian 9'
 	pytest -sv tests/test_debian_9.py --junitxml test-results/debian9-result/testresults_debian9.xml
+
+run_tests_debian9_no_build:
+	@echo 'Running the super awesome tests without build; Debian 9'
+	pytest -sv tests/test_debian_9.py --junitxml test-results/debian9-result/testresults_debian9.xml --no-build
 
 setup_clair_scanner:
 	mkdir clair-scanner-logs
@@ -166,6 +174,7 @@ clean:
 	docker rm clair_db || true
 	docker stop clair || true
 	docker rm clair || true
+	rm -rf .pytest_cache || true
 	rm -rf clair-scanner || true
 	rm -rf clair-scanner-logs || true
 	rm -rf test-results/* || true

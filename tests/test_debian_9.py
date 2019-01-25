@@ -14,6 +14,7 @@ import tarfile
 import logging
 import logging.handlers
 import json
+import sys
 from random import choice
 from string import ascii_lowercase
 # Code to suppress insecure https warnings
@@ -65,30 +66,32 @@ class TestDebian9(object):
     @classmethod
     def setup_class(cls):
         cls.client = docker.APIClient()
-        # Build base
-        response = cls.client.build(path=os.path.join(REPO_DIR, "base", "debian-9"), 
-                                    buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
-                                    tag=BASE_IMAGE_NAME)
-        for line in response:
-            print line,
-        # Build splunk
-        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("splunk", "debian-9", "Dockerfile"), 
-                                    buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
-                                    tag=SPLUNK_IMAGE_NAME)
-        for line in response:
-            print line,
-        # Build splunkforwarder
-        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("uf", "debian-9", "Dockerfile"), 
-                                    buildargs={"SPLUNK_BUILD_URL": UF_BUILD_URL, "SPLUNK_FILENAME": UF_FILENAME},
-                                    tag=UF_IMAGE_NAME)
-        for line in response:
-            print line,
+        if '--no-build' not in sys.argv:
+            # Build base
+            response = cls.client.build(path=os.path.join(REPO_DIR, "base", "debian-9"), 
+                                        buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
+                                        tag=BASE_IMAGE_NAME)
+            for line in response:
+                print line,
+            # Build splunk
+            response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("splunk", "debian-9", "Dockerfile"), 
+                                        buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
+                                        tag=SPLUNK_IMAGE_NAME)
+            for line in response:
+                print line,
+            # Build splunkforwarder
+            response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("uf", "debian-9", "Dockerfile"), 
+                                        buildargs={"SPLUNK_BUILD_URL": UF_BUILD_URL, "SPLUNK_FILENAME": UF_FILENAME},
+                                        tag=UF_IMAGE_NAME)
+            for line in response:
+                print line,
         # Setup password
         cls.password = generate_random_string()
         with open(os.path.join(REPO_DIR, ".env"), "w") as f:
             f.write("SPLUNK_PASSWORD={}\n".format(cls.password))
             f.write("SPLUNK_IMAGE={}\n".format(SPLUNK_IMAGE_NAME))
             f.write("UF_IMAGE={}\n".format(UF_IMAGE_NAME))
+        print 
 
     @classmethod
     def teardown_class(cls):
