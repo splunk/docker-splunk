@@ -125,15 +125,17 @@ test_centos7: clean ansible test_setup run_tests_centos7
 
 test_debian9: clean ansible test_setup run_tests_debian9
 
+test_ci: run_tests_centos7 run_tests_debian9
+
 run_tests_centos7:
 	@echo 'Running the super awesome tests; CentOS 7'
 	pytest -sv tests/test_centos_7.py --junitxml test-results/centos7-result/testresults_centos7.xml
-	
+
 test_setup:
 	@echo 'Install test requirements'
 	pip install -r $(shell pwd)/tests/requirements.txt --upgrade
-	mkdir test-results/centos7-result
-	mkdir test-results/debian9-result
+	mkdir test-results/centos7-result || true
+	mkdir test-results/debian9-result || true
 
 run_tests_debian9:
 	@echo 'Running the super awesome tests; Debian 9'

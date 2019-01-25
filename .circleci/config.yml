@@ -22,13 +22,11 @@ jobs:
           path: clair-scanner-logs
           destintation: clair-scanner-logs
       - run:
-          name: Running tests Debian 9 
-          command: make test_debian9
-      - run:
-          name: Running tests CentOS 7
-          command: make test_centos7
+          name: Running CI Tests
+          command: make test_ci
       - store_artifacts:
           path: test-results
+          destination: test-results
       - store_test_results:
           path: test-results
 
@@ -37,3 +35,5 @@ workflows:
   run_tests:
     jobs:
       - docker-splunk-test
+
+      
