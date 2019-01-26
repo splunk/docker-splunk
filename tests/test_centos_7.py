@@ -383,18 +383,15 @@ class TestCentos7(object):
         container_count, rc = self.compose_up()
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_trial.json")
-
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
-        # Check log output against saved files
-        assert log_json == desired_json
+        self.check_ansible(output)
+        #Check log output against saved files
+        self.check_common_keys(log_json, "so")
     
     def test_compose_1so_custombuild(self):
         # Standup deployment
@@ -403,17 +400,15 @@ class TestCentos7(object):
         container_count, rc = self.compose_up()
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_custombuild.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
-        assert log_json == desired_json
+        self.check_common_keys(log_json, "so")
         
     def test_compose_1so_namedvolumes(self):
         # Standup deployment
@@ -423,17 +418,15 @@ class TestCentos7(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_namedvolumes.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
-        assert log_json == desired_json
+        self.check_common_keys(log_json, "so")
 
     def test_compose_1so_command_start(self):
         # Standup deployment
@@ -443,17 +436,15 @@ class TestCentos7(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_command_start.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
-        assert log_json == desired_json
+        self.check_common_keys(log_json, "so")
 
     def test_compose_1so_command_start_service(self):
         # Standup deployment
@@ -463,17 +454,15 @@ class TestCentos7(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_command_start_service.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
-        assert log_json == desired_json
+        self.check_common_keys(log_json, "so")
 
     def test_compose_1so_hec(self):
         # Standup deployment
@@ -483,7 +472,6 @@ class TestCentos7(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_hec.json")
 
         assert rc == 0
         # Wait for containers to be healthy
@@ -491,10 +479,15 @@ class TestCentos7(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
-        assert log_json == desired_json
+        self.check_common_keys(log_json, "so")
+        try:
+            # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
+            assert log_json["all"]["vars"]["splunk"]["hec_token"] == "abcd1234"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
         # Check HEC works - note the token "abcd1234" is hard-coded within the 1so_hec.yaml compose
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 1
@@ -525,16 +518,24 @@ class TestCentos7(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_apps.json")
-
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
-        assert log_json == desired_json
+        self.check_common_keys(log_json, "so")
+        try:
+            assert log_json["all"]["vars"]["splunk"]["apps_location"] == "http://appserver/splunk_app_example.tgz"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["default"] == "/opt/splunk/etc/apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["deployment"] == "/opt/splunk/etc/deployment-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["httpinput"] == "/opt/splunk/etc/apps/splunk_httpinput"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["idxc"] == "/opt/splunk/etc/master-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["shc"] == "/opt/splunk/etc/shcluster/apps"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
+
         # Check to make sure the app got installed
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 2
@@ -570,7 +571,6 @@ class TestCentos7(object):
         # Get container logs
         log_json = self.extract_json("uf1")
         output = self.get_container_logs("uf1")
-        desired_json = self.get_json_from_file("1uf_hec.json")
 
         assert rc == 0
         # Wait for containers to be healthy
@@ -578,10 +578,15 @@ class TestCentos7(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
-        assert log_json == desired_json
+        self.check_common_keys(log_json, "uf")
+        try:
+            # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
+            assert log_json["all"]["vars"]["splunk"]["hec_token"] == "abcd1234"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
         # Check HEC works - note the token "abcd1234" is hard-coded within the 1so_hec.yaml compose
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 1
@@ -612,16 +617,25 @@ class TestCentos7(object):
         # Get container logs
         log_json = self.extract_json("uf1")
         output = self.get_container_logs("uf1")
-        desired_json = self.get_json_from_file("1uf_apps.json")
 
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
-        assert log_json == desired_json
+        self.check_common_keys(log_json, "uf")
+        try:
+            assert log_json["all"]["vars"]["splunk"]["apps_location"] == "http://appserver/splunk_app_example.tgz"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["default"] == "/opt/splunkforwarder/etc/apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["deployment"] == "/opt/splunkforwarder/etc/deployment-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["httpinput"] == "/opt/splunkforwarder/etc/apps/splunk_httpinput"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["idxc"] == "/opt/splunkforwarder/etc/master-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["shc"] == "/opt/splunkforwarder/etc/shcluster/apps"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
+
         # Check to make sure the app got installed
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 2
@@ -659,15 +673,20 @@ class TestCentos7(object):
         output_uf = self.get_container_logs("uf1")
         log_json_so = self.extract_json("so1")
         log_json_uf = self.extract_json("uf1")
-        desired_json_so = self.get_json_from_file("1uf1so_so1.json")
-        desired_json_uf = self.get_json_from_file("1uf1so_uf1.json")
     
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output_so and "ansible-playbook {}".format(ANSIBLE_VERSION) in output_uf
-        assert "config file = /opt/ansible/ansible.cfg" in output_so and "config file = /opt/ansible/ansible.cfg" in output_uf
+        self.check_ansible(output_so)
+        self.check_ansible(output_uf)
         # Check log output against saved files
-        assert log_json_so == desired_json_so and log_json_uf == desired_json_uf
+        self.check_common_keys(log_json_so, "so")
+        self.check_common_keys(log_json_uf, "uf")
+        try:
+            assert log_json_so["splunk_standalone"]["hosts"][0] == "so1"
+            assert log_json_uf["splunk_standalone"]["hosts"][0] == "so1"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
