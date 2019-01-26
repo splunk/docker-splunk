@@ -526,7 +526,7 @@ class TestCentos7(object):
         # Check log output against saved files
         self.check_common_keys(log_json, "so")
         try:
-            assert log_json["all"]["vars"]["splunk"]["apps_location"] == "http://appserver/splunk_app_example.tgz"
+            assert log_json["all"]["vars"]["splunk"]["apps_location"][0] == "http://appserver/splunk_app_example.tgz"
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["default"] == "/opt/splunk/etc/apps"
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["deployment"] == "/opt/splunk/etc/deployment-apps"
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["httpinput"] == "/opt/splunk/etc/apps/splunk_httpinput"
@@ -626,7 +626,7 @@ class TestCentos7(object):
         # Check log output against saved files
         self.check_common_keys(log_json, "uf")
         try:
-            assert log_json["all"]["vars"]["splunk"]["apps_location"] == "http://appserver/splunk_app_example.tgz"
+            assert log_json["all"]["vars"]["splunk"]["apps_location"][0] == "http://appserver/splunk_app_example.tgz"
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["default"] == "/opt/splunkforwarder/etc/apps"
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["deployment"] == "/opt/splunkforwarder/etc/deployment-apps"
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["httpinput"] == "/opt/splunkforwarder/etc/apps/splunk_httpinput"
