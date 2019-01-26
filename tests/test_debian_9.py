@@ -90,7 +90,6 @@ class TestDebian9(object):
             f.write("SPLUNK_PASSWORD={}\n".format(cls.password))
             f.write("SPLUNK_IMAGE={}\n".format(SPLUNK_IMAGE_NAME))
             f.write("UF_IMAGE={}\n".format(UF_IMAGE_NAME))
-        print 
 
     @classmethod
     def teardown_class(cls):
@@ -227,10 +226,6 @@ class TestDebian9(object):
                 if n < RETRIES-1:
                     continue
         return (resp.status_code, resp.content)
-    def get_json_from_file(self, file_name):
-        with open("tests/test_output/%s" % file_name) as json_data:
-            data = json.load(json_data)
-        return data
 
     def extract_json(self, container_name):
         retries = 5
@@ -247,6 +242,35 @@ class TestDebian9(object):
         except Exception as e:
             self.logger.error(e)
             return None
+        
+    def check_common_keys(self, log_output, role):
+        try:
+            assert log_output["all"]["vars"]["ansible_ssh_user"] == "splunk"
+            assert log_output["all"]["vars"]["ansible_pre_tasks"] == None
+            assert log_output["all"]["vars"]["ansible_post_tasks"] == None
+            assert log_output["all"]["vars"]["retry_num"] == 50
+            assert log_output["all"]["vars"]["delay_num"] == 3
+            assert log_output["all"]["vars"]["splunk"]["group"] == "splunk"
+            assert log_output["all"]["vars"]["splunk"]["license_download_dest"] == "/tmp/splunk.lic"
+            assert log_output["all"]["vars"]["splunk"]["nfr_license"] == "/tmp/nfr_enterprise.lic"
+            assert log_output["all"]["vars"]["splunk"]["opt"] == "/opt"
+            assert log_output["all"]["vars"]["splunk"]["user"] == "splunk"
+
+            if role == "so":
+                assert log_output["all"]["vars"]["splunk"]["exec"] == "/opt/splunk/bin/splunk"
+                assert log_output["all"]["vars"]["splunk"]["home"] == "/opt/splunk"
+                assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_standalone"
+            elif role == "uf":
+                assert log_output["all"]["vars"]["splunk"]["exec"] == "/opt/splunkforwarder/bin/splunk"
+                assert log_output["all"]["vars"]["splunk"]["home"] == "/opt/splunkforwarder"
+                assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_universal_forwarder"
+        except KeyError as e:
+            self.logger.error("{} key not found".format(e))
+            assert False
+
+    def check_ansible(self, output):
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
     
     def test_splunk_entrypoint_help(self):
         # Run container
@@ -428,7 +452,7 @@ class TestDebian9(object):
                 os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
             except OSError:
                 pass
-   
+
     def test_compose_1so_trial(self):
         # Standup deployment
         self.compose_file_name = "1so_trial.yaml"
@@ -436,22 +460,15 @@ class TestDebian9(object):
         container_count, rc = self.compose_up()
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_trial.json")
-
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
-        # Check log output against saved files
-        try:
-            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
-        except KeyError as e:
-            self.logger.error(e)
-            assert False
+        self.check_ansible(output)
+        #Check log output against saved files
+        self.check_common_keys(log_json, "so")
     
     def test_compose_1so_custombuild(self):
         # Standup deployment
@@ -460,23 +477,15 @@ class TestDebian9(object):
         container_count, rc = self.compose_up()
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_custombuild.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
-        try:
-            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
-            assert log_json["all"]["vars"]["splunk"]["build_location"] == desired_json["all"]["vars"]["splunk"]["build_location"]
-            assert log_json["all"]["vars"]["splunk"]["build_remote_src"] == desired_json["all"]["vars"]["splunk"]["build_remote_src"]
-        except KeyError as e:
-            self.logger.error(e)
-            assert False
+        self.check_common_keys(log_json, "so")
         
     def test_compose_1so_namedvolumes(self):
         # Standup deployment
@@ -486,21 +495,15 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_namedvolumes.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
-        try:
-            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
-        except KeyError as e:
-            self.logger.error(e)
-            assert False
+        self.check_common_keys(log_json, "so")
 
     def test_compose_1so_command_start(self):
         # Standup deployment
@@ -510,21 +513,15 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_command_start.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
-        try:
-            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
-        except KeyError as e:
-            self.logger.error(e)
-            assert False
+        self.check_common_keys(log_json, "so")
 
     def test_compose_1so_command_start_service(self):
         # Standup deployment
@@ -534,21 +531,67 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_command_start_service.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
+        self.check_common_keys(log_json, "so")
+
+    def test_compose_1so_java_oracle(self):
+        # Standup deployment
+        self.compose_file_name = "1so_java_oracle.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
+        assert rc == 0
+        # Wait for containers to be healthy
+        assert self.wait_for_containers(container_count)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check log output against saved files
+        self.check_common_keys(log_json, "so")
         try:
-            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
+            assert log_json["all"]["vars"]["java_version"] == "oracle:8"
         except KeyError as e:
             self.logger.error(e)
             assert False
+        # Check if java is installed
+        exec_command = self.client.exec_create("so1", "java -version")
+        std_out = self.client.exec_start(exec_command)
+        assert "java version \"1.8.0" in std_out
+
+    def test_compose_1so_java_openjdk(self):
+        # Standup deployment
+        self.compose_file_name = "1so_java_openjdk.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
+        assert rc == 0
+        # Wait for containers to be healthy
+        assert self.wait_for_containers(container_count)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check log output against saved files
+        self.check_common_keys(log_json, "so")
+        try:
+            assert log_json["all"]["vars"]["java_version"] == "openjdk:8"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
+        # Check if java is installed
+        exec_command = self.client.exec_create("so1", "java -version")
+        std_out = self.client.exec_start(exec_command)
+        assert "openjdk version \"1.8.0" in std_out
 
     def test_compose_1so_hec(self):
         # Standup deployment
@@ -558,7 +601,6 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_hec.json")
 
         assert rc == 0
         # Wait for containers to be healthy
@@ -566,12 +608,12 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
+        self.check_common_keys(log_json, "so")
         try:
-            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
-            assert log_json["all"]["vars"]["splunk"]["hec_token"] == desired_json["all"]["vars"]["splunk"]["hec_token"]
+            # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
+            assert log_json["all"]["vars"]["splunk"]["hec_token"] == "abcd1234"
         except KeyError as e:
             self.logger.error(e)
             assert False
@@ -605,18 +647,20 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("so1")
         output = self.get_container_logs("so1")
-        desired_json = self.get_json_from_file("1so_apps.json")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
+        self.check_common_keys(log_json, "so")
         try:
-            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
-            assert log_json["all"]["vars"]["splunk"]["apps_location"] == desired_json["all"]["vars"]["splunk"]["apps_location"]
-            assert log_json["all"]["vars"]["splunk"]["app_paths"] == desired_json["all"]["vars"]["splunk"]["app_paths"]
+            assert log_json["all"]["vars"]["splunk"]["apps_location"] == "http://appserver/splunk_app_example.tgz"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["default"] == "/opt/splunk/etc/apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["deployment"] == "/opt/splunk/etc/deployment-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["httpinput"] == "/opt/splunk/etc/apps/splunk_httpinput"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["idxc"] == "/opt/splunk/etc/master-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["shc"] == "/opt/splunk/etc/shcluster/apps"
         except KeyError as e:
             self.logger.error(e)
             assert False
@@ -656,7 +700,6 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("uf1")
         output = self.get_container_logs("uf1")
-        desired_json = self.get_json_from_file("1uf_hec.json")
 
         assert rc == 0
         # Wait for containers to be healthy
@@ -664,12 +707,12 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
+        self.check_common_keys(log_json, "uf")
         try:
-            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
-            assert log_json["all"]["vars"]["splunk"]["hec_token"] == desired_json["all"]["vars"]["splunk"]["hec_token"]
+            # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
+            assert log_json["all"]["vars"]["splunk"]["hec_token"] == "abcd1234"
         except KeyError as e:
             self.logger.error(e)
             assert False
@@ -703,19 +746,21 @@ class TestDebian9(object):
         # Get container logs
         log_json = self.extract_json("uf1")
         output = self.get_container_logs("uf1")
-        desired_json = self.get_json_from_file("1uf_apps.json")
 
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check ansible version & configs
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
-        assert "config file = /opt/ansible/ansible.cfg" in output
+        self.check_ansible(output)
         # Check log output against saved files
+        self.check_common_keys(log_json, "uf")
         try:
-            assert log_json["all"]["vars"]["splunk"]["role"] == desired_json["all"]["vars"]["splunk"]["role"]
-            assert log_json["all"]["vars"]["splunk"]["apps_location"] == desired_json["all"]["vars"]["splunk"]["apps_location"]
-            assert log_json["all"]["vars"]["splunk"]["app_paths"] == desired_json["all"]["vars"]["splunk"]["app_paths"]
+            assert log_json["all"]["vars"]["splunk"]["apps_location"] == "http://appserver/splunk_app_example.tgz"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["default"] == "/opt/splunkforwarder/etc/apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["deployment"] == "/opt/splunkforwarder/etc/deployment-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["httpinput"] == "/opt/splunkforwarder/etc/apps/splunk_httpinput"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["idxc"] == "/opt/splunkforwarder/etc/master-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["shc"] == "/opt/splunkforwarder/etc/shcluster/apps"
         except KeyError as e:
             self.logger.error(e)
             assert False
@@ -757,22 +802,20 @@ class TestDebian9(object):
         output_uf = self.get_container_logs("uf1")
         log_json_so = self.extract_json("so1")
         log_json_uf = self.extract_json("uf1")
-        desired_json_so = self.get_json_from_file("1uf1so_so1.json")
-        desired_json_uf = self.get_json_from_file("1uf1so_uf1.json")
     
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output_so and "ansible-playbook {}".format(ANSIBLE_VERSION) in output_uf
-        assert "config file = /opt/ansible/ansible.cfg" in output_so and "config file = /opt/ansible/ansible.cfg" in output_uf
+        self.check_ansible(output_so)
+        self.check_ansible(output_uf)
         # Check log output against saved files
+        self.check_common_keys(log_json_so, "so")
+        self.check_common_keys(log_json_uf, "uf")
         try:
-            assert log_json_so["all"]["vars"]["splunk"]["role"] == desired_json_so["all"]["vars"]["splunk"]["role"]
-            assert log_json_uf["all"]["vars"]["splunk"]["role"] == desired_json_uf["all"]["vars"]["splunk"]["role"]
-            assert log_json_so["splunk_standalone"] == desired_json_so["splunk_standalone"]
-            assert log_json_uf["splunk_standalone"] == desired_json_uf["splunk_standalone"]
+            assert log_json_so["splunk_standalone"]["hosts"][0] == "so1"
+            assert log_json_uf["splunk_standalone"]["hosts"][0] == "so1"
         except KeyError as e:
             self.logger.error(e)
             assert False

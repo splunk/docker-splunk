@@ -210,11 +210,6 @@ class TestCentos7(object):
             output += char
         return output
 
-    def get_json_from_file(self, file_name):
-        with open("tests/test_output/%s" % file_name) as json_data:
-            data = json.load(json_data)
-        return data
-
     def extract_json(self, container_name):
         retries = 5
         for i in range(retries):
@@ -230,6 +225,35 @@ class TestCentos7(object):
         except Exception as e:
             self.logger.error(e)
             return None
+
+    def check_common_keys(self, log_output, role):
+        try:
+            assert log_output["all"]["vars"]["ansible_ssh_user"] == "splunk"
+            assert log_output["all"]["vars"]["ansible_pre_tasks"] == None
+            assert log_output["all"]["vars"]["ansible_post_tasks"] == None
+            assert log_output["all"]["vars"]["retry_num"] == 50
+            assert log_output["all"]["vars"]["delay_num"] == 3
+            assert log_output["all"]["vars"]["splunk"]["group"] == "splunk"
+            assert log_output["all"]["vars"]["splunk"]["license_download_dest"] == "/tmp/splunk.lic"
+            assert log_output["all"]["vars"]["splunk"]["nfr_license"] == "/tmp/nfr_enterprise.lic"
+            assert log_output["all"]["vars"]["splunk"]["opt"] == "/opt"
+            assert log_output["all"]["vars"]["splunk"]["user"] == "splunk"
+
+            if role == "so":
+                assert log_output["all"]["vars"]["splunk"]["exec"] == "/opt/splunk/bin/splunk"
+                assert log_output["all"]["vars"]["splunk"]["home"] == "/opt/splunk"
+                assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_standalone"
+            elif role == "uf":
+                assert log_output["all"]["vars"]["splunk"]["exec"] == "/opt/splunkforwarder/bin/splunk"
+                assert log_output["all"]["vars"]["splunk"]["home"] == "/opt/splunkforwarder"
+                assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_universal_forwarder"
+        except KeyError as e:
+            self.logger.error("{} key not found".format(e))
+            assert False
+
+    def check_ansible(self, output):
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
     
     def test_splunk_entrypoint_help(self):
         # Run container
