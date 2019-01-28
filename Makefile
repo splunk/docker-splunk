@@ -119,11 +119,11 @@ sample-compose-up: sample-compose-down
 sample-compose-down:
 	docker-compose -f test_scenarios/${SPLUNK_COMPOSE} down --volumes --remove-orphans || true
 
-test: clean ansible test_setup run_tests_centos7 run_tests_debian9
+test: clean ansible test_setup all run_tests_centos7 run_tests_debian9
 
-test_centos7: clean ansible test_setup run_tests_centos7
+test_centos7: clean ansible splunk-centos-7 uf-centos-7 test_setup run_tests_centos7
 
-test_debian9: clean ansible test_setup run_tests_debian9
+test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_tests_debian9
 
 test_ci: run_tests_centos7 run_tests_debian9
 
