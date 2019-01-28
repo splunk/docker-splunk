@@ -228,7 +228,7 @@ class TestDebian9(object):
         return (resp.status_code, resp.content)
 
     def extract_json(self, container_name):
-        retries = 5
+        retries = 15
         for i in range(retries):
             exec_command = self.client.exec_create(container_name, "cat opt/container_artifact/ansible_inventory.json")
             json_data = self.client.exec_start(exec_command)

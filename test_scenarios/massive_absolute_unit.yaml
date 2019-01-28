@@ -24,6 +24,7 @@ services:
       - SPLUNK_ROLE=splunk_search_head_captain
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -47,6 +48,7 @@ services:
       - SPLUNK_ROLE=splunk_search_head
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -70,6 +72,7 @@ services:
       - SPLUNK_ROLE=splunk_search_head
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -94,6 +97,7 @@ services:
       - SPLUNK_ROLE=splunk_deployer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -117,6 +121,7 @@ services:
       - SPLUNK_ROLE=splunk_cluster_master
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -140,6 +145,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -163,6 +169,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -186,6 +193,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -209,6 +217,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -232,6 +241,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -254,6 +264,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -277,6 +288,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -300,6 +312,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -323,6 +336,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:
@@ -346,6 +360,7 @@ services:
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
     volumes:

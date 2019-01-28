@@ -23,6 +23,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_deployer
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089
@@ -44,6 +45,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_search_head_captain
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089
@@ -65,6 +67,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_search_head
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089
@@ -86,6 +89,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_search_head
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089
@@ -107,6 +111,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089
@@ -128,6 +133,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089
