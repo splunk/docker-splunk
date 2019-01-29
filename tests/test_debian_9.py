@@ -164,7 +164,7 @@ class TestDebian9(object):
         '''
         NOTE: This helper method can only be used for `compose up` scenarios where self.project_name is defined
         '''
-        retries = 5
+        retries = 10
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         for container in containers:
             splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
@@ -251,6 +251,8 @@ class TestDebian9(object):
                     assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_indexer"
                 elif role == "sh":
                     assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_search_head"
+                elif role == "cm":
+                    assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_cluster_master"
         except KeyError as e:
             self.logger.error("{} key not found".format(e))
             assert False
@@ -814,38 +816,108 @@ class TestDebian9(object):
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
 
-        output_sh1 = self.get_container_logs("sh1")
-        output_sh2 = self.get_container_logs("sh2")
-        output_idx1 = self.get_container_logs("idx1")
-        output_idx2 = self.get_container_logs("idx2")
-        log_json_sh1 = self.extract_json("sh1")
-        log_json_sh2 = self.extract_json("sh2")
-        log_json_idx1 = self.extract_json("idx1")
-        log_json_idx2 = self.extract_json("idx2")
+        container_names = ["idx1", "idx2", "sh1", "sh2"]
+        # Check ansible version & configs
+        logs_output = [self.get_container_logs(x) for x in container_names]
+        for log in logs_output:
+            self.check_ansible(log)
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
-        # Check ansible version & configs
-        self.check_ansible(output_sh1)
-        self.check_ansible(output_sh2)
-        self.check_ansible(output_idx1)
-        self.check_ansible(output_idx2)
         # Check values in log output
-        self.check_common_keys(log_json_sh1, "sh")
-        self.check_common_keys(log_json_sh2, "sh")
-        self.check_common_keys(log_json_idx1, "idx")
-        self.check_common_keys(log_json_idx2, "idx")
+        log_json = {}
+        for c in container_names:
+            log_json[c] = self.extract_json(c)
+        self.check_common_keys(log_json["sh1"], "sh")
+        self.check_common_keys(log_json["sh2"], "sh")
+        self.check_common_keys(log_json["idx1"], "idx")
+        self.check_common_keys(log_json["idx2"], "idx")
         try:
-            assert log_json_sh1["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
-            assert log_json_sh1["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
-            assert log_json_sh2["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
-            assert log_json_sh2["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
-            assert log_json_idx1["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
-            assert log_json_idx1["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
-            assert log_json_idx2["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
-            assert log_json_idx2["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
+            for c in container_names:
+                assert log_json[c]["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
+                assert log_json[c]["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
         except KeyError as e:
             self.logger.error(e)
             assert False
+
+    def test_compose_2idx2sh1cm(self):
+        # Standup deployment
+        self.compose_file_name = "2idx2sh1cm.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+
+        container_names = ["idx1", "idx2", "sh1", "sh2", "cm1"]
+        # Check ansible version & configs
+        logs_output = [self.get_container_logs(x) for x in container_names]
+        for log in logs_output:
+            self.check_ansible(log)
+
+        assert rc == 0
+        # Wait for containers to be healthy
+        assert self.wait_for_containers(container_count)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check values in log output
+        log_json = {}
+        for c in container_names:
+            log_json[c] = self.extract_json(c)
+        self.check_common_keys(log_json["sh1"], "sh")
+        self.check_common_keys(log_json["sh2"], "sh")
+        self.check_common_keys(log_json["idx1"], "idx")
+        self.check_common_keys(log_json["idx2"], "idx")
+        self.check_common_keys(log_json["cm1"], "cm")
+        try:
+            assert log_json["cm1"]["all"]["vars"]["splunk"]["indexer_cluster"] == True
+            for c in container_names:
+                assert log_json[c]["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
+                assert log_json[c]["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
+                assert log_json[c]["splunk_cluster_master"]["hosts"] == ["cm1"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
+
+        # Check connections
+        idx_list = ["idx1", "idx2"]
+        sh_list = ["sh1", "sh2", "cm1"]
+
+        containers = self.client.containers(filters={"label": "com.docker.compose.service={}".format("cm1")})
+        container=containers[0]
+        splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
+
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/cluster/master/searchheads?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        for sh in output["entry"]:
+            if sh["content"]["label"] in sh_list and sh["content"]["status"] == "Connected":
+                sh_list.remove(sh["content"]["label"])
+
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/cluster/master/peers?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        for idx in output["entry"]:
+            if idx["content"]["label"] in idx_list and idx["content"]["status"] == "Up":
+                idx_list.remove(idx["content"]["label"])
+
+        assert len(idx_list) == 0 and len(sh_list) == 0
+        # Add one more indexer
+        self.compose_file_name = "2idx2sh1cm_idx3.yaml"
+        container_count, rc = self.compose_up()
+        retries = 10
+        for n in range(retries):
+            status, content = self.handle_request_retry("GET", "https://localhost:{}/services/cluster/master/peers?output_mode=json".format(splunkd_port), 
+                                                {"auth": ("admin", self.password), "verify": False})
+            assert status == 200
+            output = json.loads(content)
+            for idx in output["entry"]:
+                if idx["content"]["label"] == "idx3" and idx["content"]["status"] == "Up":
+                    break
+            else:
+                time.sleep(10)
+                if n < retries-1:
+                    continue
+                assert False
+
