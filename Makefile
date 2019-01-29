@@ -2,7 +2,6 @@ SHELL := /bin/bash
 IMAGE_VERSION ?= "latest"
 NONQUOTE_IMAGE_VERSION := $(patsubst "%",%,$(IMAGE_VERSION))
 DOCKER_BUILD_FLAGS =
-TEST_IMAGE_NAME = "spldocker"
 SPLUNK_ANSIBLE_REPO ?= https://github.com/splunk/splunk-ansible.git
 SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
@@ -120,33 +119,27 @@ sample-compose-up: sample-compose-down
 sample-compose-down:
 	docker-compose -f test_scenarios/${SPLUNK_COMPOSE} down --volumes --remove-orphans || true
 
-test: clean ansible test_setup test_runner test_collection_cleanup
+test: clean ansible test_setup all run_tests_centos7 run_tests_debian9
 
-test_helper_container:
-	@echo 'Starting container to run tests...'
-	docker run -d --rm --name=${TEST_IMAGE_NAME} --net=host -v /var/run/docker.sock:/var/run/docker.sock -v $(shell pwd):$(shell pwd) --entrypoint /bin/sh python:2.7.15-alpine3.7 -c 'tail -f /dev/null'
+test_centos7: clean ansible splunk-centos-7 uf-centos-7 test_setup run_tests_centos7
 
-	@echo 'Install test requirements'
-	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "pip install -r $(shell pwd)/tests/requirements.txt --upgrade"
+test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_tests_debian9
 
-	@echo 'Running the super awesome tests'
-	mkdir test-results/pytest
-	docker exec -i ${TEST_IMAGE_NAME} /bin/sh -c "cd $(shell pwd); pytest -sv tests/ --junitxml test-results/pytest/results.xml"
+test_ci: run_tests_centos7 run_tests_debian9
 
-test_collection_container_cleanup:
-	docker cp ${TEST_IMAGE_NAME}:$(shell pwd)/testresults.xml testresults.xml || echo "no testresults.xml"
+run_tests_centos7:
+	@echo 'Running the super awesome tests; CentOS 7'
+	pytest -sv tests/test_centos_7.py --junitxml test-results/centos7-result/testresults_centos7.xml
 
 test_setup:
 	@echo 'Install test requirements'
 	pip install -r $(shell pwd)/tests/requirements.txt --upgrade
-	mkdir test-results/pytest
+	mkdir test-results/centos7-result || true
+	mkdir test-results/debian9-result || true
 
-test_runner:
-	@echo 'Running the super awesome tests'
-	cd $(shell pwd); pytest -sv tests/ --junitxml test-results/pytest/results.xml
-
-test_collection_cleanup:
-	docker cp ${TEST_IMAGE_NAME}:$(shell pwd)/testresults.xml testresults.xml || echo "no testresults.xml"
+run_tests_debian9:
+	@echo 'Running the super awesome tests; Debian 9'
+	pytest -sv tests/test_debian_9.py --junitxml test-results/debian9-result/testresults_debian9.xml
 
 setup_clair_scanner:
 	mkdir clair-scanner-logs
@@ -175,6 +168,7 @@ clean:
 	docker rm clair_db || true
 	docker stop clair || true
 	docker rm clair || true
+	rm -rf .pytest_cache || true
 	rm -rf clair-scanner || true
 	rm -rf clair-scanner-logs || true
 	rm -rf test-results/* || true

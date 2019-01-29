@@ -1,52 +1,39 @@
-# Python CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-python/ for more details
-#
 version: 2
 jobs:
-  build:
-    machine: true
-    #support this after we can enable it on account
-    #docker_layer_caching: true
-    working_directory: ~/repo
-
+  docker-splunk-test:
+    machine:
+      image: circleci/classic:latest
     steps:
-      # this section isn't needed for machine executors
-      #- setup_remote_docker
-           # enable this once the account supports it
-           #docker_layer_caching: true
       - checkout
-
       - run:
           name: Build Container
           command: |
             make all
-
       - run:
           name: Setup Tests / Scanner Requirements
           command: |
             make test_setup
-
-      #- run:
-      #    name: run tests
-      #    command: |
-      #      make test
-
       - run:
           name: Run Vulnerability Scanner
           command: |
             make setup_and_run_clair
-
-      - store_test_results:
-          name: Store Test Results
-          path: test-results
-
       - store_artifacts:
           name: Store Scanner Logs
           path: clair-scanner-logs
           destintation: clair-scanner-logs
-
+      - run:
+          name: Running CI Tests
+          command: make test_ci
       - store_artifacts:
-          name: Test-Artifacts
           path: test-results
-          destintation: test-results
+          destination: test-results
+      - store_test_results:
+          path: test-results
+
+workflows:
+  version: 2
+  run_tests:
+    jobs:
+      - docker-splunk-test
+
+      

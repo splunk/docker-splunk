@@ -14,6 +14,7 @@ import tarfile
 import logging
 import logging.handlers
 import json
+import sys
 from random import choice
 from string import ascii_lowercase
 # Code to suppress insecure https warnings
@@ -21,7 +22,6 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 import urllib3
 urllib3.disable_warnings()
-
 
 FILE_DIR = os.path.dirname(os.path.realpath(__file__))
 FIXTURES_DIR = os.path.join(FILE_DIR, "fixtures")
@@ -42,12 +42,14 @@ BASE_IMAGE_NAME = "base-debian-9"
 SPLUNK_IMAGE_NAME = "splunk-debian-9"
 UF_IMAGE_NAME = "splunkforwarder-debian-9"
 # Splunk variables
-SPLUNK_VERSION = "7.2.0"
-SPLUNK_BUILD = "8c86330ac18"
+SPLUNK_VERSION = "7.2.3"
+SPLUNK_BUILD = "06d57c595b80"
 SPLUNK_FILENAME = "splunk-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
 SPLUNK_BUILD_URL = "https://download.splunk.com/products/splunk/releases/{}/linux/{}".format(SPLUNK_VERSION, SPLUNK_FILENAME)
 UF_FILENAME = "splunkforwarder-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
 UF_BUILD_URL = "https://download.splunk.com/products/universalforwarder/releases/{}/linux/{}".format(SPLUNK_VERSION, UF_FILENAME)
+# Ansible version
+ANSIBLE_VERSION = "2.7.6"
 
 def generate_random_string():
     return ''.join(choice(ascii_lowercase) for b in range(20))
@@ -64,24 +66,6 @@ class TestDebian9(object):
     @classmethod
     def setup_class(cls):
         cls.client = docker.APIClient()
-        # Build base
-        response = cls.client.build(path=os.path.join(REPO_DIR, "base", "debian-9"), 
-                                    buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
-                                    tag=BASE_IMAGE_NAME)
-        for line in response:
-            print line,
-        # Build splunk
-        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("splunk", "debian-9", "Dockerfile"), 
-                                    buildargs={"SPLUNK_BUILD_URL": SPLUNK_BUILD_URL, "SPLUNK_FILENAME": SPLUNK_FILENAME},
-                                    tag=SPLUNK_IMAGE_NAME)
-        for line in response:
-            print line,
-        # Build splunkforwarder
-        response = cls.client.build(path=REPO_DIR, dockerfile=os.path.join("uf", "debian-9", "Dockerfile"), 
-                                    buildargs={"SPLUNK_BUILD_URL": UF_BUILD_URL, "SPLUNK_FILENAME": UF_FILENAME},
-                                    tag=UF_IMAGE_NAME)
-        for line in response:
-            print line,
         # Setup password
         cls.password = generate_random_string()
         with open(os.path.join(REPO_DIR, ".env"), "w") as f:
@@ -200,11 +184,13 @@ class TestDebian9(object):
                 finally:
                     time.sleep(5)
         return True
-    
+
     def get_container_logs(self, container_id):
         stream = self.client.logs(container_id, stream=True)
         output = ""
         for char in stream:
+            if "Ansible playbook complete" in char:
+                break
             output += char
         return output
 
@@ -222,6 +208,56 @@ class TestDebian9(object):
                 if n < RETRIES-1:
                     continue
         return (resp.status_code, resp.content)
+
+    def extract_json(self, container_name):
+        retries = 15
+        for i in range(retries):
+            exec_command = self.client.exec_create(container_name, "cat opt/container_artifact/ansible_inventory.json")
+            json_data = self.client.exec_start(exec_command)
+            if "No such file or directory" in json_data:
+                time.sleep(5)
+            else: 
+                break
+        try:
+            data = json.loads(json_data)
+            return data
+        except Exception as e:
+            self.logger.error(e)
+            return None
+        
+    def check_common_keys(self, log_output, role):
+        try:
+            assert log_output["all"]["vars"]["ansible_ssh_user"] == "splunk"
+            assert log_output["all"]["vars"]["ansible_pre_tasks"] == None
+            assert log_output["all"]["vars"]["ansible_post_tasks"] == None
+            assert log_output["all"]["vars"]["retry_num"] == 50
+            assert log_output["all"]["vars"]["delay_num"] == 3
+            assert log_output["all"]["vars"]["splunk"]["group"] == "splunk"
+            assert log_output["all"]["vars"]["splunk"]["license_download_dest"] == "/tmp/splunk.lic"
+            assert log_output["all"]["vars"]["splunk"]["nfr_license"] == "/tmp/nfr_enterprise.lic"
+            assert log_output["all"]["vars"]["splunk"]["opt"] == "/opt"
+            assert log_output["all"]["vars"]["splunk"]["user"] == "splunk"
+
+            if role == "uf":
+                assert log_output["all"]["vars"]["splunk"]["exec"] == "/opt/splunkforwarder/bin/splunk"
+                assert log_output["all"]["vars"]["splunk"]["home"] == "/opt/splunkforwarder"
+                assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_universal_forwarder"
+            else:
+                assert log_output["all"]["vars"]["splunk"]["exec"] == "/opt/splunk/bin/splunk"
+                assert log_output["all"]["vars"]["splunk"]["home"] == "/opt/splunk"
+                if role == "so":
+                    assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_standalone"
+                elif role == "idx":
+                    assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_indexer"
+                elif role == "sh":
+                    assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_search_head"
+        except KeyError as e:
+            self.logger.error("{} key not found".format(e))
+            assert False
+
+    def check_ansible(self, output):
+        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
+        assert "config file = /opt/ansible/ansible.cfg" in output
     
     def test_splunk_entrypoint_help(self):
         # Run container
@@ -409,66 +445,165 @@ class TestDebian9(object):
         self.compose_file_name = "1so_trial.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "so")
     
     def test_compose_1so_custombuild(self):
         # Standup deployment
         self.compose_file_name = "1so_custombuild.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "so")
         
     def test_compose_1so_namedvolumes(self):
         # Standup deployment
         self.compose_file_name = "1so_namedvolumes.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "so")
 
     def test_compose_1so_command_start(self):
         # Standup deployment
         self.compose_file_name = "1so_command_start.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "so")
 
     def test_compose_1so_command_start_service(self):
         # Standup deployment
         self.compose_file_name = "1so_command_start_service.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "so")
+
+    def test_compose_1so_java_oracle(self):
+        # Standup deployment
+        self.compose_file_name = "1so_java_oracle.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
+        assert rc == 0
+        # Wait for containers to be healthy
+        assert self.wait_for_containers(container_count)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "so")
+        try:
+            assert log_json["all"]["vars"]["java_version"] == "oracle:8"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
+        # Check if java is installed
+        exec_command = self.client.exec_create("so1", "java -version")
+        std_out = self.client.exec_start(exec_command)
+        assert "java version \"1.8.0" in std_out
+
+    def test_compose_1so_java_openjdk(self):
+        # Standup deployment
+        self.compose_file_name = "1so_java_openjdk.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
+        assert rc == 0
+        # Wait for containers to be healthy
+        assert self.wait_for_containers(container_count)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "so")
+        try:
+            assert log_json["all"]["vars"]["java_version"] == "openjdk:8"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
+        # Check if java is installed
+        exec_command = self.client.exec_create("so1", "java -version")
+        std_out = self.client.exec_start(exec_command)
+        assert "openjdk version \"1.8.0" in std_out
 
     def test_compose_1so_hec(self):
         # Standup deployment
         self.compose_file_name = "1so_hec.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
+
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "so")
+        try:
+            # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
+            assert log_json["all"]["vars"]["splunk"]["hec_token"] == "abcd1234"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
         # Check HEC works - note the token "abcd1234" is hard-coded within the 1so_hec.yaml compose
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 1
@@ -496,9 +631,27 @@ class TestDebian9(object):
         self.compose_file_name = "1so_apps.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "so")
+        try:
+            assert log_json["all"]["vars"]["splunk"]["apps_location"][0] == "http://appserver/splunk_app_example.tgz"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["default"] == "/opt/splunk/etc/apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["deployment"] == "/opt/splunk/etc/deployment-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["httpinput"] == "/opt/splunk/etc/apps/splunk_httpinput"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["idxc"] == "/opt/splunk/etc/master-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["shc"] == "/opt/splunk/etc/shcluster/apps"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
+
         # Check to make sure the app got installed
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 2
@@ -531,11 +684,25 @@ class TestDebian9(object):
         self.compose_file_name = "1uf_hec.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        log_json = self.extract_json("uf1")
+        output = self.get_container_logs("uf1")
+
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "uf")
+        try:
+            # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
+            assert log_json["all"]["vars"]["splunk"]["hec_token"] == "abcd1234"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
         # Check HEC works - note the token "abcd1234" is hard-coded within the 1so_hec.yaml compose
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 1
@@ -563,9 +730,28 @@ class TestDebian9(object):
         self.compose_file_name = "1uf_apps.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+        # Get container logs
+        log_json = self.extract_json("uf1")
+        output = self.get_container_logs("uf1")
+
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "uf")
+        try:
+            assert log_json["all"]["vars"]["splunk"]["apps_location"][0] == "http://appserver/splunk_app_example.tgz"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["default"] == "/opt/splunkforwarder/etc/apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["deployment"] == "/opt/splunkforwarder/etc/deployment-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["httpinput"] == "/opt/splunkforwarder/etc/apps/splunk_httpinput"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["idxc"] == "/opt/splunkforwarder/etc/master-apps"
+            assert log_json["all"]["vars"]["splunk"]["app_paths"]["shc"] == "/opt/splunkforwarder/etc/shcluster/apps"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
+
         # Check to make sure the app got installed
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         assert len(containers) == 2
@@ -598,9 +784,68 @@ class TestDebian9(object):
         self.compose_file_name = "1uf1so.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
+
+        output_so = self.get_container_logs("so1")
+        output_uf = self.get_container_logs("uf1")
+        log_json_so = self.extract_json("so1")
+        log_json_uf = self.extract_json("uf1")
+    
         assert rc == 0
         # Wait for containers to be healthy
         assert self.wait_for_containers(container_count)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output_so)
+        self.check_ansible(output_uf)
+        # Check values in log output
+        self.check_common_keys(log_json_so, "so")
+        self.check_common_keys(log_json_uf, "uf")
+        try:
+            assert log_json_so["splunk_standalone"]["hosts"][0] == "so1"
+            assert log_json_uf["splunk_standalone"]["hosts"][0] == "so1"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
 
+    def test_compose_2idx2sh(self):
+        # Standup deployment
+        self.compose_file_name = "2idx2sh.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+
+        output_sh1 = self.get_container_logs("sh1")
+        output_sh2 = self.get_container_logs("sh2")
+        output_idx1 = self.get_container_logs("idx1")
+        output_idx2 = self.get_container_logs("idx2")
+        log_json_sh1 = self.extract_json("sh1")
+        log_json_sh2 = self.extract_json("sh2")
+        log_json_idx1 = self.extract_json("idx1")
+        log_json_idx2 = self.extract_json("idx2")
+        assert rc == 0
+        # Wait for containers to be healthy
+        assert self.wait_for_containers(container_count)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output_sh1)
+        self.check_ansible(output_sh2)
+        self.check_ansible(output_idx1)
+        self.check_ansible(output_idx2)
+        # Check values in log output
+        self.check_common_keys(log_json_sh1, "sh")
+        self.check_common_keys(log_json_sh2, "sh")
+        self.check_common_keys(log_json_idx1, "idx")
+        self.check_common_keys(log_json_idx2, "idx")
+        try:
+            assert log_json_sh1["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
+            assert log_json_sh1["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
+            assert log_json_sh2["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
+            assert log_json_sh2["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
+            assert log_json_idx1["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
+            assert log_json_idx1["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
+            assert log_json_idx2["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
+            assert log_json_idx2["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
