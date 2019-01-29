@@ -842,6 +842,21 @@ class TestDebian9(object):
             self.logger.error(e)
             assert False
 
+        # Check connections
+        idx_list = ["idx1", "idx2"]
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        
+        for container in containers:
+            c_name = container["Labels"]["com.docker.compose.service"]
+            if c_name == "sh1" or c_name == "sh2":
+                splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
+                status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/peers?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+                assert status == 200
+                output = json.loads(content)
+                peers = [x["content"]["peerName"] for x in output["entry"]]
+                assert len(peers) == 2 and set(peers) == set(idx_list)
+
     def test_compose_2idx2sh1cm(self):
         # Standup deployment
         self.compose_file_name = "2idx2sh1cm.yaml"
@@ -883,8 +898,7 @@ class TestDebian9(object):
         sh_list = ["sh1", "sh2", "cm1"]
 
         containers = self.client.containers(filters={"label": "com.docker.compose.service={}".format("cm1")})
-        container=containers[0]
-        splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
+        splunkd_port = self.client.port(containers[0]["Id"], 8089)[0]["HostPort"]
 
         status, content = self.handle_request_retry("GET", "https://localhost:{}/services/cluster/master/searchheads?output_mode=json".format(splunkd_port), 
                                                     {"auth": ("admin", self.password), "verify": False})
