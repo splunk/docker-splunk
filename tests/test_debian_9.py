@@ -934,4 +934,3 @@ class TestDebian9(object):
                 if n < retries-1:
                     continue
                 assert False
-
