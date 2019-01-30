@@ -4,3 +4,4 @@ docker
 PyYAML
 docker-compose
 pyasn1
+junit-xml
