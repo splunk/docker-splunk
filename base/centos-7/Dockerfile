@@ -13,6 +13,7 @@
 # limitations under the License.
 
 FROM centos:7
+LABEL maintainer="support@splunk.com"
 
 COPY install.sh /install.sh
 RUN /install.sh && rm -rf /install.sh
