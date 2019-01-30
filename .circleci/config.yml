@@ -23,7 +23,7 @@ jobs:
           destintation: clair-scanner-logs
       - run:
           name: Running CI Tests
-          command: make test_ci
+          command: make run_tests_debian9
       - store_artifacts:
           path: test-results
           destination: test-results
