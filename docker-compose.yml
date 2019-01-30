@@ -1,0 +1,15 @@
+version: "3"
+services:
+
+  splunk:
+    image: splunk-debian-9:latest
+    ports:
+     - "9000:8000"
+    restart: unless-stopped
+    volumes:
+      - "splunk-data:/opt/splunk"
+    env_file:
+      - .env
+
+volumes:
+  splunk-data:
