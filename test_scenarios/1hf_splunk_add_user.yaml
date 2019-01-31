@@ -1,0 +1,23 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  hf1:
+    networks:
+      splunknet:
+        aliases:
+          - hf1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    container_name: hf1
+    environment:
+      - SPLUNK_ROLE=splunk_heavy_forwarder
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_ADD=user jerry -password seinfeld -role admin
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8089
