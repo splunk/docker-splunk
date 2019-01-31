@@ -1344,7 +1344,7 @@ class TestDebian9(object):
         container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        assert self.wait_for_containers(container_count, name="idx3")
 
         retries = 10
         for n in range(retries):
