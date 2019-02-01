@@ -49,8 +49,7 @@ SPLUNK_FILENAME = "splunk-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_
 SPLUNK_BUILD_URL = "https://download.splunk.com/products/splunk/releases/{}/linux/{}".format(SPLUNK_VERSION, SPLUNK_FILENAME)
 UF_FILENAME = "splunkforwarder-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
 UF_BUILD_URL = "https://download.splunk.com/products/universalforwarder/releases/{}/linux/{}".format(SPLUNK_VERSION, UF_FILENAME)
-# Ansible version
-ANSIBLE_VERSION = "2.7.6"
+
 
 def generate_random_string():
     return ''.join(choice(ascii_lowercase) for b in range(20))
@@ -311,7 +310,7 @@ class TestDebian9(object):
             assert False
 
     def check_ansible(self, output):
-        assert "ansible-playbook {}".format(ANSIBLE_VERSION) in output
+        assert "ansible-playbook" in output
         assert "config file = /opt/ansible/ansible.cfg" in output
     
     def test_splunk_entrypoint_help(self):
@@ -950,9 +949,9 @@ class TestDebian9(object):
         std_out = self.client.exec_start(exec_command)
         assert "java version \"1.8.0" in std_out
 
-    def test_compose_1so_java_openjdk(self):
+    def test_compose_1so_java_openjdk8(self):
         # Standup deployment
-        self.compose_file_name = "1so_java_openjdk.yaml"
+        self.compose_file_name = "1so_java_openjdk8.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         assert rc == 0
@@ -975,6 +974,32 @@ class TestDebian9(object):
         exec_command = self.client.exec_create("so1", "java -version")
         std_out = self.client.exec_start(exec_command)
         assert "openjdk version \"1.8.0" in std_out
+
+    def test_compose_1so_java_openjdk11(self):
+        # Standup deployment
+        self.compose_file_name = "1so_java_openjdk11.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        log_json = self.extract_json("so1")
+        output = self.get_container_logs("so1")
+        assert rc == 0
+        # Wait for containers to be healthy
+        assert self.wait_for_containers(container_count)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check ansible version & configs
+        self.check_ansible(output)
+        # Check values in log output
+        self.check_common_keys(log_json, "so")
+        try:
+            assert log_json["all"]["vars"]["java_version"] == "openjdk:11"
+        except KeyError as e:
+            self.logger.error(e)
+            assert False
+        exec_command = self.client.exec_create("so1", "java -version")
+        std_out = self.client.exec_start(exec_command)
+        assert "openjdk version \"11.0.2" in std_out
+    
 
     def test_compose_1so_hec(self):
         # Standup deployment
