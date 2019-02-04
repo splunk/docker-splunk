@@ -6,16 +6,22 @@ networks:
     attachable: true
 
 services:
-  so1:
+  idx3:
     networks:
       splunknet:
         aliases:
-          - so1
+          - idx3
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
-    container_name: so1
+    hostname: idx3
+    container_name: idx3
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1,idx2,idx3
+      - SPLUNK_SEARCH_HEAD_URL=sh1,sh2
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_indexer
+      - SPLUNK_LICENSE_URI
       - SPLUNK_PASSWORD
       - DEBUG=true
     ports:
