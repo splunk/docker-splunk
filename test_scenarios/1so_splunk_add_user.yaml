@@ -1,0 +1,22 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  so1:
+    networks:
+      splunknet:
+        aliases:
+          - so1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    container_name: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_ADD=user newman -password changemepls -role admin
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8089

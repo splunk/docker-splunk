@@ -1,0 +1,22 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  uf1:
+    networks:
+      splunknet:
+        aliases:
+          - uf1
+    image: ${UF_IMAGE:-splunk/universalforwarder:latest}
+    container_name: uf1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_BEFORE_START_CMD=add user normalplebe -password newpassword -role user
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8089

@@ -7,6 +7,10 @@ networks:
 
 services:
   uf1:
+    networks:
+      splunknet:
+        aliases:
+          - uf1
     image: ${UF_IMAGE:-splunk/universalforwarder:latest}
     hostname: uf1
     container_name: uf1
@@ -20,6 +24,10 @@ services:
       - 8089
 
   so1:
+    networks:
+      splunknet:
+        aliases:
+          - so1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: so1
     container_name: so1
