@@ -1,0 +1,28 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+volumes:
+  so1-etc:
+  so1-var:
+
+services:
+  so1:
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: so1
+    container_name: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+      - SPLUNK_UPGRADE=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - so1-etc:/opt/splunk/etc
+      - so1-var:/opt/splunk/var
+      

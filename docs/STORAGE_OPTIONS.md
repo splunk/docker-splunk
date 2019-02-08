@@ -119,7 +119,7 @@ services:
       - 8089
     volumes:
       - so1-var:/opt/splunk/var
-	  - so1-etc:/opt/splunk/etc
+	    - so1-etc:/opt/splunk/etc
 ```
 
 In the directory where the docker-compose.yml file is saved, run 
@@ -139,9 +139,58 @@ docker volume inspect so1-etc
 ```
 The output of that command should list the directory associated with the volume mount.
 
-#### Upgrading the container ####
-Currently upgrading a container is not officially supported. Contact Splunk Support if you have any questions.
-
 #### Volume Mount Guidelines ####
 **Do not mount the same folder into two different Splunk Enterprise instances, this can cause inconsistencies in the 
 indexed data and undefined behavior within Splunk Enterprise itself.**
+
+### Upgrading Splunk instances in your containers ###
+Upgrading Splunk instances requires volumes to be mounted for /opt/splunk/var and /opt/splunk/etc.
+
+#### Step 1: Persist your /opt/splunk/var and /opt/splunk/etc ####
+Follow the named volume creation tutorial above in order to have /opt/splunk/var and /opt/splunk/etc mounted for persisting data.
+
+#### Step 2: Update your yaml file with a new image and SPLUNK_UPGRADE=true ####
+In the same yaml file you initially used to deploy Splunk instances, update the specified image to the next version of Splunk image. Then, set **SPLUNK_UPGRADE=true** in the environment of all containers you wish to upgrade. Make sure to state relevant named volumes so persisted data can be mounted to a new container.
+
+Below is an example yaml with SPLUNK_UPGRADE=true
+
+```
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+volumes:
+  so1-var:
+  so1-etc:
+
+services:
+  so1:
+    networks:
+      splunknet:
+        aliases:
+          - so1
+    image: <NEXT_VERSION_SPLUNK_IMAGE>
+    container_name: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_PASSWORD=<password>
+      - DEBUG=true
+      - SPLUNK_UPGRADE=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - so1-var:/opt/splunk/var
+	    - so1-etc:/opt/splunk/etc
+```
+
+#### Step 3: Deploy your containers using the updated yaml ####
+Similar to how you initially deployed your containers, run the command with the updated yaml that contains a reference to the new image and SPLUNK_UPGRADE=true in the environment. Make sure that you do NOT destory previously existing network and volumes. After running the command with the yaml file, your containers should be recreated with the new version of Splunk and persisted data properly mounted to /opt/splunk/var and /opt/splunk/etc.
+
+#### Different types of volumes ####
+Using named volume is recommended so it is easier to attach and detach volumes to different Splunk instances while persisting your data. If you use anonymous volumes, Docker gives them random and unique names so you can still reuse anonymous volumes on different containers. If you use bind mounts, make sure that the mounts are setup properly to persist /opt/splunk/var and opt/splunk/etc. Starting new containers without proper mounts will result in a loss of your data.
+
+Note [Docker Volume Documentation](https://docs.docker.com/storage/volumes/#create-and-manage-volumes) for more details about managing volumes. 

@@ -3,7 +3,10 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: search 
-  #namespace: splunk
+  labels:
+    app: splunk
+    role: splunk_search_head
+    tier: search
 spec:
   replicas: 1
   template:
@@ -18,7 +21,6 @@ spec:
       dnsConfig:
         searches:
           - indexer.splunk.svc.cluster.local
-      #serviceAccountName: splunk
       containers:
         - name: search
           image: splunk/splunk:latest
@@ -41,17 +43,6 @@ spec:
               value: search
             - name: DEBUG
               value: "true"
-          #resources:
-          #  requests:
-          #    cpu: 100m
-          #    memory: 256Mi
-          #readinessProbe:
-          #  httpGet:
-          #    path: /en-US/account/login
-          #    port: web
-          #  initialDelaySeconds: 5
-          #  periodSeconds: 5
-          #  failureThreshold: 20
           ports:
             - name: web
               containerPort: 8000

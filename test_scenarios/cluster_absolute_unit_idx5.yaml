@@ -11,7 +11,7 @@ services:
       splunknet:
         aliases:
           - idx5
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx5
     container_name: idx5

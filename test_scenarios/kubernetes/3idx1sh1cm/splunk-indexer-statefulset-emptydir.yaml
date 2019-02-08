@@ -2,7 +2,10 @@ apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
   name: indexer
-  #namespace: splunk
+  labels:
+    app: splunk
+    role: splunk_indexer
+    tier: indexer
 spec:
   replicas: 3
   serviceName: indexer
@@ -11,9 +14,8 @@ spec:
       labels:
         app: splunk
         role: splunk_indexer
-        tier: idxcluster
+        tier: indexer 
     spec:
-      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst
       dnsConfig:
         searches:

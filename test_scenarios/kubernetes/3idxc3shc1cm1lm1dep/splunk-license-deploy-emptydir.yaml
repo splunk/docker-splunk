@@ -2,8 +2,11 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: license-master 
-  #namespace: splunk
+  name: license-master
+  labels:
+    app: splunk
+    role: splunk_license_master
+    tier: management
 spec:
   replicas: 1
   template:
@@ -14,7 +17,6 @@ spec:
         tier: management 
     spec:
       hostname: license-master
-      #serviceAccountName: splunk
       dnsPolicy: ClusterFirst
       dnsConfig:
         searches:
@@ -31,7 +33,7 @@ spec:
             - name: SPLUNK_ROLE
               value: splunk_license_master
             - name: SPLUNK_LICENSE_URI
-              value: http://splunk-defaults/Splunk_Enterprise_NFR_Q3FY19.lic
+              value: http://splunk-defaults/mySplunkLicense.lic
             - name: SPLUNK_PASSWORD
               value: helloworld
             - name: SPLUNK_START_ARGS
@@ -48,26 +50,11 @@ spec:
               value: captain
             - name: DEBUG
               value: "true"
-          #resources:
-          #  requests:
-          #    cpu: 100m
-          #    memory: 256Mi
-          #readinessProbe:
-          #  httpGet:
-          #    path: /en-US/account/login
-          #    port: web
-          #  initialDelaySeconds: 5
-          #  periodSeconds: 5
-          #  failureThreshold: 20
           ports:
             - name: web
               containerPort: 8000
             - name: mgmt
               containerPort: 8089
-          #  - name: kv
-          #    containerPort: 8191
-          #  - name: indexing
-          #    containerPort: 9997
           volumeMounts:
             - name: splunk-license-data
               mountPath: /opt/splunk/var

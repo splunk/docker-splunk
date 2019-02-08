@@ -1,0 +1,173 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+  
+services:
+  appserver:
+    networks:
+      splunknet:
+        aliases:
+          - appserver
+    image: nwang92/nginx-mitm
+    hostname: appserver
+    container_name: appserver
+    ports:
+      - 80
+    volumes:
+      - ../tests/fixtures:/www/data
+
+  dep1:
+    networks:
+      splunknet:
+        aliases:
+          - dep1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: dep1
+    container_name: dep1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_deployer
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+      - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  sh1:
+    networks:
+      splunknet:
+        aliases:
+          - sh1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: sh1
+    container_name: sh1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_search_head
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  sh2:
+    networks:
+      splunknet:
+        aliases:
+          - sh2
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: sh2
+    container_name: sh2
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_search_head
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  sh3:
+    networks:
+      splunknet:
+        aliases:
+          - sh3
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: sh3
+    container_name: sh3
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_search_head
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  cm1:
+    networks:
+      splunknet:
+        aliases:
+          - cm1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: cm1
+    container_name: cm1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_cluster_master
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+      - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  idx1:
+    networks:
+      splunknet:
+        aliases:
+          - idx1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: idx1
+    container_name: idx1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_INDEXER_URL=idx1
+      - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
+      - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
+      - SPLUNK_DEPLOYER_URL=dep1
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_ROLE=splunk_indexer
+      - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults

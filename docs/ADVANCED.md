@@ -1,7 +1,8 @@
 ## Advanced Usage ##
 This section shows several of the advanced functions of the container, as well as how to build a container
-from the github repo.  
-** Note: ** Not all sections below will leave your container in a supported state. See `docs/SETUP.md` for the list of officially supported configurations. 
+from the github repo.
+
+** Note: ** Not all sections below will leave your container in a supported state. See `docs/SETUP.md` for the list of officially supported configurations.
 
 ##### Building From Source (Unsupported) #####
 1. Download the Splunk Docker GitHub repository to your local development environment:
@@ -9,7 +10,7 @@ from the github repo.
 git clone https://github.com/splunk/docker-splunk
 ```
 The supplied `Makefile` located inside the root of the project provides the ability to download any of the remaining
-components. 
+components.
 
 ** WARNING:** Modifications to the "base" image may result in Splunk being unable to start or run correctly.
 
@@ -20,11 +21,12 @@ make splunk
 
 ## Advanced Configurations ##
 Splunk's Docker container has several functions that can be configured. These options are specified by either supplying a `default.yml` file or
-by passing in environment variables. Below is a list of environment variables that may/must be used when starting the docker container. 
+by passing in environment variables. Below is a list of environment variables that may/must be used when starting the docker container.
 
 #### Valid Enterprise Environment Variables
+
 | Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
-|---|---|:---:|:---:|:---:|
+| --- | --- | --- | --- | --- |
 | SPLUNK_BUILD_URL | URL to Splunk build where we can fetch a Splunk build to install | no | no | no |
 | SPLUNK_DEFAULTS_URL | default.yml URL | no | no | no |
 | SPLUNK_UPGRADE | If this is True, we won’t run any provisioning after installation. Use this to upgrade and redeploy containers with a newer version of Splunk. | no | no | no |
@@ -35,7 +37,7 @@ by passing in environment variables. Below is a list of environment variables th
 | SPLUNK_STANDALONE_URL | List of all Splunk Enterprise standalone hosts (network alias) separated by comma | no | no | no |
 | SPLUNK_SEARCH_HEAD_URL | List of all Splunk Enterprise search head hosts (network alias) separated by comma | no | yes | yes |
 | SPLUNK_INDEXER_URL| List of all Splunk Enterprise indexer hosts (network alias) separated by comma | no | yes | yes |
-| SPLUNK_HEAVY_FORWARDER_URL | List of all Splunk Enterprise heavy forwarder hosts (network alias) separated by comma | no |  no | no |
+| SPLUNK_HEAVY_FORWARDER_URL | List of all Splunk Enterprise heavy forwarder hosts (network alias) separated by comma | no | no | no |
 | SPLUNK_DEPLOYER_URL | One Splunk Enterprise deployer host (network alias) | no | yes | no |
 | SPLUNK_CLUSTER_MASTER_URL | One Splunk Enterprise cluster master host (network alias) | no | no | yes |
 | SPLUNK_SEARCH_HEAD_CAPTAIN_URL | One Splunk Enterprise search head host (network alias). Passing this ENV variable will enable search head clustering. | no | yes | no |
@@ -46,13 +48,18 @@ by passing in environment variables. Below is a list of environment variables th
 | SPLUNK_SHC_SECRET | Search Head Clustering Shared secret | no | yes | no |
 | SPLUNK_IDXC_SECRET | Indexer Clustering Shared Secret | no | no | yes |
 | NO_HEALTHCHECK | Disable the Splunk healthcheck script | no | no | yes |
+| STEPDOWN_ANSIBLE_USER | Removes Ansible user from the sudo group when set to true. This means that no other users than root will have root access. | no | no | no |
+| SPLUNK_HOME_OWNERSHIP_ENFORCEMENT | Recursively enforces ${SPLUNK_HOME} to be owned by the user "splunk". Default value is true. | no | no | no |
+| HIDE_PASSWORD | Set to true to hide all Ansible task logs with Splunk password in them in order to secure our output to stdout. | no | no | no |
+| JAVA_VERSION | Supply "oracle:8", "openjdk:8", or "openjdk:11" to install a respective Java distribution. | no | no | no |
 
 * Password must be set either in default.yml or as the environment variable `SPLUNK_PASSWORD`
 
 #### Valid Universal Forwarder Environment Variables
-|Environment Variable Name| Description | Required for Standalone| Required for Search Head Clustering | Required for Index Clustering |
-|---|---|:---:|:---:|:---:|
-| SPLUNK_DEPLOYMENT_SERVER | One Splunk host (network alias) that we use as a deployment server. (http://docs.Splunk.com/Documentation/Splunk/latest/Updating/Configuredeploymentclients) | no | no | no |
+
+| Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
+| --- | --- | --- | --- | --- |
+| SPLUNK_DEPLOYMENT_SERVER | One Splunk host (network alias) that we use as a deployment server. (http://docs.splunk.com/Documentation/Splunk/latest/Updating/Configuredeploymentclients) | no | no | no |
 | SPLUNK_ADD | List of items to add to monitoring separated by comma. Example, SPLUNK_ADD=udp 1514,monitor /var/log/*. This will monitor udp 1514 port and /var/log/* files. | no | no | no |
 | SPLUNK_BEFORE_START_CMD | List of commands to run before Splunk starts separated by comma. Ansible will run “{{splunk.exec}} {{item}}”. | no | no | no |
 | SPLUNK_CMD | List of commands to run after Splunk starts separated by comma. Ansible will run “{{splunk.exec}} {{item}}”. | no | no | no |
@@ -69,13 +76,13 @@ Example:
     retry_num: 100
 ```
 
-|Variable Name| Description | Parent Object | Default Value | Required for Standalone| Required for Search Head Clustering | Required for Index Clustering |
-|---|---|:---:|:---:|:---:|:---:|:---:|
+| Variable Name | Description | Parent Object | Default Value | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
+| --- | --- | --- | --- | --- | --- | --- |
 | retry_num | Default number of loop attempts to connect containers | none | 100 | yes | yes | yes |
 
 The major object "splunk" in the YAML file will contain variables that influence how Splunk operates. Example:
 ```
-    Splunk:
+    splunk:
         opt: /opt
         home: /opt/splunk
         user: splunk
@@ -89,27 +96,30 @@ The major object "splunk" in the YAML file will contain variables that influence
         hec_port: 8088
         hec_disabled: 0
         hec_enableSSL: 1
-        #The hec_token here is used for INGESTION only. By that I mean receiving Splunk events.
-        #Setting up your environment to forward events out of the cluster is another matter entirely
+        # The hec_token here is used for INGESTION only. By that I mean receiving Splunk events.
+        # Setting up your environment to forward events out of the cluster is another matter entirely
         hec_token: <default_hec_token>
+        # This option here is to enable the SmartStore feature
+        smartstore: null
 ```
 
-|Variable Name| Description | Parent Object | Default Value | Required for Standalone| Required for Search Head Clustering | Required for Index Clustering |
-|---|---|:---:|:---:|:---:|:---:|:---:|
-|opt| Parent directory where Splunk is running | splunk | /opt | yes | yes | yes |
-|home| Location of the Splunk Installation | splunk | /opt/splunk | yes | yes | yes |
-|user| Operating System User to Run Splunk Enterprise As | splunk | splunk | yes | yes | yes |
-|group| Operating System Group to Run Splunk Enterprise As | splunk | splunk | yes | yes | yes |
-|exec| Path to the Splunk Binary | splunk | /opt/splunk/bin/splunk | yes | yes | yes |
-|pid| Location to the Running PID File | splunk | /opt/splunk/var/run/splunk/splunkd.pid | yes | yes | yes
-|password| Password for the admin account | splunk | **none** | yes | yes | yes |
-|svc_port| Default Admin Port | splunk | 8089 | yes | yes | yes |
-|s2s_port| Default Forwarding Port | splunk | 9997 | yes | yes | yes |
-|http_port| Default SplunkWeb Port | splunk | 8000 | yes | yes | yes |
-|hec_port| Default HEC Input Port | splunk | 8088 | no | no | no |
-|hec_disabled| Enable / Disable HEC | splunk | 0 | no | no | no |
-|hec_enableSSL| Force HEC to use encryption | splunk | 1 | no | no | no |
-|hec_token| Token to enable for HEC inputs | splunk | **none** | no | no | no |
+| Variable Name | Description | Parent Object | Default Value | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
+| --- | --- | --- | --- | --- | --- | --- |
+| opt | Parent directory where Splunk is running | splunk | /opt | yes | yes | yes |
+| home | Location of the Splunk Installation | splunk | /opt/splunk | yes | yes | yes |
+| user | Operating System User to Run Splunk Enterprise As | splunk | splunk | yes | yes | yes |
+| group | Operating System Group to Run Splunk Enterprise As | splunk | splunk | yes | yes | yes |
+| exec | Path to the Splunk Binary | splunk | /opt/splunk/bin/splunk | yes | yes | yes |
+| pid | Location to the Running PID File | splunk | /opt/splunk/var/run/splunk/splunkd.pid | yes | yes | yes
+| password | Password for the admin account | splunk | **none** | yes | yes | yes |
+| svc_port | Default Admin Port | splunk | 8089 | yes | yes | yes |
+| s2s_port | Default Forwarding Port | splunk | 9997 | yes | yes | yes |
+| http_port | Default SplunkWeb Port | splunk | 8000 | yes | yes | yes |
+| hec_port | Default HEC Input Port | splunk | 8088 | no | no | no |
+| hec_disabled | Enable / Disable HEC | splunk | 0 | no | no | no |
+| hec_enableSSL | Force HEC to use encryption | splunk | 1 | no | no | no |
+| hec_token | Token to enable for HEC inputs | splunk | **none** | no | no | no |
+| smartstore | Configuration params for [SmartStore](https://docs.splunk.com/Documentation/Splunk/latest/Indexer/AboutSmartStore) bootstrapping | splunk | null | no | no | no |
 
 The app_paths section is located as part of the "splunk" parent object. The settings located in this section will directly influence how apps are installed inside the container. Example:
 ```
@@ -117,15 +127,15 @@ The app_paths section is located as part of the "splunk" parent object. The sett
             default: /opt/splunk/etc/apps
             shc: /opt/splunk/etc/shcluster/apps
             idxc: /opt/splunk/etc/master-apps
-            httpinput: /opt/splunk/etc/apps/Splunk_httpinput
+            httpinput: /opt/splunk/etc/apps/splunk_httpinput
 ```
 
-|Variable Name| Description | Parent Object | Default Value | Required for Standalone| Required for Search Head Clustering | Required for Index Clustering |
-|---|---|:---:|:---:|:---:|:---:|:---:|
-|default| Normal apps for standalone instances will be installed in this location | splunk.app_paths | **none** | no | no | no |
-|shc| Apps for search head cluster instances will be installed in this location (usually only done on the deployer)| splunk.app_paths | **none** | no | no | no |
-|idxc| Apps for index cluster instances will be installed in this location (usually only done on the cluster master)| splunk.app_paths | **none** | no | no | no |
-|httpinput| App to use and configure when setting up HEC based instances.| splunk.app_paths | **none** | no | no | no |
+| Variable Name | Description | Parent Object | Default Value | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
+| --- | --- | --- | --- | --- | --- | --- |
+| default | Normal apps for standalone instances will be installed in this location | splunk.app_paths | **none** | no | no | no |
+| shc | Apps for search head cluster instances will be installed in this location (usually only done on the deployer)| splunk.app_paths | **none** | no | no | no |
+| idxc | Apps for index cluster instances will be installed in this location (usually only done on the cluster master)| splunk.app_paths | **none** | no | no | no |
+| httpinput | App to use and configure when setting up HEC based instances.| splunk.app_paths | **none** | no | no | no |
 
 Search Head Clustering can be configured using the "shc" sub-object. Example:
 ```
@@ -136,12 +146,12 @@ Search Head Clustering can be configured using the "shc" sub-object. Example:
             replication_factor: 3
             replication_port: 4001
 ```
-|Variable Name| Description | Parent Object | Default Value | Required for Standalone| Required for Search Head Clustering | Required for Index Clustering |
-|---|---|:---:|:---:|:---:|:---:|:---:|
-|enable| Instructs the container to create a search head cluster | splunk.shc | false| no | yes | no |
-|secret| A secret phrase to use for all SHC communication and binding. Please note, once set this can not be changed without rebuilding the cluster. | splunk.shc | **none** | no | yes | no |
-|replication_factor| Consult docs.splunk.com for valid settings for your use case | splunk.shc | 3 | no | yes | no |
-|replication_port| Default port for the SHC to communicate on | splunk.shc | 4001| no | yes | no |
+| Variable Name | Description | Parent Object | Default Value | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
+| --- | --- | --- | --- | --- | --- | --- |
+| enable | Instructs the container to create a search head cluster | splunk.shc | false | no | yes | no |
+| secret | A secret phrase to use for all SHC communication and binding. Please note, once set this can not be changed without rebuilding the cluster. | splunk.shc | **none** | no | yes | no |
+| replication_factor | Consult docs.splunk.com for valid settings for your use case | splunk.shc | 3 | no | yes | no |
+| replication_port | Default port for the SHC to communicate on | splunk.shc | 4001 | no | yes | no |
 
 Lastly, Index Clustering is configured with the `idxc` sub-object. Example:
 ```
@@ -152,13 +162,33 @@ Lastly, Index Clustering is configured with the `idxc` sub-object. Example:
             replication_factor: 3
             replication_port: 9887
 ```
-|Variable Name| Description | Parent Object | Default Value | Required for Standalone| Required for Search Head Clustering | Required for Index Clustering |
-|---|---|:---:|:---:|:---:|:---:|:---:|
+| Variable Name | Description | Parent Object | Default Value | Required for Standalone| Required for Search Head Clustering | Required for Index Clustering |
+| --- | --- | --- | --- | --- | --- | --- |
 | secret | Secret used for transmission between the cluster master and indexers | splunk.idxc | **none** | no | no | yes |
 | search_factor | Search factor to be used for search artifacts | splunk.idxc | 2 | no | no | yes |
 | replication_factor | Bucket replication factor used between index peers | splunk.idxc | 3 | no | no | yes |
 | replication_port | Bucket replication Port between index peers | splunk.idxc | 9887 | no | no | yes |
 
+#### Enabling SmartStore
+SmartStore utilizes S3-compliant object storage in order to store indexed data. This is a capability only available if you're using an indexer cluster (cluster_master + indexers). For more information, please see the [blog post](https://www.splunk.com/blog/2018/10/11/splunk-smartstore-cut-the-cord-by-decoupling-compute-and-storage.html) as well as [technical overview](https://docs.splunk.com/Documentation/Splunk/latest/Indexer/AboutSmartStore).
+
+This docker image is capable of support SmartStore, as long as you bring-your-own backend storage provider. Due to the complexity of this option, this is only enabled if you specify all the parameters in your `default.yml` file. 
+
+Here's an overview of what this looks like if you want to persist *all* your indexes (default) with a SmartStore backend:
+```
+---
+splunk:
+  smartstore:
+    - indexName: default
+      remoteName: remote_store
+      scheme: s3
+      remoteLocation: <bucket-name>
+      s3:
+        access_key: <access_key>
+        secret_key: <secret_key>
+        endpoint: http://s3-us-west-2.amazonaws.com
+  ...
+```
 
 ---
 
@@ -177,7 +207,7 @@ $ docker run --rm -e "SPLUNK_PASSWORD=<password>" splunk/splunk-debian-9:latest 
 ```
 
 ## Starting Splunk Enterprise with a default.yml file ##
-The following command is used to supply an advanced configuration to the container, specify a url location of the `default.yml` file, or volume mount in a default. To use the 
+The following command is used to supply an advanced configuration to the container, specify a url location of the `default.yml` file, or volume mount in a default. To use the
 `default.yml` created on the previous section, use the following syntax:
 
 ```
@@ -205,14 +235,14 @@ You can create a simple cluster with Docker Swarm using the following command:
 ```
 Please note that the provisioning process will run for a few minutes after this command completes
 while the Ansible plays run. Also, be warned that this configuration requires a lot of resources
-so running this on your laptop may make it hot and slow. 
+so running this on your laptop may make it hot and slow.
 
-To view port mappings run: 
+To view port mappings run:
 ```
- $> docker ps 
+ $> docker ps
 ```
 After several minutes, you should be able to log into one of the search heads `sh#`
-using the default username `admin` and the password you input at installation, or set through the Splunk UI. 
+using the default username `admin` and the password you input at installation, or set through the Splunk UI.
 
 Once finished, you can remove the cluster by running:
 ```
@@ -220,13 +250,13 @@ Once finished, you can remove the cluster by running:
 ```
 
 The `cluster_absolute_unit.yaml` file located in the test_scenarios folder is a
-Docker Compose file that can be used to mimic this type of deployment. 
+Docker Compose file that can be used to mimic this type of deployment.
 
 ```
 version: "3.6"
 
 networks:
-  Splunknet:
+  splunknet:
     driver: bridge
     attachable: true
 ```
@@ -240,10 +270,10 @@ In `cluster_absolute_unit.yaml`, all instances of Splunk Enterprise are created 
 services:
   sh1:
     networks:
-      Splunknet:
+      splunknet:
         aliases:
           - sh1
-    image: Splunk:latest
+    image: splunk/splunk:latest
     hostname: sh1
     container_name: sh1
     environment:
@@ -252,7 +282,7 @@ services:
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
-      - SPLUNK_ROLE=Splunk_search_head_captain
+      - SPLUNK_ROLE=splunk_search_head_captain
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_LICENSE_URI=<license uri> http://foo.com/splunk.lic
       - DEBUG=true
@@ -260,7 +290,7 @@ services:
       - 8000
     volumes:
       - ./defaults:/tmp/defaults
-``` 
+```
 It's important to understand how Docker knows how to configure each major container. Below is the above template broken down into its simplest components:
 
 ```
@@ -307,7 +337,7 @@ docker-compose -f cluster_absolute_unit.yaml up -d
 ```
 
 To support Splunk Enterprise's complex configurations, the Docker container utilizes Ansible which performs the required provisioning
-commands. You can use the `docker log` command to follow these logs. 
+commands. You can use the `docker log` command to follow these logs.
 
 `docker ps` will show a list of all the current running instances on this node. The cluster master gives the best indication of cluster health without needing to check every container.
 ```
@@ -359,7 +389,7 @@ Wednesday 29 August 2018  09:28:29 +0000 (0:00:00.123)       0:01:23.447 ******
 changed: [localhost] => (item=USERNAME)
 changed: [localhost] => (item=PASSWORD)
 ```
-Once Ansible has finished running, a summary screen will be displayed. 
+Once Ansible has finished running, a summary screen will be displayed.
 
 ```
 PLAY RECAP *********************************************************************
@@ -402,6 +432,6 @@ fatal: [localhost]: FAILED! => {"cache_control": "private", "changed": false, "c
 	to retry, use: --limit @/opt/ansible/ansible-retry/site.retry
 ```
 
-In the above example, the `default.yml` file didn't contain a password, nor was an environment variable set. 
+In the above example, the `default.yml` file didn't contain a password, nor was an environment variable set.
 
 Please see the [troubleshooting](TROUBLESHOOTING.md) section for more common issues that can occur. There you will also find instructions for producing Splunk diagnostics for support such as `splunk diag`, as well as instructions for downloading the full Splunk `ansible.log` file.
