@@ -392,8 +392,11 @@ class TestDebian9(object):
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
         password = re.search("  password: (.*)", output).group(1).strip()
         assert password
+        # Change the admin user
+        output = re.sub(r'  admin_user: admin', r'  admin_user: chewbacca', output)
         # Write the default.yml to a file
         with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
             f.write(output)
@@ -414,7 +417,7 @@ class TestDebian9(object):
             # Check splunkd
             splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
             url = "https://localhost:{}/services/server/info".format(splunkd_port)
-            kwargs = {"auth": ("admin", password), "verify": False}
+            kwargs = {"auth": ("chewbacca", password), "verify": False}
             status, content = self.handle_request_retry("GET", url, kwargs)
             assert status == 200
         except Exception as e:
@@ -434,8 +437,11 @@ class TestDebian9(object):
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
         password = re.search("  password: (.*)", output).group(1).strip()
         assert password
+        # Change the admin user
+        output = re.sub(r'  admin_user: admin', r'  admin_user: hansolo', output)
         # Write the default.yml to a file
         with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
             f.write(output)
@@ -456,7 +462,7 @@ class TestDebian9(object):
             # Check splunkd
             splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
             url = "https://localhost:{}/services/server/info".format(splunkd_port)
-            kwargs = {"auth": ("admin", password), "verify": False}
+            kwargs = {"auth": ("hansolo", password), "verify": False}
             status, content = self.handle_request_retry("GET", url, kwargs)
             assert status == 200
         except Exception as e:
@@ -476,6 +482,7 @@ class TestDebian9(object):
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
         password = re.search("  password: (.*)", output).group(1).strip()
         assert password
         # Write the default.yml to a file
@@ -529,6 +536,7 @@ class TestDebian9(object):
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
         password = re.search("  password: (.*)", output).group(1).strip()
         assert password
         # Write the default.yml to a file
@@ -1063,7 +1071,63 @@ class TestDebian9(object):
         url = "https://localhost:{}/services/collector/event".format(splunk_hec_port)
         kwargs = {"json": {"event": "hello world"}, "verify": False, "headers": {"Authorization": "Splunk abcd1234"}}
         status, content = self.handle_request_retry("POST", url, kwargs)
-        assert status == 200 
+        assert status == 200
+
+    @pytest.mark.skip(reason="broken")
+    def test_compose_1so_enable_service(self):
+        # Standup deployment
+        self.compose_file_name = "1so_enable_service.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        # Check ansible inventory json
+        log_json = self.extract_json("so1")
+        self.check_common_keys(log_json, "so")
+        try:
+            # enable_service is set in the compose file
+            assert log_json["all"]["vars"]["splunk"]["enable_service"] == "true"
+        except KeyError as e:
+            self.logger.error(e)
+            raise e
+        # Check container logs
+        output = self.get_container_logs("so1")
+        self.check_ansible(output)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check if java is installed
+        exec_command = self.client.exec_create("so1", "service splunk status")
+        std_out = self.client.exec_start(exec_command)
+        assert "splunkd is running" in std_out
+
+    @pytest.mark.skip(reason="broken")
+    def test_compose_1uf_enable_service(self):
+        # Standup deployment
+        self.compose_file_name = "1uf_enable_service.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        # Check ansible inventory json
+        log_json = self.extract_json("uf1")
+        self.check_common_keys(log_json, "uf")
+        try:
+            # enable_service is set in the compose file
+            assert log_json["all"]["vars"]["splunk"]["enable_service"] == "true"
+        except KeyError as e:
+            self.logger.error(e)
+            raise e
+        # Check container logs
+        output = self.get_container_logs("uf1")
+        self.check_ansible(output)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check if java is installed
+        exec_command = self.client.exec_create("uf1", "service splunk status")
+        std_out = self.client.exec_start(exec_command)
+        assert "splunkd is running" in std_out
     
     def test_compose_1so_apps(self):
         # Tar the app before spinning up the scenario
