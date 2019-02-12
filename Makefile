@@ -64,6 +64,26 @@ base-centos-7:
 base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
 
+##### Minimal images #####
+minimal: minimal-debian-9
+
+minimal-debian-9: base-debian-9
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/debian-9/Dockerfile \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
+		--target minimal-debian-9 -t minimal-debian-9:${IMAGE_VERSION} .	
+
+##### Bare images #####
+bare: bare-debian-9
+
+bare-debian-9: base-debian-9
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/debian-9/Dockerfile \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
+		--target bare-debian-9 -t bare-debian-9:${IMAGE_VERSION} .	
+
 ##### Splunk images #####
 splunk: ansible splunk-debian-9 splunk-centos-7
 
