@@ -11,7 +11,7 @@ services:
       splunknet:
         aliases:
           - dep1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: dep1
     container_name: dep1
@@ -23,6 +23,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_deployer
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089
@@ -32,7 +33,7 @@ services:
       splunknet:
         aliases:
           - sh1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: sh1
     container_name: sh1
@@ -44,6 +45,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_search_head_captain
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089
@@ -53,7 +55,7 @@ services:
       splunknet:
         aliases:
           - sh2
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: sh2
     container_name: sh2
@@ -65,6 +67,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_search_head
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089
@@ -74,7 +77,7 @@ services:
       splunknet:
         aliases:
           - sh3
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: sh3
     container_name: sh3
@@ -86,6 +89,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_search_head
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089
@@ -95,7 +99,7 @@ services:
       splunknet:
         aliases:
           - idx1
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx1
     container_name: idx1
@@ -107,6 +111,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089
@@ -116,7 +121,7 @@ services:
       splunknet:
         aliases:
           - idx2
-    image: splunk/splunk:latest
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx2
     container_name: idx2
@@ -128,6 +133,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_indexer
       - SPLUNK_LICENSE_URI
+      - DEBUG=true
     ports:
       - 8000
       - 8089

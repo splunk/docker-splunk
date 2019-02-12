@@ -12,12 +12,11 @@ services:
         aliases:
           - so1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
-    command: start
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_ADD=user newman -password changemepls -role admin
       - SPLUNK_PASSWORD
       - DEBUG=true
     ports:
-      - 8000
       - 8089

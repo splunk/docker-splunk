@@ -7,17 +7,15 @@ networks:
 
 services:
   so1:
-    networks:
-      splunknet:
-        aliases:
-          - so1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
-    command: start
+    hostname: so1
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_PASSWORD
       - DEBUG=true
+      - JAVA_VERSION=oracle:8
     ports:
       - 8000
       - 8089
+      

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 FROM debian:stretch-slim
+LABEL maintainer="support@splunk.com"
 
 ENV DEBIAN_FRONTEND=noninteractive
 

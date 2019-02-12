@@ -6,18 +6,17 @@ networks:
     attachable: true
 
 services:
-  so1:
+  uf1:
     networks:
       splunknet:
         aliases:
-          - so1
-    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
-    command: start
-    container_name: so1
+          - uf1
+    image: ${UF_IMAGE:-splunk/universalforwarder:latest}
+    container_name: uf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_ENABLE_SERVICE=true
       - SPLUNK_PASSWORD
       - DEBUG=true
     ports:
-      - 8000
       - 8089
