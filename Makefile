@@ -151,6 +151,7 @@ run_tests_centos7:
 
 test_setup:
 	@echo 'Install test requirements'
+	pip install --upgrade pip
 	pip install -r $(shell pwd)/tests/requirements.txt --upgrade
 	mkdir test-results/centos7-result || true
 	mkdir test-results/debian9-result || true
