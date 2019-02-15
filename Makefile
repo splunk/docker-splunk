@@ -78,11 +78,11 @@ splunk-debian-9: base-debian-9 ansible
 		-t splunk-debian-9:${IMAGE_VERSION} .
 
 splunk-debian-10: base-debian-10 ansible
-        docker build ${DOCKER_BUILD_FLAGS} \
-                -f splunk/debian-9/Dockerfile \
-                --build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
-                --build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
-                -t splunk-debian-10:${IMAGE_VERSION} .
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/debian-10/Dockerfile \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
+		-t splunk-debian-10:${IMAGE_VERSION} .
 
 splunk-centos-7: base-centos-7 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
