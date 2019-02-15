@@ -31,7 +31,7 @@ SCANNER_DATE := `date +%Y-%m-%d`
 SCANNER_DATE_YEST := `TZ=GMT+24 +%Y:%m:%d`
 SCANNER_VERSION := v8
 SCANNER_LOCALIP := $(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $1}' | head -n 1)
-SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-centos-7 splunkforwarder-debian-9 splunkforwarder-centos-7
+SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunkforwarder-debian-9 splunkforwarder-centos-7
 ifeq ($(shell uname), Linux)
 	SCANNER_FILE = clair-scanner_linux_amd64
 else ifeq ($(shell uname), Darwin)
@@ -53,7 +53,10 @@ ansible:
 	fi
 
 ##### Base images #####
-base: base-debian-9 base-centos-7 base-windows-2016
+base: base-debian-9 base-debian-10 base-centos-7 base-windows-2016
+
+base-debian-10:
+	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
 
 base-debian-9:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-9:${IMAGE_VERSION} ./base/debian-9
@@ -65,7 +68,7 @@ base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
 
 ##### Splunk images #####
-splunk: ansible splunk-debian-9 splunk-centos-7
+splunk: ansible splunk-debian-9 splunk-debian-10 splunk-centos-7
 
 splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -73,6 +76,13 @@ splunk-debian-9: base-debian-9 ansible
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
 		-t splunk-debian-9:${IMAGE_VERSION} .
+
+splunk-debian-10: base-debian-10 ansible
+        docker build ${DOCKER_BUILD_FLAGS} \
+                -f splunk/debian-9/Dockerfile \
+                --build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+                --build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
+                -t splunk-debian-10:${IMAGE_VERSION} .
 
 splunk-centos-7: base-centos-7 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
