@@ -1,0 +1,9 @@
+generalwhitelist:
+  CVE-2018-16876: Ansible is updated passed 2.7.5
+images:
+  splunk-debian-9:
+  splunk-debian-10:
+  splunk-centos-7:
+  splunkforwarder-debian-9:
+  splunkforwarder-debian-10:
+  splunkforwarder-centos-7:
