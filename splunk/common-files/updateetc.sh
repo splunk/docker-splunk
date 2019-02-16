@@ -15,15 +15,15 @@
 # limitations under the License.
 #
 
-if [[ -f "/opt/splunk-etc/splunk.version" ]]; then
-	IMAGE_VERSION_SHA=`cat /opt/splunk-etc/splunk.version | sha512sum`
+if [[ -f "${SPLUNK_HOME}-etc/splunk.version" ]]; then
+	IMAGE_VERSION_SHA=`cat ${SPLUNK_HOME}-etc/splunk.version | sha512sum`
 
-	if [[ -f "/opt/splunk/etc/splunk.version" ]]; then
-		ETC_VERSION_SHA=`cat /opt/splunk/etc/splunk.version | sha512sum`
+	if [[ -f "${SPLUNK_HOME}/etc/splunk.version" ]]; then
+		ETC_VERSION_SHA=`cat ${SPLUNK_HOME}/etc/splunk.version | sha512sum`
 	fi
 
 	if [[ "x${IMAGE_VERSION_SHA}" != "x${ETC_VERSION_SHA}" ]]; then
-    	echo Updating /opt/splunk/etc
-    	(cd /opt/splunk-etc; tar cf - *) | (cd /opt/splunk/etc; tar xf -)
+    	echo Updating ${SPLUNK_HOME}/etc
+    	(cd ${SPLUNK_HOME}-etc; tar cf - *) | (cd ${SPLUNK_HOME}/etc; tar xf -)
 	fi
 fi
