@@ -51,6 +51,7 @@ ansible:
 	else \
 		git clone ${SPLUNK_ANSIBLE_REPO} --branch ${SPLUNK_ANSIBLE_BRANCH}; \
 	fi
+	cd splunk-ansible && git rev-parse HEAD > version.txt
 
 ##### Base images #####
 base: base-debian-9 base-centos-7 base-windows-2016

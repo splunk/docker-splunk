@@ -349,6 +349,27 @@ class TestDebian9(object):
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag" in output
+
+    def test_splunk_entrypoint_no_provision(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the git SHA exists in /opt/ansible
+            exec_command = self.client.exec_create(cid, "cat /opt/ansible/version.txt")
+            std_out = self.client.exec_start(exec_command)
+            assert len(std_out.strip()) == 40
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
     
     def test_uf_entrypoint_help(self):
         # Run container
@@ -385,6 +406,27 @@ class TestDebian9(object):
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag" in output
+
+    def test_uf_entrypoint_no_provision(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the git SHA exists in /opt/ansible
+            exec_command = self.client.exec_create(cid, "cat /opt/ansible/version.txt")
+            std_out = self.client.exec_start(exec_command)
+            assert len(std_out.strip()) == 40
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
     
     def test_adhoc_1so_using_default_yml(self):
         # Generate default.yml
@@ -681,6 +723,53 @@ class TestDebian9(object):
                 self.client.remove_container(cid, v=True, force=True)
             try:
                 os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
+            except OSError:
+                pass
+
+    def test_adhoc_1so_web_ssl(self):
+        # Generate a password
+        password = generate_random_string()
+        # Create the container
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            # Commands to generate self-signed certificates for SplunkWeb here: https://docs.splunk.com/Documentation/Splunk/latest/Security/Self-signcertificatesforSplunkWeb
+            cmd = "openssl req -x509 -newkey rsa:4096 -passout pass:abcd1234 -keyout {path}/key.pem -out {path}/cert.pem -days 365 -subj /CN=localhost".format(path=FIXTURES_DIR)
+            generate_certs = subprocess.check_output(cmd.split())
+            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8000, 8089], 
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                               environment={"DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": password,
+                                                            "SPLUNK_HTTP_ENABLESSL": "true",
+                                                            "SPLUNK_HTTP_ENABLESSL_CERT": "/tmp/defaults/cert.pem",
+                                                            "SPLUNK_HTTP_ENABLESSL_PRIVKEY": "/tmp/defaults/key.pem",
+                                                            "SPLUNK_HTTP_ENABLESSL_PRIVKEY_PASSWORD": "abcd1234"
+                                                            },
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8000: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", password)
+            # Check splunkweb
+            web_port = self.client.port(cid, 8000)[0]["HostPort"]
+            url = "https://localhost:{}/".format(web_port)
+            kwargs = {"verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(FIXTURES_DIR, "key.pem"))
+                os.remove(os.path.join(FIXTURES_DIR, "cert.pem"))
             except OSError:
                 pass
 
