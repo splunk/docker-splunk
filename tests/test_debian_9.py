@@ -349,6 +349,27 @@ class TestDebian9(object):
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag" in output
+
+    def test_splunk_entrypoint_no_provision(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the git SHA exists in /opt/ansible
+            exec_command = self.client.exec_create(cid, "cat /opt/ansible/version.txt")
+            std_out = self.client.exec_start(exec_command)
+            assert len(std_out.strip()) == 40
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
     
     def test_uf_entrypoint_help(self):
         # Run container
@@ -385,6 +406,27 @@ class TestDebian9(object):
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag" in output
+
+    def test_uf_entrypoint_no_provision(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the git SHA exists in /opt/ansible
+            exec_command = self.client.exec_create(cid, "cat /opt/ansible/version.txt")
+            std_out = self.client.exec_start(exec_command)
+            assert len(std_out.strip()) == 40
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
     
     def test_adhoc_1so_using_default_yml(self):
         # Generate default.yml
