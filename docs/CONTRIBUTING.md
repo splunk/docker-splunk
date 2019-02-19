@@ -1,114 +1,148 @@
-# Contributing
+# Contributing to the Project
 
-When contributing to this repository, please first discuss the change you wish to make via issue,
-email, or any other method with the owners of this repository.
+This document is the single source of truth on contributing towards this codebase. Please feel free to browse the open issues and file new ones - all feedback is welcome!
 
-Please note we have a code of conduct. Please follow it in all your interactions with the project.
+----
 
-## Pull Request Process
+## Topics
 
-We can only accept pull requests (a) that are submitted by splunk employees or (b) that have signed our contribution agreement:
+* [Prerequisites](#prerequisites)
+    * [Contributor License Agreement](#contributor-license-agreement)
+    * [Code of Conduct](#code-of-conduct)
+    * [Setup development environment](#setup-development-environment)
+* [Contribution Workflow](#contribution-workflow)
+    * [Feature Requests and Bug Reports](#feature-requests-and-bug-reports)
+    * [Fixing Issues](#fixing-issues)
+    * [Pull Requests](#pull-requests)
+    * [Code Review](#code-review)
+    * [Testing](#testing)
+    * [Documentation](#documentation)
+* [Maintainers](#maintainers)
 
-    for individuals: https://www.splunk.com/goto/individualcontributions
-    for organizations: https://www.splunk.com/goto/contributions
+----
 
-- Steps
-1. Ensure any install or build dependencies are removed before the end of the layer when doing a build.
-2. Update  `docs/CHANGELOG.md` with details of changes to the interface, including new environment variables, exposed ports, useful file locations, and container parameters. Also, update the necessary documentation.
-3. Increase the version numbers in `splunk/<template>/version.json`. The versioning scheme we use is [SemVer](http://semver.org/).
-4. You may merge the Pull Request in once you have the sign-off of two other developers. If you
-do not have permission to do that, you may request the second reviewer to merge it for you.
+## Prerequisites
+When contributing to this repository, please first discuss the change you wish to make via a GitHub issue, Slack message, email, or via other channels with the owners of this repository.
 
-## Code of Conduct
+##### Contributor License Agreement
+At the moment, we can only accept pull requests submitted from either:
+* Splunk employees or
+* Individuals that have signed our contribution agreement
 
-### Our Pledge
+If you wish to be a contributing member of our community, please see the agreement [for individuals](https://www.splunk.com/goto/individualcontributions) or [for organizations](https://www.splunk.com/goto/contributions).
 
-In the interest of fostering an open and welcoming environment, we as
-contributors and maintainers pledge to making participation in our project and
-our community a harassment-free experience for everyone, regardless of age, body
-size, disability, ethnicity, gender identity and expression, level of experience,
-nationality, personal appearance, race, religion, or sexual identity and
-orientation.
+##### Code of Conduct
+Please make sure to read and observe our [Code of Conduct](contributing/code-of-conduct.md). Please follow it in all of your interactions involving the project.
 
-### Our Standards
+##### Setup Development Environment
+TODO
 
-Examples of behavior that contributes to creating a positive environment
-include:
+## Contribution Workflow
+Help is always welcome! For example, documentation can always use improvement. There's always code that can be clarified, functionality that can be extended, and tests to be added to guarantee behavior. If you see something you think should be fixed, don't be afraid to own it.
 
-* Using welcoming and inclusive language
-* Being respectful of differing viewpoints and experiences
-* Gracefully accepting constructive criticism
-* Focusing on what is best for the community
-* Showing empathy towards other community members
+##### Feature Requests and Bug Reports
+Have ideas on improvements? See something that needs work? While the community encourages everyone to contribute code, it is also appreciated when someone reports an issue. Please report any issues or bugs you find through [GitHub's issue tracker](https://github.com/splunk/docker-splunk/issues). 
 
-Examples of unacceptable behavior by participants include:
+If you are reporting a bug, please include:
+* Your operating system name and version
+* Any details about your local setup that might be helpful in troubleshooting (ex. Python interpreter version, Ansible version, etc.)
+* Detailed steps to reproduce the bug
 
-* The use of sexualized language or imagery and unwelcome sexual attention or
-advances
-* Trolling, insulting/derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or electronic address, without explicit permission
-* Other conduct which could reasonably be considered inappropriate in a professional setting
+We'd also like to hear about your propositions and suggestions. Feel free to submit them as issues and:
+* Explain in detail how they should work
+* Keep the scope as narrow as possible -t his will make it easier to implement
 
-### Our Responsibilities
+##### Fixing Issues
+Look through our [issue tracker](https://github.com/splunk/docker-splunk/issues) to find problems to fix! Feel free to comment and tag corresponding stakeholders or full-time maintainers of this project with any questions or concerns.
 
-Project maintainers are responsible for clarifying the standards of acceptable
-behavior and are expected to take appropriate and fair corrective action in
-response to any instances of unacceptable behavior.
+##### Pull Requests
+What is a "pull request"? It informs the project's core developers about the changes you want to review and merge. Once you submit a pull request, it enters a stage of code review where you and others can discuss its potential modifications and even add more commits to it later on. 
 
-Project maintainers have the right and responsibility to remove, edit, or
-reject comments, commits, code, wiki edits, issues, and other contributions
-that are not aligned to this Code of Conduct, or to ban temporarily or
-permanently any contributor for other behaviors that they deem inappropriate,
-threatening, offensive, or harmful.
+If you want to learn more, please consult this [tutorial on how pull requests work](https://help.github.com/articles/using-pull-requests/) in the [GitHub Help Center](https://help.github.com/).
 
-### Scope
+Here's an overview of how you can make a pull request against this project:
+1. Fork the [docker-splunk GitHub repository](https://github.com/splunk/docker-splunk/issues)
+2. Clone your fork using git and create a branch off develop
+    ```
+    $ git clone git@github.com:YOUR_GITHUB_USERNAME/docker-splunk.git
+    $ cd docker-splunk
 
-This Code of Conduct applies both within project spaces and in public spaces
-when an individual is representing the project or its community. Examples of
-representing a project or community include using an official project e-mail
-address, posting via an official social media account, or acting as an appointed
-representative at an online or offline event. Representation of a project may be
-further defined and clarified by project maintainers.
+    # This project uses 'develop' for all development activity, so create your branch off that
+    $ git checkout -b your-bugfix-branch-name develop
+    ```
+3. Run all the tests to verify your environment
+    ```
+    $ cd docker-splunk
+    $ make test
+    ```
+4. Make your changes, commit and push once your tests have passed
+    ```
+    $ git commit -m "<insert helpful commit message>"
+    $ git push 
+    ```
+5. Submit a pull request through the GitHub website using the changes from your forked codebase
 
-### Enforcement
+##### Code Review
+There are two aspects of code review: giving and receiving.
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at support@splunk.com. All
-complaints will be reviewed and investigated and will result in a response that
-is deemed necessary and appropriate to the circumstances. The project team is
-obligated to maintain confidentiality with regard to the reporter of an incident.
-Further details of specific enforcement policies may be posted separately.
+To make it easier for your PR to receive reviews, consider the reviewers will need you to:
+* Follow the project coding conventions
+* Write good commit messages
+* Break large changes into a logical series of smaller patches which individually make easily understandable changes, and in aggregate solve a broader issue
 
-Project maintainers who do not follow or enforce the Code of Conduct in good
-faith may face temporary or permanent repercussions as determined by other
-members of the project's leadership.
+Reviewers, the people giving the review, are highly encouraged to revisit the [Code of Conduct](contributing/code-of-conduct.md) and must go above and beyond to promote a collaborative, respectful community.
 
-### Attribution
+When reviewing PRs from others [The Gentle Art of Patch Review](http://sage.thesharps.us/2014/09/01/the-gentle-art-of-patch-review/) suggests an iterative series of focuses which is designed to lead new contributors to positive collaboration without inundating them initially with nuances:
+* Is the idea behind the contribution sound?
+* Is the contribution architected correctly?
+* Is the contribution polished?
 
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 1.4,
-available at [http://contributor-covenant.org/version/1/4][version]
+For this project, we require that at least 2 approvals are given and a build from our continuous integration system is successful off of your branch. Please note that any new changes made with your existing pull request during review will automatically unapprove and retrigger another build/round of tests.
 
-[homepage]: http://contributor-covenant.org
-[version]: http://contributor-covenant.org/version/1/4/
+##### Testing
+Testing is the responsibility of all contributors. In general, we try to adhere to [Google's test sizing philosophy](https://testing.googleblog.com/2010/12/test-sizes.html) when structuring tests. 
 
-### Past / Active(marked as *) Contributors
-Nelson Wang*
-Tony Lee*
-Brent Boe*
-Matthew Rich*
-Jonathan Vega*
-Brian Bingham*
-Scott Centoni*
-Mike Dickey*
-outcoldman
-mhoogcarspel
-sjovang
-efcasado
-ahmed-bacha
-vmizoules
-halr9000
-bshuler
-michaelwilde
-merbla
+There are multiple types of tests. The location of the test code varies with type, as do the specifics of the environment needed to successfully run the test.
 
+1. **Small:** Very fine-grained; exercises low-level logic at the scope of a function or a class; no external resources (except possibly a small data file or two, but preferably no file system dependencies whatsoever); very fast execution on the order of seconds
+    ```
+    $ make small-tests
+    ```
+
+2. **Medium:** Exercises interaction between discrete components; may have file system dependencies or run multiple processes; runs on the order of minutes
+    ```
+    $ make medium-tests
+    ```
+
+3. **Large:** Exercises the entire system, end-to-end; used to identify crucial performance and basic functionality that will be run for every code check-in and commit; may launch or interact with services in a datacenter, preferably with a staging environment to avoid affecting production
+    ```
+    $ make large-tests
+    ```
+
+Continuous integration will run all of these tests either as pre-submits on PRs, post-submits against master/release branches, or both.
+
+##### Documentation
+We could always use improvements to our documentation! Anyone can contribute to these docs - whether you’re new to the project, you’ve been around a long time, and whether you self-identify as a developer, an end user, or someone who just can’t stand seeing typos. What exactly is needed?
+1. More complementary documentation. Have you perhaps found something unclear?
+2. More examples or generic templates that others can use.
+3. Blog posts, articles and such – they’re all very appreciated.
+
+You can also edit documentation files directly in the GitHub web interface, without creating a local copy. This can be convenient for small typos or grammer fixes.
+
+## Maintainers
+
+If you need help, feel free to tag one of the active maintainers of this project in a post or comment. We'll do our best to reach out to you as quickly as we can.
+
+```
+# Active maintainers marked with (*)
+
+(*) Nelson Wang
+(*) Tony Lee
+(*) Brent Boe
+(*) Matthew Rich
+(*) Jonathan Vega
+(*) Jack Meixensperger
+(*) Brian Bingham
+(*) Scott Centoni
+(*) Mike Dickey
+```

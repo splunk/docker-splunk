@@ -1,106 +1,68 @@
-# Welcome to the Splunk Docker GitHub repository
+# docker-splunk: Containerizing Splunk Enterprise
 
-This is the official source code repository for building Docker images of Splunk Enterprise
-and the Splunk Universal Forwarder. 
+[![Build Status](https://circleci.com/gh/splunk/docker-splunk/tree/develop.svg?style=svg)](https://circleci.com/gh/splunk/docker-splunk/tree/develop)
 
-## What is Splunk Enterprise?
+Welcome to Splunk's official repository containing Dockerfiles for building Splunk Enterprise and Universal Forwarder deployments using containerization technology. This repository supports all Splunk roles and deployment topologies, and currently works on any Linux-based platform. 
 
-Splunk Enterprise is the platform for operational intelligence. The software lets
-you collect, analyze, and act upon the untapped value of big data that your technology
-infrastructure, security systems, and business applications generate. It gives you
-insights to drive operational performance and business results.
+The provisioning of these disjoint containers is handled by the [splunk-ansible](https://github.com/splunk/splunk-ansible) project. Please refer to [Ansible documentation](http://docs.ansible.com/) for more details about Ansible concepts and how it works. 
 
-## The Splunk Base Image:   ```base-debian-9```
+----
 
-The directory `base/debian-9` contains a Dockerfile to create a base image on top
-of which all the other images are built. In order to minimize image size and provide
-a stable foundation for other images to build on, we elected to use `debian:stretch-slim` for our base image. `debian:stretch-slim` gives us the latest version of the Linux
-Debian operating system in a tiny 55 megabytes. In the future, we plan to add
-support for additional operating systems.
+## Table of Contents
 
-## The Splunk Enterprise Image:   ```splunk-debian-9```
+1. [Purpose](#purpose)
+2. [Quickstart](#quickstart)
+3. [Support](#support)
+4. [Contributing](#contributing)
+5. [License](#license)
 
-The directory `splunk/debian-9` contains a Dockerfile that extends the base image
-by installing Splunk and adding tools for provisioning. It extends `base-debian-9`
-by installing the application and preparing the environment for provisioning.
-Advanced Splunk provisioning capabilities are provided through the utilization 
-of an entrypoint script and playbooks published separately via the
-[Splunk Ansible Repository](https://github.com/splunk/splunk-ansible).
+----
 
-## The Splunk Universal Forwarder Image:   ```splunkforwarder-debian-9```
+## Purpose
 
-This image is similar to the Splunk Enterprise Image, except the more light-weight
-Splunk Universal Forwarder package is installed instead.
+##### What is Splunk Enterprise?
+Splunk Enterprise is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results.
 
+Please refer to [Splunk products](https://www.splunk.com/en_us/software.html) for more knowledge about the features and capabilities of Splunk, and how you can bring it into your organization.
 
-# Building
+##### What is docker-splunk?
+This is the official source code repository for building Docker images of Splunk Enterprise and Splunk Universal Forwarder. By introducing containerization, we can marry the ideals of infrastructure-as-code and declarative directives to manage and run Splunk and its other product offerings.
 
-Note that you will need to install [Docker](https://docs.docker.com/install/). 
+This repository should be used by people interested in running Splunk in their container orchestration environments. With this Docker image, we support running a standalone development Splunk instance as easily as running a full-fledged distributed production cluster, all while maintaining the best practices and recommended standards of operating Splunk at scale.
 
-Run the following command to build all the images:
-
+## Quickstart
+Use the following command to start a single standalone instance of Splunk Enterprise:
 ```
- $> make all 
+$ docker run -it -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" splunk/splunk:latest
 ```
 
-For more fine-grained control of which images to build, please refer to the `Makefile`.
+Let's break down what this command does:
+1. Starts a Docker container interactively using the `splunk/splunk:latest` image.
+2. Expose a port mapping from the host's `8000` to the container's `8000`.
+3. Specify a custom `SPLUNK_PASSWORD` - be sure to replace `<password>` with any string that conforms to the [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile).
+4. Accept the license agreement with `SPLUNK_START_ARGS=--accept-license`. This must be explicitly accepted on every `splunk/splunk` container, otherwise Splunk will not start.
 
+After the container starts up successfully, you should be able to access SplunkWeb at http://localhost:8000 with `admin:<password>`.
 
-# Getting started
+For full usage instructions (including examples, advanced deployments, scenarios), please visit the [docker-splunk documentation](https://splunk.github.io/docker-splunk/) page.
 
-Use the following command to start a single instance of Splunk Enterprise:
-```
- $> export SPLUNK_PASSWORD=<password>
- $> docker run -it -p 8000:8000 -e 'SPLUNK_PASSWORD' -e 'SPLUNK_START_ARGS=--accept-license' splunk-debian-9:latest start
-```
-Replace `"<password>"` with the initial password that you wish to use for logging into the Splunk admin
-user account. You can then access Splunk at http://localhost:8000 with those credentials.
+## Support
+When deploying this Docker image, please be mindful of the [supported architectures and platforms for containerized Splunk environments](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms). 
 
-**Please note, the password supplied must conform to the default
-[Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile).**
-
-Notice that the license agreement has to be explicitly accepted. Splunk will not start
-unless you pass the argument `--accept-license` to every container.
-
-Use `Ctrl+C` to stop the container.
-
-For more detailed requirements, instructions and scenarios, please see [SETUP](docs/SETUP.md)
-
-For information about more advanced deployments including search head and indexer
-clusters, please see [ADVANCED](docs/ADVANCED.md) 
-
-
-# Get help and support
+Additionally, please use the [GitHub issue tracker](https://github.com/splunk/docker-splunk/issues) to submit bugs or request features.
 
 If you have questions or need support, you can:
-
 * Post a question to [Splunk Answers](http://answers.splunk.com)
 * Join the [#docker](https://splunk-usergroups.slack.com/messages/C1RH09ERM/) room in the [Splunk Slack channel](http://splunk-usergroups.slack.com)
-* If you are a Splunk Enterprise customer with a valid support entitlement contract, and have a Splunk related question you can also open a support case on the https://www.splunk.com/ support portal.
-* For details on the supported architectures, please refer to the documentation http://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms
+* If you are a Splunk Enterprise customer with a valid support entitlement contract and have a Splunk-related question, you can also open a support case on the https://www.splunk.com/ support portal
 
-Please also see [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
+## Contributing
+We welcome feedback and contributions from the community! Please see our [contribution guidelines](docs/CONTRIBUTING.md) for more information on how to get involved. 
 
-# Documentation
+## License
+Copyright 2018-2019 Splunk.
 
-See [Docker Splunk Documentation](https://splunk.github.io/docker-splunk/)
+Distributed under the terms of our [license](docs/LICENSE.md), splunk-ansible is free and open source software.
 
-
-# License
-
-See [LICENSING](docs/LICENSING.md)
-
-
-# Contributing
-
-See [CONTRIBUTING](docs/CONTRIBUTING.md)
-
-
-# History
-
-See [CHANGELOG](docs/CHANGELOG.md)
-
-
-# Authors
-
+## Authors
 Splunk Inc. and the Splunk Community
