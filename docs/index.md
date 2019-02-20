@@ -1,6 +1,6 @@
 # Welcome to the docker-splunk documentation!
 
-Welcome to Splunk's official documentation regarding Dockerfiles for building Splunk Enterprise and Universal Forwarder deployments using containerization technology. This repository supports all Splunk roles and deployment topologies, and currently works on any Linux-based platform. 
+Welcome to Splunk's official documentation regarding Dockerfiles for building Splunk Enterprise and Universal Forwarder images using containerization technology. This repository supports all Splunk roles and deployment topologies, and currently works on any Linux-based platform. 
 
 The provisioning of these disjoint containers is handled by the [splunk-ansible](https://github.com/splunk/splunk-ansible) project. Please refer to [Ansible documentation](http://docs.ansible.com/) for more details about Ansible concepts and how it works. 
 
@@ -18,17 +18,19 @@ This repository should be used by people interested in running Splunk in their c
 
 ## Table of Contents
 
-* [Getting Started](INTRODUCTION.md)
-    * [Prerequisites](SETUP.md)
+* [Introduction](INTRODUCTION.md)
+* [Getting Started](SETUP.md)
     * [Install](SETUP.md#install)
+    * [Configure](SETUP.md#configure)
     * [Run](SETUP.md#run)
-    * [Installing a Splunk Enterprise License](LICENSE_INSTALL.md)
+* [Examples](EXAMPLES.md)
 * [Advanced Usage](ADVANCED.md)
+    * [App Installation](ADVANCED.md#app-installation)
 	* [Environment Variables](ADVANCED.md#environment)
 	* [Entrypoint Functions](ADVANCED.md#entrypoint)
-* [Architecture](ARCHITECTURE.md)
 * [Storing Data](STORAGE_OPTIONS.md)
+* [Architecture](ARCHITECTURE.md)
 * [FAQ / Troubleshooting](TROUBLESHOOTING.md)
 * [Contributing](CONTRIBUTING.md)
-* [Licensing](LICENSING.md)
-* [Changelog](CHANGELOG.md)
+* [Support](SUPPORT.md)
+* [License](LICENSE.md)

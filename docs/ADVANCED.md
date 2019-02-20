@@ -1,8 +1,14 @@
-## Advanced Usage ##
-This section shows several of the advanced functions of the container, as well as how to build a container
-from the github repo.
+## Navigation
 
-** Note: ** Not all sections below will leave your container in a supported state. See `docs/SETUP.md` for the list of officially supported configurations.
+* [App Installation](#app-installation)
+
+----
+
+## App Installation 
+* Installation of Splunk Enterprise Security (ES) and Splunk IT Service Intelligence (ITSI) are not supported in this version. 
+Please contact Splunk Services for more information on using these applications with Splunk Enterprise in a container.
+
+----
 
 ##### Building From Source (Unsupported) #####
 1. Download the Splunk Docker GitHub repository to your local development environment:
