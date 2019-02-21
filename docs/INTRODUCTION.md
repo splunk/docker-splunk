@@ -3,7 +3,7 @@ Splunk Enterprise is most commonly deployed with dedicated hardware, and in conf
 
 The overhead of this operation normally leads people down the path of creating virtual machines using a hypervisor. A hypervisor provides a significant improvement to the speed of spinning up more compute resources, but comes with one major drawback: the overhead of running multiple operating systems on one host.
 
-<img src="container-vm-whatcontainer_2.png" width="370"/><img src="docker-containerized-appliction-blue-border_2.png" width="370"/>
+<img src="container-vm-whatcontainer_2.png" width="370"/>
 
 ## The Advent of Docker
 In recent years, [Docker](https://www.docker.com) has become the de-facto tool designed make it easier to create, deploy, and run applications through the use of containers.
@@ -11,6 +11,8 @@ In recent years, [Docker](https://www.docker.com) has become the de-facto tool d
 Containers allow an application to be the only process that runs in a VM-like, isolated environment. Unlike a hypervisor, a container-based system does not require the use of a guest operating system. This allows a single host to dedicate more resources towards the application. 
 
 For more information on how containers or Docker works, we'll let [Docker do the talking](https://www.docker.com/resources/what-container).
+
+<img src="docker-containerized-appliction-blue-border_2.png" width="370"/>
 
 The Splunk user community has asked us to support containerization as a platform for running Splunk. The promise of running applications in a microservice-oriented architecture evangelizes the principles of infrastructure-as-code and declarative directives, and we aimed to bring those benefits with the work in this codebase. This project delivers on that request: to provide the rich functionality that Splunk Enterprise offers with the user-friendliness and production-readiness of container-native software.
 

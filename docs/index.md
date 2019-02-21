@@ -30,7 +30,7 @@ This repository should be used by people interested in running Splunk in their c
 	* [Entrypoint Functions](ADVANCED.md#entrypoint)
 * [Storing Data](STORAGE_OPTIONS.md)
 * [Architecture](ARCHITECTURE.md)
-* [FAQ / Troubleshooting](TROUBLESHOOTING.md)
+* [Troubleshooting](TROUBLESHOOTING.md)
 * [Contributing](CONTRIBUTING.md)
 * [Support](SUPPORT.md)
 * [License](LICENSE.md)
