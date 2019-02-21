@@ -1,32 +1,29 @@
 ## Examples
 
-The purpose of this section is to showcase a wide variety of examples on how the `docker-splunk` project can be used. Note that for large, distributed topologies, we will opt to use a [Docker compose file](https://docs.docker.com/compose/compose-file/) instead of the CLI for the sake of simplicity.
+The purpose of this section is to showcase a wide variety of examples on how the `docker-splunk` project can be used. 
 
-----
+Note that for more complex scenarios, we will opt to use a [Docker compose file](https://docs.docker.com/compose/compose-file/) instead of the CLI for the sake of readability.
 
 ## I want to...
 
-* [Create standalone from CLI](#create-standalone-from-cli)
-* [Create standalone from compose](#create-standalone-from-compose)
-* [Create standalone with license from compose](#create-standalone-with-license-from-compose)
-* [Create standalone with HEC from compose](#create-standalone-with-hec-from-compose)
-* [Create standalone with app from compose](#create-standalone-with-app-from-compose)
-* [Create standalone with SplunkBase app from compose](#create-standalone-with-splunkbase-app-from-compose)
-* [Create standalone and universal forwarder from CLI](#create-standalone-and-universal-forwarder-from-cli)
-* [Create standalone and universal forwarder from compose](#create-standalone-and-universal-forwarder-from-compose)
-* [Create indexer cluster from compose](#create-indexer-cluster-from-compose)
-* [Create search head cluster from compose](#create-search-head-cluster-from-compose)
-* [Create indexer cluster and search head cluster from compose](#create-indexer-cluster-and-search-head-cluster-from-compose)
-
-----
+* [Create a standalone](#create-standalone-from-cli)
+    * [...with the CLI](#create-standalone-from-cli)
+    * [...with a compose file](#create-standalone-from-compose)
+    * [...with a Splunk license](#create-standalone-with-license)
+    * [...with HEC](#create-standalone-with-hec)
+    * [...with any app](#create-standalone-with-app)
+    * [...with a SplunkBase app](#create-standalone-with-splunkbase-app)
+* [Create standalone and universal forwarder](#create-standalone-and-universal-forwarder)
+* [Create indexer cluster](#create-indexer-cluster)
+* [Create search head cluster](#create-search-head-cluster)
+* [Create indexer cluster and search head cluster](#create-indexer-cluster-and-search-head-cluster)
+* [More](#more)
 
 ## Create standalone from CLI
 Execute the following to bring up your deployment:
 ```
 $ docker run --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
 ```
-
-----
 
 ## Create standalone from compose
 <details><summary>docker-compose.yml</summary><p>
@@ -51,9 +48,7 @@ Execute the following to bring up your deployment:
 $ SPLUNK_PASSWORD=<password> docker-compose up -d
 ```
 
-----
-
-## Create standalone with license from compose
+## Create standalone with license
 Adding a Splunk Enterprise license can be done in multiple ways. Please review the following compose files below to see how it can be achieved, either with a license hosted on a webserver or with a license file as a direct mount.
 
 <details><summary>docker-compose.yml - license from URL</summary><p>
@@ -100,9 +95,7 @@ Execute the following to bring up your deployment:
 $ SPLUNK_PASSWORD=<password> docker-compose up -d
 ```
 
-----
-
-## Create standalone with HEC from compose
+## Create standalone with HEC
 To learn more about what the HTTP event collector (HEC) is and how to use it, please review the documentation [here](https://docs.splunk.com/Documentation/Splunk/latest/Data/UsetheHTTPEventCollector).
 
 <details><summary>docker-compose.yml</summary><p>
@@ -134,9 +127,7 @@ $ curl -k https://localhost:8088/services/collector/event -H "Authorization: Spl
 {"text": "Success", "code": 0}
 ```
 
-----
-
-## Create standalone with app from compose
+## Create standalone with app
 <details><summary>docker-compose.yml</summary><p>
 
 ```
@@ -160,17 +151,7 @@ Execute the following to bring up your deployment:
 $ SPLUNK_PASSWORD=<password> docker-compose up -d
 ```
 
-----
-
-## Create standalone with SplunkBase app from CLI
-Execute the following to bring up your deployment:
-```
-$ docker run --name so1 --hostname so1 -p 8000:8000-e "SPLUNK_APPS_URL=https://splunkbase.splunk.com/app/2890/release/4.1.0/download" -e "SPLUNKBASE_USERNAME=<user>" -e "SPLUNKBASE_PASSWORD=<password>" -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
-```
-
-----
-
-## Create standalone with SplunkBase app from compose
+## Create standalone with SplunkBase app
 <details><summary>docker-compose.yml</summary><p>
 
 ```
@@ -196,24 +177,7 @@ Execute the following to bring up your deployment:
 $ SPLUNKBASE_PASSWORD=<splunkbase_password> SPLUNK_PASSWORD=<password> docker-compose up -d
 ```
 
-----
-
-## Create standalone and universal forwarder from CLI
-Execute the following to bring up your deployment:
-```
-# Create the network
-$ docker network create --driver bridge --attachable skynet
-
-# Create the standalone
-$ docker run --network skynet --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
-
-# Create the universal forwarder
-$ docker run --network skynet --name uf1 --hostname uf1 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -e "SPLUNK_STANDALONE_URL=so1" -it splunk/universalforwarder:latest
-```
-
-----
-
-## Create standalone and universal forwarder from CLI
+## Create standalone and universal forwarder
 <details><summary>docker-compose.yml</summary><p>
 
 ```
@@ -264,9 +228,7 @@ Execute the following to bring up your deployment:
 $ SPLUNK_PASSWORD=<password> docker-compose up -d
 ```
 
-----
-
-## Create indexer cluster from compose
+## Create indexer cluster
 To enable indexer cluster, we'll need to generate some common passwords and secret keys across all members of the deployment. To facilitate this, you can use the `splunk/splunk` image with the `create-defaults` command as so:
 ```
 $ docker run -it -e SPLUNK_PASSWORD=<password> splunk/splunk:latest create-defaults > default.yml
@@ -395,9 +357,7 @@ Execute the following to bring up your deployment:
 $ SPLUNK_PASSWORD=<password> docker-compose up -d
 ```
 
-----
-
-## Create search head cluster from compose
+## Create search head cluster
 To enable search head clustering, we'll need to generate some common passwords and secret keys across all members of the deployment. To facilitate this, you can use the `splunk/splunk` image with the `create-defaults` command as so:
 ```
 $ docker run -it -e SPLUNK_PASSWORD=<password> splunk/splunk:latest create-defaults > default.yml
@@ -527,9 +487,7 @@ Execute the following to bring up your deployment:
 $ docker-compose up -d
 ```
 
-----
-
-## Create indexer cluster and search head cluster from compose
+## Create indexer cluster and search head cluster
 To enable both clustering modes, we'll need to generate some common passwords and secret keys across all members of the deployment. To facilitate this, you can use the `splunk/splunk` image with the `create-defaults` command as so:
 ```
 $ docker run -it -e SPLUNK_PASSWORD=<password> splunk/splunk:latest create-defaults > default.yml
@@ -730,4 +688,5 @@ Execute the following to bring up your deployment:
 $ docker-compose up -d
 ```
 
-----
+## More
+There are a variety of Docker compose scenarios in the `docker-splunk` repo [here](https://github.com/splunk/docker-splunk/tree/develop/test_scenarios). Please feel free to use any of those for reference in terms of different topologies!

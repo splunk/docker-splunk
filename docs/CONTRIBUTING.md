@@ -2,8 +2,6 @@
 
 This document is the single source of truth on contributing towards this codebase. Please feel free to browse the open issues and file new ones - all feedback is welcome!
 
-----
-
 ## Topics
 
 * [Prerequisites](#prerequisites)
@@ -18,8 +16,6 @@ This document is the single source of truth on contributing towards this codebas
     * [Testing](#testing)
     * [Documentation](#documentation)
 * [Maintainers](#maintainers)
-
-----
 
 ## Prerequisites
 When contributing to this repository, please first discuss the change you wish to make via a GitHub issue, Slack message, email, or via other channels with the owners of this repository.
