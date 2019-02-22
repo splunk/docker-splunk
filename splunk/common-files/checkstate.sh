@@ -21,8 +21,7 @@
 #NOTE: If you plan on running the splunk container while keeping Splunk
 # inactive for long periods of time, this script may give misleading
 # health results
-if [ -n "$NO_HEALTHCHECK" ]
-then
+if [[ "" == "$NO_HEALTHCHECK" ]]; then
 	#If NO_HEALTHCHECK is NOT defined, then we want the healthcheck
 	state="$(< $CONTAINER_ARTIFACT_DIR/splunk-container.state)"
 

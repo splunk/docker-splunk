@@ -1,14 +1,14 @@
 SHELL := /bin/bash
 IMAGE_VERSION ?= "latest"
 NONQUOTE_IMAGE_VERSION := $(patsubst "%",%,$(IMAGE_VERSION))
-DOCKER_BUILD_FLAGS =
+DOCKER_BUILD_FLAGS ?=
 SPLUNK_ANSIBLE_REPO ?= https://github.com/splunk/splunk-ansible.git
 SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
-SPLUNK_VERSION := 7.2.3
-SPLUNK_BUILD := 06d57c595b80
+SPLUNK_VERSION := 7.2.4
+SPLUNK_BUILD := 8a94541dcfac
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
@@ -51,6 +51,7 @@ ansible:
 	else \
 		git clone ${SPLUNK_ANSIBLE_REPO} --branch ${SPLUNK_ANSIBLE_BRANCH}; \
 	fi
+	cd splunk-ansible && git rev-parse HEAD > version.txt
 
 ##### Base images #####
 base: base-debian-9 base-centos-7 base-windows-2016
@@ -131,6 +132,7 @@ run_tests_centos7:
 
 test_setup:
 	@echo 'Install test requirements'
+	pip install --upgrade pip
 	pip install -r $(shell pwd)/tests/requirements.txt --upgrade
 	mkdir test-results/centos7-result || true
 	mkdir test-results/debian9-result || true
@@ -172,3 +174,6 @@ clean:
 	rm -rf test-results/* || true
 	docker rm -f ${TEST_IMAGE_NAME} || true
 	docker system prune -f --volumes
+
+dev_loop:
+	SPLUNK_IMAGE="splunk-debian-9:latest" make sample-compose-down && sleep 15  &&  DOCKER_BUILD_FLAGS="--no-cache" make all && sleep 15 && SPLUNK_IMAGE="splunk-debian-9:latest" make sample-compose-up
