@@ -10,4 +10,8 @@ Jenkinsfile
 **/__pycache__
 **/.idea
 **/*.pytest_cache
-*.md
+**/docs
+**/tests
+**/test-results
+**/molecule
+**/*.md
