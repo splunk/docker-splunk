@@ -1,120 +1,74 @@
-## Splunk officially supported installation platforms
+## Navigation
 
-Splunk Enterprise contains many settings that allow customers to tailor their Splunk environment. Because not all settings apply to all customers, Splunk will only support the most common subset of all configurations. Below is a list of supported platforms and base operating systems. Please check back periodically as our support matrix will expand over time.
-Throughout this document, the term "Supported" means you can contact Splunk Support for assistance with issues. 
-In the following conditions, Splunk Support reserves the right to deem your installation in an unsupported state and not provide assistance when issues arise: 
-* You do not have an active support contract
-* You are running Splunk Enterprise / Splunk Universal Forwarder in a container on a platform not officially supported by Splunk
-* You are using features not officially supported by Splunk
+* [Install](#install)
+* [Configure](#configure)
+* [Run](#run)
+    * [Splunk Enterprise](#splunk-enterprise)
+    * [Splunk Universal Forwarder](#splunk-universal-forwarder)
+* [Summary](#summary)
 
-In the event you fall into an unsupported state, you may find support on Splunk Answers, or through the open source communities found on [GitHub for Splunk-Ansible](https://www.github.com/splunk/splunk-ansible) or [GitHub for Splunk-Docker](https://github.com/splunk/docker-splunk).
+## Install
+In order to run this Docker image, you will need the following prerequisites and dependencies installed on each node you plan on deploying the container:
+1. Linux-based operating system (Debian, CentOS, etc.)
+2. Chipset: 
+    * `splunk/splunk` image supports x86-64 chipsets
+    * `splunk/universalforwarder` image supports both x86-64 and s390x chipsets
+3. Kernel version > 4.0
+4. Docker engine
+    * Docker Enterprise Engine 17.06.2 or later
+    * Docker Community Engine 17.06.2 or later
+5. `overlay2` Docker daemon storage driver
 
-##### Supported Operating Systems:
+For more details, please see the official [supported architectures and platforms for containerized Splunk environments](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms) as well as [hardware and capacity recommendations](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements). 
 
-Linux kernel versions above 4.x.
-
-##### Supported Docker Engine Versions:
-
-* Docker Enterprise Engine 17.06.2 or later
-* Docker Community Engine 17.06.2 or later
-
-** Note: ** Splunk Support does not provide assistance with the advanced usage of an operator such as the scale command. Splunk Support will only provide assistance with the functionality of running the container on the systems listed above, and cannot support setup and configuration of the a service level object to be used for docker-compose or kubectl. Please consult the Docker or Kubernetes documentation regarding best practices for building services. 
-
-**Note:** Splunk Support only provides support for the single instance Splunk Validated Architectures (S-Type), Universal Forwarders and Heavy Forwarders. For all other configurations, please contact Splunk Professional Services.
-
-##### Required Hardware #####
-
-All instances must be at or above the minimum server specifications found in the [Splunk installation manual](http://docs.splunk.com/Documentation/Splunk/latest/Installation/SystemRequirements). 
-Additionally, the Docker container at this time is also limited to the following base installation chipsets:
-* x86-64
-* s390x (Universal Forwarder only)
-
-Volumes used for persistence of the Splunk Enterprise data inside the Docker container must be one of the supported filesystems listed in the [Splunk installation manual](http://docs.splunk.com/Documentation/Splunk/latest/Installation/SystemRequirements).
-
-## Prerequisites ##
-1. Install the appropriate [Docker Engine](https://docs.docker.com/engine/installation/#supported-platforms) for your operating system
-2. If you intend for the containerized Splunk Enterprise deployment to be supported by your Enterprise Support Agreement, you must verify you meet all of the 
-above "supported" requirements. Failure to do so will render your deployment in an "unsupported" state.
-
-## Install Splunk Enterprise Docker container (Supported) ##
-
-Download the required image to your local Docker image library. 
+## Configure
+Before we can run the containers, we should pull it down from DockerHub. Run the following commands to pull the images into your local environment:
 ```
 $ docker pull splunk/splunk:latest
-```
-
-## Install Splunk Universal Forwarder Docker container (Supported) ##
-
-Download the required image to your local Docker image library. 
-```
 $ docker pull splunk/universalforwarder:latest
 ```
 
-## Starting Splunk Enterprise ##
+## Run
+Before we stand up any containers, let's first create a network to enable communication between each of the services. This step is not necessary if you only wish to create a single, isolated instance.
+```
+$ docker network create --driver bridge --attachable skynet
+```
 
-For a basic standalone Splunk environment, run the following command:
+##### Splunk Enterprise
+Use the following command to start a single standalone instance of Splunk Enterprise:
 ```
-$ docker run -d -p 8000:8000 -e 'SPLUNK_START_ARGS=--accept-license' -e 'SPLUNK_PASSWORD=<password>' splunk/splunk:latest
+$ docker run --network skynet --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
 ```
-**Note:** The password supplied must conform to the default [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile)* 
 
-The output of Docker's run command will be a long hash of numbers and letters.  These numbers and letters are the container id for your
-Splunk Enterprise deployment.  Use "docker ps" to get the status of the new deployment. For example: 
-```
-docker ps -a -f id=9d790051bff3d8eb88da2d27b515140ff45f8f77a4bd57d6e5655d87cf3272fb 
-```
-```
-CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                            PORTS                                                                                     NAMES
-9d790051bff3        splunk-debian-9     "/sbin/entrypoint.sh…"   4 seconds ago       Up 3 seconds (health: starting)   4001/tcp, 8065/tcp, 8088-8089/tcp, 8191/tcp, 9887/tcp, 9997/tcp, 0.0.0.0:8000->8000/tcp   zen_hawking
-```
-Once the container has reached a "healthy" status, you can log in.  The exposed port will be listed under the port section.
+Let's break down what this command does:
+1. Start a Docker container using the `splunk/splunk:latest` image
+2. Launch the container in the formerly-created bridge network `skynet`
+3. Name the container + hostname as `so1`
+4. Expose a port mapping from the host's `8000` to the container's `8000`
+5. Specify a custom `SPLUNK_PASSWORD` - be sure to replace `<password>` with any string that conforms to the [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile)
+6. Accept the license agreement with `SPLUNK_START_ARGS=--accept-license` - this must be explicitly accepted on every container, otherwise Splunk will not start
 
-```
-CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                   PORTS                                                                                     NAMES
-9d790051bff3        splunk-debian-9     "/sbin/entrypoint.sh…"   4 minutes ago       Up 4 minutes (healthy)   4001/tcp, 8065/tcp, 8088-8089/tcp, 8191/tcp, 9887/tcp, 9997/tcp, 0.0.0.0:8000->8000/tcp   zen_hawking
-```
-Ports with an IP address are container ports that can be accessed from external. Follow this [link](https://answers.splunk.com/answers/58888/what-are-the-ports-that-i-need-to-open.html) for more information on Splunk Enterprise's default ports.
-```
-4001/tcp, 
-8065/tcp, 
-8088-8089/tcp, 
-8191/tcp, 
-9887/tcp, 
-9997/tcp, 
-0.0.0.0:8000->8000/tcp  <-------  This is an exposed port accessible from external
-```
-In the above example, the port that is exposed is on the same port number which running inside the container.  If port 8000 was occupied by another service on localhost, this port will instead be
-exposed at a higher port number.  By opening an Internet browser and travelling to the exposed address, such as `localhost:8000`, you will be prompted with a login page.
-Log in to your deployment with the Splunk credentials `admin` and use the password you set during installation, or input from the SplunkUI.
+After the container starts up successfully, you should be able to access SplunkWeb at http://localhost:8000 with `admin:<password>`.
 
-## Starting Splunk Universal Forwarder ##
-
-The Splunk Universal Forwarder is started in a similar way to Splunk Enterprise
+##### Splunk Universal Forwarder
+Use the following command to start a single standalone instance of Splunk Enterprise:
 ```
-$ docker run -d  -p 9997:9997 -e 'SPLUNK_START_ARGS=--accept-license' -e 'SPLUNK_PASSWORD=<password>' splunk/universalforwarder:latest
+$ docker run --network skynet --name uf1 --hostname uf1 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -e "SPLUNK_STANDALONE_URL=so1" -it splunk/universalforwarder:latest
 ```
-The Splunk Universal Forwarder however does not have a GUI, so you will not be able to access it through a web interface.
-Instead, you can access the container directly by using the `docker exec` command.  After the container is in a "healthy" state, run the following:
-```
-docker exec -it <container-id> /bin/bash
-```
-```
-splunk@<container-id>:/$
-```
-You are now logged into the container as the splunk user. Please see the [Configure the Universal Forwarder](http://docs.splunk.com/Documentation/Forwarder/latest/Forwarder/Configuretheuniversalforwarder) in the Splunk Forwarder Manual for more information on configuring the Splunk Universal Forwarder.
 
+Now let's run the same analysis on what we just did:
+1. Start a Docker container using the `splunk/universalforwarder:latest` image
+2. Launch the container in the formerly-created bridge network `skynet`
+3. Name the container + hostname as `uf1`
+4. Specify a custom `SPLUNK_PASSWORD` - be sure to replace `<password>` with any string that conforms to the [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile)
+5. Accept the license agreement with `SPLUNK_START_ARGS=--accept-license` - this must be explicitly accepted on every container, otherwise Splunk will not start
+6. Connect it to the standalone created earlier to automatically send logs to `so1`
 
-## Enterprise Applications (Splunk Enterprise Security and Splunk IT Service Intelligence) ##
-* Installation of Splunk Enterprise Security (ES) and Splunk IT Service Intelligence (ITSI) are not supported in this version. 
-Please contact Splunk Services for more information on using these applications with Splunk Enterprise in a container.
+**NOTE:** The Splunk Universal Forwarder product does not have a web interface - if you require access to the Splunk installation in this particular container, please refer to the [REST API](https://docs.splunk.com/Documentation/Splunk/latest/RESTREF/RESTprolog) or use `docker exec` to access the [Splunk CLI](https://docs.splunk.com/Documentation/Splunk/latest/Admin/CLIadmincommands).
 
+## Summary
+You've successfully used `docker-splunk`! 
 
-## Clusters and Other Advanced Deployments ##
+If everything went smoothly, you can login to the standalone Splunk with your browser pointed at `http://localhost:8000`, then run a search to confirms the logs are available. For example, a query such as `index=_internal` should return all the internal Splunk logs for both `host=so1` and `host=uf1`.
 
-For information about more advanced deployments including search head and indexer clusters, please see [ADVANCED](docs/ADVANCED.md). 
-
-## Help ##
-
-The open-source community for this project, and for the Splunk-Ansible project, can be found on their respective github.com repositories.
-Splunk Enterprise Support offers assistance with all supported installations. Please contact them according to the instructions [here](https://www.splunk.com/en_us/support-and-services.html).
-
+Ready for more? Now that your feet are wet, go learn more about the [design and architecture](ARCHITECTURE.md) or run through more [complex scenarios](ADVANCED.md).
