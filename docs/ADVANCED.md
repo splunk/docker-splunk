@@ -222,8 +222,8 @@ splunk:
       directory: /opt/splunkforwarder/etc/users/admin/user-prefs/local
       content:
         general:
-          default_namespace : appboilerplate
-          search_syntax_highlighting : dark
+          default_namespace: appboilerplate
+          search_syntax_highlighting: dark
   ...
 ```
 

@@ -534,8 +534,8 @@ class TestDebian9(object):
       directory: /opt/splunk/etc/users/admin/user-prefs/local
       content:
         general:
-          default_namespace : appboilerplate
-          search_syntax_highlighting : dark''', output)
+          default_namespace: appboilerplate
+          search_syntax_highlighting: dark''', output)
         # Write the default.yml to a file
         with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
             f.write(output)
@@ -592,8 +592,8 @@ class TestDebian9(object):
       directory: /opt/splunkforwarder/etc/users/admin/user-prefs/local
       content:
         general:
-          default_namespace : appboilerplate
-          search_syntax_highlighting : dark''', output)
+          default_namespace: appboilerplate
+          search_syntax_highlighting: dark''', output)
         # Write the default.yml to a file
         with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
             f.write(output)
