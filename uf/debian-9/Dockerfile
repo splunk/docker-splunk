@@ -53,11 +53,13 @@ COPY [ "splunk/common-files/updateetc.sh", "uf/common-files/entrypoint.sh", "uf/
 # Copy TA to collect docker logs
 COPY [ "uf/common-files/bin/ta-dockerlogs_fileinput.tar.gz", "uf/common-files/bin/ta-dockerstats.tar.gz", "/tmp/" ]
 
-# Setup users and directories
+# Setup users and groups
 RUN groupadd -r ${SPLUNK_GROUP} \
     && useradd -r -m -g ${SPLUNK_GROUP} ${SPLUNK_USER} \
+    # Set sudo rights
     && sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /etc/sudoers \
     && sudo echo -e '\nansible ALL=(splunk)NOPASSWD:ALL' >> /etc/sudoers \
+    # Create the ansible user/group
     && groupadd -r ${ANSIBLE_GROUP} \
     && useradd -r -m -g ${ANSIBLE_GROUP} ${ANSIBLE_USER} \
     && usermod -aG sudo ${ANSIBLE_USER} \

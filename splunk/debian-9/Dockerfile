@@ -50,8 +50,10 @@ ENV TZ=UTC \
 ARG UID=41812
 ARG GID=41812
     
+# Set timezone to use UTC
 RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
     && /usr/sbin/dpkg-reconfigure -f noninteractive tzdata \
+    # Setup users and groups
     && groupadd -r -g ${GID} ${SPLUNK_GROUP} \
     && useradd -r -m -u ${UID} -g ${GID} ${SPLUNK_USER}
 
@@ -92,8 +94,10 @@ USER root
 COPY [ "splunk/common-files/entrypoint.sh", "splunk/common-files/createdefaults.py", "/sbin/" ]
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
 
+# Set sudo rights
 RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /etc/sudoers \
     && sudo echo -e '\nansible ALL=(splunk)NOPASSWD:ALL' >> /etc/sudoers \
+    # Create the ansible user/group
     && groupadd -r ${ANSIBLE_GROUP} \
     && useradd -r -m -g ${ANSIBLE_GROUP} ${ANSIBLE_USER} \
     && usermod -aG sudo ${ANSIBLE_USER} \

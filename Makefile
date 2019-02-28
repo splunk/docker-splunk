@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 IMAGE_VERSION ?= "latest"
 NONQUOTE_IMAGE_VERSION := $(patsubst "%",%,$(IMAGE_VERSION))
-DOCKER_BUILD_FLAGS =
+DOCKER_BUILD_FLAGS ?=
 SPLUNK_ANSIBLE_REPO ?= https://github.com/splunk/splunk-ansible.git
 SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
@@ -51,6 +51,7 @@ ansible:
 	else \
 		git clone ${SPLUNK_ANSIBLE_REPO} --branch ${SPLUNK_ANSIBLE_BRANCH}; \
 	fi
+	cd splunk-ansible && git rev-parse HEAD > version.txt
 
 ##### Base images #####
 base: base-debian-9 base-centos-7 base-windows-2016
