@@ -14,7 +14,8 @@ Let's dive into the nitty-gritty on how to tweak the setup of your containerized
 * [Entrypoint Functions](#entrypoint-functions)
 * [Install apps](#install-apps)
 * [Apply Splunk license](#apply-splunk-license)
-* [Enabling SmartStore](#enabling-smartstore)
+* [Create custom configs](#create-custom-configs)
+* [Enable SmartStore](#enable-smartstore)
 * [Deploy distributed topology](#deploy-distributed-topology)
 * [Build from source](#build-from-source)
     * [base-debian-9](#base-debian-9)
@@ -57,7 +58,9 @@ by passing in environment variables. Below is a list of environment variables th
 * Password must be set either in default.yml or as the environment variable `SPLUNK_PASSWORD`
 
 #### Valid UF env vars
-The `splunk/universalforwarder` image accepts the same environment variables as the `splunk/splunk` image above. However, there are some additional ones that are specific to the Universal Forwarder.
+The `splunk/universalforwarder` image accepts the majority* environment variables as the `splunk/splunk` image above. However, there are some additional ones that are specific to the Universal Forwarder.
+
+* **Note:** Specifically for the `splunk/universalforwarder` image, the environment variable `SPLUNK_ROLE` will by default be set to `splunk_universal_forwarder`. This image cannot accept any other role, and should not be changed (unlike its `splunk/splunk` image counterpart).
 
 | Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
 | --- | --- | --- | --- | --- |
@@ -205,12 +208,37 @@ $ docker run -it --name splunk -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_P
 
 See the [full license installation guide](advanced/LICENSE_INSTALL.md) to understand how to specify multiple licenses and how to use a central, containerized license manager.
 
-## Deploy distributed topology
-While running a standalone Splunk instance may be fine for testing and development, you may eventually want to scale out to enable better performance of running Splunk at scale. This image does support a fully-vetted distributed Splunk environment, by using environment variables that enable certain containers to assume certain roles, and to network everything together.
+## Create custom configs
+When Splunk boots, it registers all the config files in various locations on the filesystem under `${SPLUNK_HOME}`. These are settings that control how Splunk operates. For more information, please see the [documentation from Splunk](https://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles).
 
-See the [instructions on standing up a distributed environment](advanced/DISTRIBUTED_TOPOLOGY.md) to understand how to get started.
+Using the Docker image, it is also possible for users to create their own config files, following the same INI-style that drives Splunk. This is a power-user/admin-level feature, as invalid config files may break or prevent start-up of your Splunk installation!
 
-## Enabling SmartStore
+User-specified configuration files are only possible through the use of a `default.yml`. Please set a `conf` key under the greater `splunk` key using the format shown below.
+```
+---
+splunk:
+  conf:
+    user-prefs:
+      directory: /opt/splunkforwarder/etc/users/admin/user-prefs/local
+      content:
+        general:
+          default_namespace: appboilerplate
+          search_syntax_highlighting: dark
+  ...
+```
+
+This will generate a file owned by the correct Splunk user and group, named `user-prefs.conf` and located within the `directory` (in this case, `/opt/splunkforwarder/etc/users/admin/user-prefs/local`). Because it follows INI-format, the contents of the final file will resemble the following:
+```
+[general]
+search_syntax_highlighting = dark
+default_namespace = appboilerplate
+```
+
+For multiple custom configuration files, please add more entries under the `conf` key of the `default.yml`.
+
+**CAUTION:** Using this method of configuration file generation may not create a configuration file the way Splunk expects. Verify the generated configuration file to avoid errors. Use at your own discretion.
+
+## Enable SmartStore
 SmartStore utilizes S3-compliant object storage in order to store indexed data. This is a capability only available if you're using an indexer cluster (cluster_master + indexers). For more information, please see the [blog post](https://www.splunk.com/blog/2018/10/11/splunk-smartstore-cut-the-cord-by-decoupling-compute-and-storage.html) as well as [technical overview](https://docs.splunk.com/Documentation/Splunk/latest/Indexer/AboutSmartStore).
 
 This docker image is capable of support SmartStore, as long as you bring-your-own backend storage provider. Due to the complexity of this option, this is only enabled if you specify all the parameters in your `default.yml` file. 
@@ -230,6 +258,11 @@ splunk:
         endpoint: http://s3-us-west-2.amazonaws.com
   ...
 ```
+
+## Deploy distributed topology
+While running a standalone Splunk instance may be fine for testing and development, you may eventually want to scale out to enable better performance of running Splunk at scale. This image does support a fully-vetted distributed Splunk environment, by using environment variables that enable certain containers to assume certain roles, and to network everything together.
+
+See the [instructions on standing up a distributed environment](advanced/DISTRIBUTED_TOPOLOGY.md) to understand how to get started.
 
 ## Build from source
 While we don't support or recommend you building your own images from source, it is entirely possible. This can be useful if you want to incorporate very experimental features, test new features, and if you have your own registry for persistent images.

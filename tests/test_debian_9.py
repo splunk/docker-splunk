@@ -517,7 +517,123 @@ class TestDebian9(object):
                 os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
             except OSError:
                 pass
+
+    def test_adhoc_1so_custom_conf(self):
+        # Generate default.yml
+        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search("  password: (.*)", output).group(1).strip()
+        assert password
+        # Add a custom conf file
+        output = re.sub(r'  group: splunk', r'''  group: splunk
+  conf:
+    user-prefs:
+      directory: /opt/splunk/etc/users/admin/user-prefs/local
+      content:
+        general:
+          default_namespace: appboilerplate
+          search_syntax_highlighting: dark''', output)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="start", ports=[8089], 
+                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                            environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/users/admin/user-prefs/local/user-prefs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "[general]" in std_out
+            assert "default_namespace = appboilerplate" in std_out
+            assert "search_syntax_highlighting = dark" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
+            except OSError:
+                pass
     
+    def test_adhoc_1uf_custom_conf(self):
+        # Generate default.yml
+        cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search("  password: (.*)", output).group(1).strip()
+        assert password
+        # Add a custom conf file
+        output = re.sub(r'  group: splunk', r'''  group: splunk
+  conf:
+    user-prefs:
+      directory: /opt/splunkforwarder/etc/users/admin/user-prefs/local
+      content:
+        general:
+          default_namespace: appboilerplate
+          search_syntax_highlighting: dark''', output)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="start", ports=[8089], 
+                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                            environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/users/admin/user-prefs/local/user-prefs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "[general]" in std_out
+            assert "default_namespace = appboilerplate" in std_out
+            assert "search_syntax_highlighting = dark" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
+            except OSError:
+                pass
+
     def test_adhoc_1so_bind_mount_apps(self):
         # Generate default.yml
         cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")

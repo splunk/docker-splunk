@@ -1,60 +1,55 @@
+## Architecture
+From a design perspective, the containers brought up with the `docker-splunk` images are meant to provision themselves locally and asynchronously. The execution flow of the provisioning process is meant to gracefully handle interoperability in this manner, while also maintaining idempotency and reliability. 
+
 ## Navigation
 
-* [Architecture](#architecture)
-    * [Base image](#base-image)
-    * [Splunk Enterprise image](#splunk-enterprise-image)
-    * [Universal Forwarder image](#universal-forwarder-image)
-    * [Dynamic inventory](#dynamic-inventory)
-* [Building Images](#building-images)
+* [Design](#design)
+    * [Remote networking](#remote-networking)
+* [Supported platforms](#supported-platforms)
 
-----
+## Design
 
-## Architecture
+##### Remote networking 
+Particularly when bringing up distributed Splunk topologies, there is a need for one Splunk instances to make a request against another Splunk instance in order to construct the cluster. These networking requests are often prone to failure, as when Ansible is executed asyncronously there are no guarantees that the requestee is online/ready to receive the message.
 
-##### Base Image  
-
+While developing new playbooks that require remote Splunk-to-Splunk connectivity, we employ the use of `retry` and `delay` options for tasks. For instance, in this example below, we add indexers as search peers of individual search head. To overcome error-prone networking, we have retry counts with delays embedded in the task. There are also break-early conditions that maintain idempotency so we can progress if successful:
 ```
-$ make base-debian-9
-```
-
-The directory `base/debian-9` contains a Dockerfile to create a base image on top
-of which all the other images are built. In order to minimize image size and provide
-a stable foundation for other images to build on, we elected to use `debian:stretch-slim` for our base image. `debian:stretch-slim` gives us the latest version of the Linux
-Debian operating system in a tiny 55 megabytes. In the future, we plan to add
-support for additional operating systems.
-
-##### Splunk Enterprise Image  
-
-```
-$ make splunk-debian-9
-```
-
-The directory `splunk/debian-9` contains a Dockerfile that extends the base image
-by installing Splunk and adding tools for provisioning. It extends `base-debian-9`
-by installing the application and preparing the environment for provisioning.
-Advanced Splunk provisioning capabilities are provided through the utilization 
-of an entrypoint script and playbooks published separately via the
-[Splunk Ansible Repository](https://github.com/splunk/splunk-ansible).
-
-##### Universal Forwarder Image  
-
-```
-$ make splunkforwarder-debian-9
+- name: Set all indexers as search peers
+  command: "{{ splunk.exec }} add search-server https://{{ item }}:{{ splunk.svc_port }} -auth {{ splunk.admin_user }}:{{ splunk.password }} -remoteUsername {{ splunk.admin_user }} -remotePassword {{ splunk.password }}"
+  become: yes
+  become_user: "{{ splunk.user }}"
+  with_items: "{{ groups['splunk_indexer'] }}"
+  register: set_indexer_as_peer
+  until: set_indexer_as_peer.rc == 0 or set_indexer_as_peer.rc == 24
+  retries: "{{ retry_num }}"
+  delay: 3
+  changed_when: set_indexer_as_peer.rc == 0
+  failed_when: set_indexer_as_peer.rc != 0 and 'already exists' not in set_indexer_as_peer.stderr
+  notify:
+    - Restart the splunkd service
+  no_log: "{{ hide_password }}"
+  when: "'splunk_indexer' in groups"
 ```
 
-This image is similar to the Splunk Enterprise Image, except the more light-weight
-Splunk Universal Forwarder package is installed instead.
-
-----
-
-## Building Images
-
-Note that you will need to install [Docker](https://docs.docker.com/install/). 
-
-Run the following command to build all the images:
-
+Another utility you can add when creating new plays is an implicit wait. For more information on this, see the `roles/splunk_common/tasks/wait_for_splunk_instance.yml` play which will wait for another Splunk instance to be online before making any connections against it.
 ```
- $> make all 
+- name: Check Splunk instance is running
+  uri:
+    url: https://{{ splunk_instance_address }}:{{ splunk.svc_port }}/services/server/info?output_mode=json
+    method: GET
+    user: "{{ splunk.admin_user }}"
+    password: "{{ splunk.password }}"
+    validate_certs: false
+  register: task_response
+  until:
+    - task_response.status == 200
+    - lookup('pipe', 'date +"%s"')|int - task_response.json.entry[0].content.startup_time > 10
+  retries: "{{ retry_num }}"
+  delay: 3
+  ignore_errors: true
+  no_log: "{{ hide_password }}"
 ```
 
-For more fine-grained control of which images to build, please refer to the `Makefile`.
+## Supported platforms
+At the current time, this project only officially supports running Splunk Enterprise on `debian:stretch-slim`. We do have plans to incorporate other operating systems and Windows in the future.
+
