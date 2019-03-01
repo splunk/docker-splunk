@@ -115,7 +115,7 @@ Environment Variables:
   * SPLUNK_ADD - '<monitor|add> <what_to_monitor|what_to_add>' - list of monitors separated by commas
   * SPLUNK_CMD - 'any splunk command' - execute any splunk commands separated by commas
   * SPLUNK_BEFORE_START_CMD - 'any splunk command to execute before Splunk starts' - execute any splunk commands separated by commas
-  * DOCKER_MONITORING - 'true or false' - enable docker monitoring
+
 
 EOF
     exit 1

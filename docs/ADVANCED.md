@@ -68,7 +68,6 @@ The `splunk/universalforwarder` image accepts the majority* environment variable
 | SPLUNK_ADD | List of items to add to monitoring separated by comma. Example, SPLUNK_ADD=udp 1514,monitor /var/log/\*. This will monitor udp 1514 port and /var/log/\* files. | no | no | no |
 | SPLUNK_BEFORE_START_CMD | List of commands to run before Splunk starts separated by comma. Ansible will run “{{splunk.exec}} {{item}}”. | no | no | no |
 | SPLUNK_CMD | List of commands to run after Splunk starts separated by comma. Ansible will run “{{splunk.exec}} {{item}}”. | no | no | no |
-| DOCKER_MONITORING | True or False. This will install Docker monitoring apps. | no | no | no |
 
 #### Using default.yml
 The purpose of the `default.yml` is to define a standard set of variables that controls how Splunk gets set up. This is particularly important when deploying clustered Splunk topologies, as there are frequent variables that you need to be consistent across all members of the cluster (ex. keys, passwords, secrets).
