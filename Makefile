@@ -51,9 +51,8 @@ ansible:
 	else \
 		git clone ${SPLUNK_ANSIBLE_REPO} --branch ${SPLUNK_ANSIBLE_BRANCH}; \
 	fi
-	@$(eval ANSIBLE_SHA := $(shell bash -c "cd splunk-ansible && git rev-parse HEAD"))
-	@echo ${ANSIBLE_SHA} > splunk-ansible/version.txt
-	@echo Using splunk-ansible ${ANSIBLE_SHA}
+	@cd splunk-ansible && git rev-parse HEAD > version.txt
+	@cat splunk-ansible/version.txt
 
 ##### Base images #####
 base: base-debian-9 base-centos-7 base-windows-2016
