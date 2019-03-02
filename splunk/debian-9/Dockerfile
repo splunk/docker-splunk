@@ -30,6 +30,7 @@ RUN tar -C /extras/splunk --strip 1 --wildcards --files-from=/tmp/splunk-minimal
 RUN mv /minimal/splunk/etc /minimal/splunk-etc
 RUN mv /extras/splunk/etc /extras/splunk-etc
 RUN mkdir -p /minimal/splunk/etc/apps/_splunk_config /extras/splunk/etc/apps/_splunk_config
+COPY splunk/common-files/apps /extras/splunk-etc/apps/
 
 
 #

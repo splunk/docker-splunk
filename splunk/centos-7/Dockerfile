@@ -26,6 +26,7 @@ RUN (cd /tmp && sha512sum -c ${SPLUNK_FILENAME}.sha512)
 RUN tar -C /opt -zxf /tmp/${SPLUNK_FILENAME}
 RUN mv ${SPLUNK_HOME}/etc ${SPLUNK_HOME}-etc
 RUN mkdir -p ${SPLUNK_HOME}/etc ${SPLUNK_HOME}/var
+COPY splunk/common-files/apps ${SPLUNK_HOME}-etc/apps/
 
 
 

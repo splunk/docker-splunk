@@ -46,12 +46,14 @@ endif
 all: splunk uf
 
 ansible:
-	if [ -d "splunk-ansible" ]; then \
+	@if [ -d "splunk-ansible" ]; then \
 		echo "Ansible directory exists - skipping clone"; \
 	else \
 		git clone ${SPLUNK_ANSIBLE_REPO} --branch ${SPLUNK_ANSIBLE_BRANCH}; \
 	fi
-	cd splunk-ansible && git rev-parse HEAD > version.txt
+	@$(eval ANSIBLE_SHA := $(shell bash -c "cd splunk-ansible && git rev-parse HEAD"))
+	@echo ${ANSIBLE_SHA} > splunk-ansible/version.txt
+	@echo Using splunk-ansible ${ANSIBLE_SHA}
 
 ##### Base images #####
 base: base-debian-9 base-centos-7 base-windows-2016
