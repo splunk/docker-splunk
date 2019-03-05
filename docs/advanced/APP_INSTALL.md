@@ -1,15 +1,9 @@
-# App Installation
-
-TODO
-
-* Installation of Splunk Enterprise Security (ES) and Splunk IT Service Intelligence (ITSI) are not supported in this version. 
-Please contact Splunk Services for more information on using these applications with Splunk Enterprise in a container.
-
 ## Installing Splunk Apps and Add-ons
 Splunk's Docker image supports the ability to dynamically install any Splunk-compliant app or add-on. These can be certified apps that are hosted through [SplunkBase](https://splunkbase.splunk.com/) or they might be local apps you have developed yourself.
 
 App installation can be done a variety of ways: either through a file/directory volume-mounted inside the container, or through an external URL for dynamic downloads. Nothing is required for the former, and the enviroment variable `SPLUNK_APPS_URL` supports the later.
 
+**NOTE:** Installation of Splunk Enterprise Security (ES) and Splunk IT Service Intelligence (ITSI) is currently not supported with this image. Please contact Splunk Services for more information on using these applications with Splunk Enterprise in a container.
 
 ## Navigation
 

@@ -185,8 +185,8 @@ class TestDebian9(object):
                 return (resp.status_code, resp.content)
             except Exception as e:
                 self.logger.error("Attempt #{} error: {}".format(n+1, str(e)))
-                time.sleep(IMPLICIT_WAIT)
                 if n < RETRIES-1:
+                    time.sleep(IMPLICIT_WAIT)
                     continue
                 raise e
 
@@ -202,7 +202,7 @@ class TestDebian9(object):
         containers = self.client.containers(filters=filters)
         for container in containers:
             # We can't check splunkd on non-Splunk containers
-            if container.get("Labels", {}).get("maintainer") != "support@splunk.com":
+            if "maintainer" not in container["Labels"] or container["Labels"]["maintainer"] != "support@splunk.com":
                 continue
             splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
             url = "https://localhost:{}/services/server/info".format(splunkd_port)
@@ -297,6 +297,8 @@ class TestDebian9(object):
                 assert log_output["all"]["vars"]["splunk"]["home"] == "/opt/splunk"
                 if role == "so":
                     assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_standalone"
+                elif role == "deployment_server":
+                    assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_deployment_server"
                 elif role == "idx":
                     assert log_output["all"]["vars"]["splunk"]["role"] == "splunk_indexer"
                 elif role == "sh":
@@ -939,6 +941,63 @@ class TestDebian9(object):
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
+
+    def test_compose_1deployment1so(self):
+        # Tar the app before spinning up the scenario
+        with tarfile.open(EXAMPLE_APP_TGZ, "w:gz") as tar:
+            tar.add(EXAMPLE_APP, arcname=os.path.basename(EXAMPLE_APP))
+        # Standup deployment
+        try:
+            self.compose_file_name = "1deployment1so.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+            # Get container logs
+            container_mapping = {"so1": "so", "depserver1": "deployment_server"}
+            for container in container_mapping:
+                # Check ansible version & configs
+                ansible_logs = self.get_container_logs(container)
+                self.check_ansible(ansible_logs)
+                # Check values in log output
+                inventory_json = self.extract_json(container)
+                self.check_common_keys(inventory_json, container_mapping[container])
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Make sure apps are installed, and shcluster is setup properly
+            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+            assert len(containers) == 3
+            for container in containers:
+                # Skip the nginx container
+                if "nginx" in container["Image"]:
+                    continue
+                container_name = container["Names"][0].strip("/")
+                splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
+                if container_name == "so1":
+                    RETRIES = 5
+                    for i in range(RETRIES):
+                        try:
+                            # Check the app and version
+                            url = "https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port)
+                            kwargs = {"auth": ("admin", self.password), "verify": False}
+                            status, content = self.handle_request_retry("GET", url, kwargs)
+                            assert status == 200
+                            assert json.loads(content)["entry"][0]["content"]["version"] == "0.0.1"
+                        except Exception as e:
+                            self.logger.error(e)
+                            if i < RETRIES-1:
+                                time.sleep(30)
+                                continue
+                            raise e
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            try:
+                os.remove(EXAMPLE_APP_TGZ)
+            except OSError as e:
+                pass
 
     def test_compose_1so_before_start_cmd(self):
         # Check that SPLUNK_BEFORE_START_CMD works for splunk image
