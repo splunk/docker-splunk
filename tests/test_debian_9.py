@@ -633,6 +633,174 @@ class TestDebian9(object):
             except OSError:
                 pass
 
+    def test_adhoc_1so_preplaybook(self):
+        # Create a splunk container
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_ANSIBLE_PRE_TASKS": "file:///playbooks/play.yml"
+                                                        },
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + "/touch_dummy_file.yml:/playbooks/play.yml"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /tmp/i-am", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "batman" in std_out
+            # Check file owner
+            exec_command = self.client.exec_create(cid, r'stat -c \'%U\' /tmp/i-am')
+            std_out = self.client.exec_start(exec_command)
+            assert "splunk" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
+            except OSError:
+                pass
+
+    def test_adhoc_1so_preplaybook_with_sudo(self):
+        # Create a splunk container
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_ANSIBLE_PRE_TASKS": "file:///playbooks/play.yml"
+                                                        },
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + "/sudo_touch_dummy_file.yml:/playbooks/play.yml"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /tmp/i-am", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "batman" in std_out
+            # Check file owner
+            exec_command = self.client.exec_create(cid, r'stat -c \'%U\' /tmp/i-am')
+            std_out = self.client.exec_start(exec_command)
+            assert "root" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
+    def test_adhoc_1so_postplaybook(self):
+        # Create a splunk container
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_ANSIBLE_POST_TASKS": "file:///playbooks/play.yml"
+                                                        },
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + "/touch_dummy_file.yml:/playbooks/play.yml"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /tmp/i-am", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "batman" in std_out
+            # Check file owner
+            exec_command = self.client.exec_create(cid, r'stat -c \'%U\' /tmp/i-am')
+            std_out = self.client.exec_start(exec_command)
+            assert "splunk" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
+    def test_adhoc_1so_postplaybook_with_sudo(self):
+        # Create a splunk container
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_ANSIBLE_POST_TASKS": "file:///playbooks/play.yml"
+                                                        },
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + "/sudo_touch_dummy_file.yml:/playbooks/play.yml"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /tmp/i-am", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "batman" in std_out
+            # Check file owner
+            exec_command = self.client.exec_create(cid, r'stat -c \'%U\' /tmp/i-am')
+            std_out = self.client.exec_start(exec_command)
+            assert "root" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
     def test_adhoc_1so_bind_mount_apps(self):
         # Generate default.yml
         cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
