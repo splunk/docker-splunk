@@ -1,0 +1,5 @@
+---
+- name: Create a dummy file
+  copy:
+    content: 'batman'
+    dest: /tmp/i-am
