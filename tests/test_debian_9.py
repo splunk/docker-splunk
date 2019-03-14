@@ -1504,7 +1504,6 @@ class TestDebian9(object):
         status, content = self.handle_request_retry("POST", url, kwargs)
         assert status == 200
 
-    @pytest.mark.skip(reason="quarantine - maybe this isn't a good test in a docker env")
     def test_compose_1so_enable_service(self):
         # Standup deployment
         self.compose_file_name = "1so_enable_service.yaml"
@@ -1532,7 +1531,6 @@ class TestDebian9(object):
         std_out = self.client.exec_start(exec_command)
         assert "splunkd is running" in std_out
 
-    @pytest.mark.skip(reason="quarantine - maybe this isn't a good test in a docker env")
     def test_compose_1uf_enable_service(self):
         # Standup deployment
         self.compose_file_name = "1uf_enable_service.yaml"
