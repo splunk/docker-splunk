@@ -1683,6 +1683,76 @@ class TestDebian9(object):
         assert search_providers[0] == "so1"
         assert distinct_hosts == 2
 
+    def test_compose_1cm_smartstore(self):
+        # Generate default.yml
+        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search("  password: (.*)", output).group(1).strip()
+        assert password
+        # Add a custom conf file
+        output = re.sub(r'  smartstore: null', r'''  smartstore:
+    - indexName: default
+      remoteName: remote_vol
+      scheme: s3
+      remoteLocation: smartstore-test
+      s3:
+        access_key: abcd
+        secret_key: 1234
+        endpoint: https://s3-region.amazonaws.com''', output)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+                                            volumes=["/tmp/defaults/default.yml"], name=splunk_container_name,
+                                            environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_ROLE": "splunk_cluster_master",
+                                                            "SPLUNK_INDEXER_URL": "idx1"
+                                                        },
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + "/default.yml:/tmp/defaults/default.yml"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/master-apps/_cluster/local/indexes.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert 'remotePath = volume:remote_vol/$_index_name' in std_out
+            assert 'repFactor = auto' in std_out
+            assert '[volume:remote_vol]' in std_out
+            assert 'storageType = remote' in std_out
+            assert 'path = s3://smartstore-test' in std_out
+            assert 'remote.s3.access_key = abcd' in std_out
+            assert 'remote.s3.secret_key = 1234' in std_out
+            assert 'remote.s3.endpoint = https://s3-region.amazonaws.com' in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
+            except OSError:
+                pass
+
     def test_compose_2idx2sh(self):
         # Standup deployment
         self.compose_file_name = "2idx2sh.yaml"
