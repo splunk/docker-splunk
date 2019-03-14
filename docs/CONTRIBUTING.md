@@ -46,7 +46,7 @@ If you are reporting a bug, please include:
 
 We'd also like to hear about your propositions and suggestions. Feel free to submit them as issues and:
 * Explain in detail how they should work
-* Keep the scope as narrow as possible -t his will make it easier to implement
+* Keep the scope as narrow as possible - this will make it easier to implement
 
 ##### Fixing Issues
 Look through our [issue tracker](https://github.com/splunk/docker-splunk/issues) to find problems to fix! Feel free to comment and tag corresponding stakeholders or full-time maintainers of this project with any questions or concerns.
