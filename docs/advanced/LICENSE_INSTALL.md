@@ -1,0 +1,149 @@
+## Installing a Splunk Enterprise License
+Splunk's Docker image supports the ability to bring your own Enterprise license. By default, the image includes the ability to use up to the trial license. Please see the documentation for more information on what [additional features and capabilities are unlocked with a full Enterprise license](https://docs.splunk.com/Documentation/Splunk/latest/Admin/HowSplunklicensingworks)
+
+There are primarily two different ways to apply a license when starting your container: either through a file/directory volume-mounted inside the container, or through an external URL for dynamic downloads. The enviroment variable `SPLUNK_LICENSE_URI` supports both of these methods.
+
+
+## Navigation
+
+* [Path to file](#path-to-file)
+* [Download via URL](#download-via-url)
+* [Using a license master](#using-a-license-master)
+
+## Path to file
+We recommend using [Docker Secrets](https://docs.docker.com/engine/swarm/secrets) to manage your license. However, in a development environment, you can also specify a volume-mounted path to a file.
+
+If you plan on using secrets storage, the initial step must be to create that secret. In the case of using Docker, you can run:
+```
+$ docker secret create splunk_license path/to/splunk.lic
+```
+
+Please refer to these separate docker-compose.yml files for how to use secrets or direct volume mounts:
+<details><summary>docker-compose.yml - with secret</summary><p>
+
+```
+version: "3.6"
+
+services:
+  so1:
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_LICENSE_URI=/run/secrets/splunk_license
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+    secrets:
+      - splunk_license
+secrets:
+    splunk_license:
+        external: true
+```
+</p></details>
+
+<details><summary>docker-compose.yml - with volume mount</summary><p>
+
+```
+version: "3.6"
+
+services:
+  so1:
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_LICENSE_URI=/tmp/splunk.lic
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+    volumes:
+      - ./splunk.lic:/tmp/splunk.lic
+```
+</p></details>
+
+You should be able to bring up your deployment with the Splunk license automatically applied with the following command:
+```
+$ SPLUNK_PASSWORD=<password> docker stack deploy --compose-file=docker-compose.yml splunk_deployment
+```
+
+## Download via URL
+If you plan on hosting your license on a reachable file server, you can dynamically fetch and download your license from the container. This can be an easy way use a license without pre-seeding your container's environment runtime with various secrets/files.
+
+Please refer to the following compose file for how to use a URL:
+<details><summary>docker-compose.yml - with URL</summary><p>
+
+```
+version: "3.6"
+
+services:
+  so1:
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_LICENSE_URI=http://webserver/path/to/splunk.lic
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+```
+</p></details>
+
+You should be able to bring up your deployment with the Splunk license automatically applied with the following command:
+```
+$ SPLUNK_PASSWORD=<password> docker stack deploy --compose-file=docker-compose.yml splunk_deployment
+```
+
+## Using a license master
+When starting up a distributed Splunk deployment, it may be inefficient for each Splunk instance to apply/fetch the same license. Luckily, there is a dedicated Splunk role for this - `splunk_license_master`. For more information on what this role is, please refer to Splunk documentation on [license masters](https://docs.splunk.com/Documentation/Splunk/latest/Admin/Configurealicensemaster).
+
+Please refer to the following compose file for how to bring up a license master:
+<details><summary>docker-compose.yml - license master</summary><p>
+
+```
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  lm1:
+    networks:
+      splunknet:
+        aliases:
+          - lm1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    command: start
+    hostname: lm1
+    container_name: lm1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1
+      - SPLUNK_LICENSE_MASTER_URL=lm1
+      - SPLUNK_ROLE=splunk_license_master
+      - SPLUNK_LICENSE_URI=http://webserver/path/to/splunk.lic
+      - SPLUNK_PASSWORD
+
+  so1:
+    networks:
+      splunknet:
+        aliases:
+          - so1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    command: start
+    hostname: so1
+    container_name: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1
+      - SPLUNK_LICENSE_MASTER_URL=lm1
+      - SPLUNK_ROLE=splunk_standalone
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+```
+</p></details>
+
+Note that in the above, only the license master container `lm1` needs to download and apply the license. When the standalone `so1` container comes up, it will detect (based off the environment variable `SPLUNK_LICENSE_MASTER_URL`) that there is a central license master, and consequently add itself as a license slave to that host.
