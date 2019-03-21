@@ -79,6 +79,11 @@ start() {
     watch_for_failure
 }
 
+configure_multisite() {
+	prep_ansible
+	ansible-playbook $ANSIBLE_EXTRA_FLAGS -i inventory/environ.py multisite.yml
+}
+
 restart(){
     trap teardown EXIT
 	sh -c "echo 'restarting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
@@ -142,6 +147,10 @@ case "$1" in
 	start-and-exit)
 		shift
 		start_and_exit $@
+		;;
+	configure-multisite)
+		shift
+		congifure_multisite $0
 		;;
 	create-defaults)
 	    create_defaults

@@ -175,5 +175,8 @@ clean:
 	docker rm -f ${TEST_IMAGE_NAME} || true
 	docker system prune -f --volumes
 
+clean_ansible:
+	rm -rf splunk-ansible
+
 dev_loop:
 	SPLUNK_IMAGE="splunk-debian-9:latest" make sample-compose-down && sleep 15  &&  DOCKER_BUILD_FLAGS="--no-cache" make all && sleep 15 && SPLUNK_IMAGE="splunk-debian-9:latest" make sample-compose-up
