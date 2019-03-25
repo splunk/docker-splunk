@@ -16,6 +16,7 @@ Let's dive into the nitty-gritty on how to tweak the setup of your containerized
 * [Apply Splunk license](#apply-splunk-license)
 * [Create custom configs](#create-custom-configs)
 * [Enable SmartStore](#enable-smartstore)
+* [Using deployment servers](#using-deployment-servers)
 * [Deploy distributed topology](#deploy-distributed-topology)
 * [Build from source](#build-from-source)
     * [base-debian-9](#base-debian-9)
@@ -43,6 +44,9 @@ by passing in environment variables. Below is a list of environment variables th
 | SPLUNK_DEPLOYER_URL | One Splunk Enterprise deployer host (network alias) | no | yes | no |
 | SPLUNK_CLUSTER_MASTER_URL | One Splunk Enterprise cluster master host (network alias) | no | no | yes |
 | SPLUNK_SEARCH_HEAD_CAPTAIN_URL | One Splunk Enterprise search head host (network alias). Passing this ENV variable will enable search head clustering. | no | yes | no |
+| SPLUNK_DEPLOYMENT_SERVER | One Splunk host (network alias) that we use as a [deployment server](http://docs.splunk.com/Documentation/Splunk/latest/Updating/Configuredeploymentclients) | no | no | no |
+| SPLUNK_ADD | List of items to add to monitoring separated by comma. Example, SPLUNK_ADD=udp 1514,monitor /var/log/\*. This will monitor udp 1514 port and /var/log/\* files. | no | no | no |
+| SPLUNK_BEFORE_START_CMD | List of commands to run before Splunk starts separated by comma. Ansible will run “{{splunk.exec}} {{item}}”. | no | no | no |
 | SPLUNK_S2S_PORT | Default Forwarding Port | no | no | no |
 | SPLUNK_SVC_PORT | Default Admin Port | no | no | no |
 | SPLUNK_PASSWORD* | Default password of the admin user| yes | yes | yes |
@@ -64,11 +68,7 @@ The `splunk/universalforwarder` image accepts the majority* environment variable
 
 | Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
 | --- | --- | --- | --- | --- |
-| SPLUNK_DEPLOYMENT_SERVER | One Splunk host (network alias) that we use as a [deployment server](http://docs.splunk.com/Documentation/Splunk/latest/Updating/Configuredeploymentclients) | no | no | no |
-| SPLUNK_ADD | List of items to add to monitoring separated by comma. Example, SPLUNK_ADD=udp 1514,monitor /var/log/\*. This will monitor udp 1514 port and /var/log/\* files. | no | no | no |
-| SPLUNK_BEFORE_START_CMD | List of commands to run before Splunk starts separated by comma. Ansible will run “{{splunk.exec}} {{item}}”. | no | no | no |
 | SPLUNK_CMD | List of commands to run after Splunk starts separated by comma. Ansible will run “{{splunk.exec}} {{item}}”. | no | no | no |
-| DOCKER_MONITORING | True or False. This will install Docker monitoring apps. | no | no | no |
 
 #### Using default.yml
 The purpose of the `default.yml` is to define a standard set of variables that controls how Splunk gets set up. This is particularly important when deploying clustered Splunk topologies, as there are frequent variables that you need to be consistent across all members of the cluster (ex. keys, passwords, secrets).
@@ -258,6 +258,11 @@ splunk:
         endpoint: http://s3-us-west-2.amazonaws.com
   ...
 ```
+
+## Using deployment servers
+Briefly, deployment servers can be used to manage otherwise unclustered/disjoint Splunk instances. A primary use-case would be to stand up a deployment server to manage app or configuration distribution to a fleet of 100 universal forwarders.
+
+See the [full deployment server guide](advanced/DEPLOYMENT_SERVER.md) to understand how you can leverage this role in your topology.
 
 ## Deploy distributed topology
 While running a standalone Splunk instance may be fine for testing and development, you may eventually want to scale out to enable better performance of running Splunk at scale. This image does support a fully-vetted distributed Splunk environment, by using environment variables that enable certain containers to assume certain roles, and to network everything together.

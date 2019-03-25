@@ -14,6 +14,8 @@ Note that for more complex scenarios, we will opt to use a [Docker compose file]
     * [...with any app](#create-standalone-with-app)
     * [...with a SplunkBase app](#create-standalone-with-splunkbase-app)
 * [Create standalone and universal forwarder](#create-standalone-and-universal-forwarder)
+* [Create heavy forwarder](#create-heavy-forwarder)
+* [Create heavy forwarder and deployment server](#create-heavy-forwarder-and-deployment-server)
 * [Create indexer cluster](#create-indexer-cluster)
 * [Create search head cluster](#create-search-head-cluster)
 * [Create indexer cluster and search head cluster](#create-indexer-cluster-and-search-head-cluster)
@@ -220,6 +222,97 @@ services:
     ports:
       - 8000
       - 8089
+```
+</p></details>
+
+Execute the following to bring up your deployment:
+```
+$ SPLUNK_PASSWORD=<password> docker-compose up -d
+```
+
+## Create heavy forwarder
+The following will allow you spin up a forwarder, and stream its logs to an independent, external indexer located at `idx1-splunk.company.internal`, as long as that hostname is reachable on your network.
+
+<details><summary>docker-compose.yml</summary><p>
+
+```
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  hf1:
+    networks:
+      splunknet:
+        aliases:
+          - hf1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: hf1
+    container_name: hf1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_ROLE=splunk_heavy_forwarder
+      - SPLUNK_INDEXER_URL=idx1-splunk.company.internal
+      - SPLUNK_ADD=tcp 1514
+      - SPLUNK_PASSWORD
+    ports:
+      - 1514
+```
+</p></details>
+
+Execute the following to bring up your deployment:
+```
+$ SPLUNK_PASSWORD=<password> docker-compose up -d
+```
+
+## Create heavy forwarder and deployment server
+The following will allow you spin up a forwarder, and stream its logs to an independent, external indexer located at `idx1-splunk.company.internal`, as long as that hostname is reachable on your network. Additionally, it brings up a deployment server, which will download an app and distribute it to the heavy forwarder.
+
+<details><summary>docker-compose.yml</summary><p>
+
+```
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  hf1:
+    networks:
+      splunknet:
+        aliases:
+          - hf1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: hf1
+    container_name: hf1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_ROLE=splunk_heavy_forwarder
+      - SPLUNK_INDEXER_URL=idx1-splunk.company.internal
+      - SPLUNK_DEPLOYMENT_SERVER=depserver1
+      - SPLUNK_ADD=tcp 1514
+      - SPLUNK_PASSWORD
+    ports:
+      - 1514
+  
+  depserver1:
+    networks:
+      splunknet:
+        aliases:
+          - depserver1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: depserver1
+    container_name: depserver1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_ROLE=splunk_deployment_server
+      - SPLUNK_APPS_URL=https://artifact.company.internal/splunk_app.tgz
+      - SPLUNK_PASSWORD
 ```
 </p></details>
 
