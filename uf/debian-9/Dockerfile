@@ -29,15 +29,42 @@ RUN mkdir -p ${SPLUNK_HOME}/etc ${SPLUNK_HOME}/var
 COPY uf/common-files/apps ${SPLUNK_HOME}-etc/apps/
 
 
-
-FROM base-debian-9:latest
-
-ARG SPLUNK_DEFAULTS_URL
+#
+# Bare Splunk Universal Forwarder Image without Ansible (BYO entrypoint)
+#
+FROM base-debian-9:latest as ufbare-debian-9
+LABEL maintainer="support@splunk.com"
 
 ENV SPLUNK_HOME=/opt/splunkforwarder \
     SPLUNK_GROUP=splunk \
-    SPLUNK_USER=splunk \
-    SPLUNK_ROLE=splunk_universal_forwarder \
+    SPLUNK_USER=splunk
+
+# Simple script used to populate/upgrade splunk/etc directory
+COPY [ "splunk/common-files/updateetc.sh", "/sbin/"]
+
+# Setup users and groups
+RUN groupadd -r ${SPLUNK_GROUP} \
+    && useradd -r -m -g ${SPLUNK_GROUP} ${SPLUNK_USER} \
+    && chmod a+rx /sbin/updateetc.sh
+
+# Copy files from package
+COPY --from=package --chown=splunk:splunk /opt /opt
+
+USER ${SPLUNK_USER}
+WORKDIR ${SPLUNK_HOME}
+EXPOSE 8089 8088 9997
+VOLUME [ "/opt/splunkforwarder/etc", "/opt/splunkforwarder/var" ]
+
+
+
+#
+# Full Splunk Universal Forwarder Image with Ansible
+#
+FROM ufbare-debian-9
+
+ARG SPLUNK_DEFAULTS_URL
+
+ENV SPLUNK_ROLE=splunk_universal_forwarder \
     SPLUNK_DEFAULTS_URL=${SPLUNK_DEFAULTS_URL} \
     SPLUNK_ANSIBLE_HOME=/opt/ansible \
     SPLUNK_OPT=/opt \
@@ -49,16 +76,14 @@ ENV SPLUNK_HOME=/opt/splunkforwarder \
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
 
 # Copy scripts
-COPY [ "splunk/common-files/updateetc.sh", "uf/common-files/entrypoint.sh", "uf/common-files/checkstate.sh", "uf/common-files/createdefaults.py", "/sbin/"]
+COPY [ "uf/common-files/entrypoint.sh", "uf/common-files/checkstate.sh", "uf/common-files/createdefaults.py", "/sbin/"]
 
-# Copy TA to collect docker logs
-COPY [ "uf/common-files/bin/ta-dockerlogs_fileinput.tar.gz", "uf/common-files/bin/ta-dockerstats.tar.gz", "/tmp/" ]
+USER root
 
 # Setup users and groups
-RUN groupadd -r ${SPLUNK_GROUP} \
-    && useradd -r -m -g ${SPLUNK_GROUP} ${SPLUNK_USER} \
+RUN \
     # Set sudo rights
-    && sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /etc/sudoers \
+    sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /etc/sudoers \
     && sudo echo -e '\nansible ALL=(splunk)NOPASSWD:ALL' >> /etc/sudoers \
     # Create the ansible user/group
     && groupadd -r ${ANSIBLE_GROUP} \
@@ -70,12 +95,7 @@ RUN groupadd -r ${SPLUNK_GROUP} \
     && chmod -R 555 ${SPLUNK_ANSIBLE_HOME} \
     && chmod 755 "/sbin/entrypoint.sh"
 
-# Copy files from package
-COPY --from=package --chown=splunk:splunk /opt /opt
-
 USER ${ANSIBLE_USER}
-EXPOSE 8089 8088 9997
-VOLUME [ "/opt/splunkforwarder/etc", "/opt/splunkforwarder/var" ]
 HEALTHCHECK --interval=30s --timeout=30s --start-period=3m --retries=5 CMD /sbin/checkstate.sh || exit 1
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]
 CMD [ "start-service" ]

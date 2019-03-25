@@ -50,13 +50,17 @@ ENV TZ=UTC \
 # user with pre-determined UID.
 ARG UID=41812
 ARG GID=41812
-    
+
+# Simple script used to populate/upgrade splunk/etc directory
+COPY [ "splunk/common-files/updateetc.sh", "/sbin/" ]
+
 # Set timezone to use UTC
 RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
     && /usr/sbin/dpkg-reconfigure -f noninteractive tzdata \
     # Setup users and groups
     && groupadd -r -g ${GID} ${SPLUNK_GROUP} \
-    && useradd -r -m -u ${UID} -g ${GID} ${SPLUNK_USER}
+    && useradd -r -m -u ${UID} -g ${GID} ${SPLUNK_USER} \
+    && chmod a+rx /sbin/updateetc.sh
 
 COPY --from=package --chown=splunk:splunk /minimal /opt
 
@@ -70,7 +74,6 @@ EXPOSE 8000/tcp 8089/tcp
 #
 FROM minimal-debian-9 as bare-debian-9
 COPY --from=package --chown=splunk:splunk /extras /opt
-COPY [ "splunk/common-files/checkstate.sh", "splunk/common-files/updateetc.sh", "/sbin/" ]
 EXPOSE 4001 8000 8065 8088 8089 8191 9887 9997
 VOLUME [ "/opt/splunk/etc", "/opt/splunk/var" ]
 
@@ -92,7 +95,7 @@ ENV SPLUNK_ROLE=splunk_standalone \
 
 USER root
 
-COPY [ "splunk/common-files/entrypoint.sh", "splunk/common-files/createdefaults.py", "/sbin/" ]
+COPY [ "splunk/common-files/entrypoint.sh", "splunk/common-files/createdefaults.py", "splunk/common-files/checkstate.sh", "/sbin/" ]
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
 
 # Set sudo rights

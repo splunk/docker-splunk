@@ -31,7 +31,7 @@ SCANNER_DATE := `date +%Y-%m-%d`
 SCANNER_DATE_YEST := `TZ=GMT+24 +%Y:%m:%d`
 SCANNER_VERSION := v8
 SCANNER_LOCALIP := $(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $1}' | head -n 1)
-SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-centos-7 splunkforwarder-debian-9 splunkforwarder-centos-7
+SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-centos-7 uf-debian-9 uf-centos-7
 ifeq ($(shell uname), Linux)
 	SCANNER_FILE = clair-scanner_linux_amd64
 else ifeq ($(shell uname), Darwin)
@@ -113,26 +113,33 @@ splunk-windows-2016: base-windows-2016 ansible
 ##### UF images #####
 uf: ansible uf-debian-9 uf-centos-7
 
+ufbare-debian-9: base-debian-9 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f uf/debian-9/Dockerfile \
+		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
+		--build-arg SPLUNK_FILENAME=${UF_LINUX_FILENAME} \
+		--target ufbare-debian-9 -t ufbare-debian-9:${IMAGE_VERSION} .
+
 uf-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/debian-9/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		--build-arg SPLUNK_FILENAME=${UF_LINUX_FILENAME} \
-		-t splunkforwarder-debian-9:${IMAGE_VERSION} .
+		-t uf-debian-9:${IMAGE_VERSION} .
 
 uf-centos-7: base-centos-7 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/centos-7/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		--build-arg SPLUNK_FILENAME=${UF_LINUX_FILENAME} \
-		-t splunkforwarder-centos-7:${IMAGE_VERSION} .
+		-t uf-centos-7:${IMAGE_VERSION} .
 
 uf-windows-2016: base-windows-2016 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/windows-2016/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${UF_WIN_BUILD_URL} \
 		--build-arg SPLUNK_FILENAME=${UF_WIN_FILENAME} \
-		-t splunkforwarder-windows-2016:${IMAGE_VERSION} .
+		-t uf-windows-2016:${IMAGE_VERSION} .
 
 ##### Tests #####
 sample-compose-up: sample-compose-down
