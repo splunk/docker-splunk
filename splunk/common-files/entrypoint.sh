@@ -150,7 +150,7 @@ case "$1" in
 		;;
 	configure-multisite)
 		shift
-		congifure_multisite $0
+		configure_multisite $0
 		;;
 	create-defaults)
 	    create_defaults
