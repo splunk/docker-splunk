@@ -42,8 +42,8 @@ BASE_IMAGE_NAME = "base-centos-7"
 SPLUNK_IMAGE_NAME = "splunk-centos-7"
 UF_IMAGE_NAME = "splunkforwarder-centos-7"
 # Splunk variables
-SPLUNK_VERSION = "7.2.3"
-SPLUNK_BUILD = "06d57c595b80"
+SPLUNK_VERSION = "7.2.5"
+SPLUNK_BUILD = "088f49762779"
 SPLUNK_FILENAME = "splunk-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
 SPLUNK_BUILD_URL = "https://download.splunk.com/products/splunk/releases/{}/linux/{}".format(SPLUNK_VERSION, SPLUNK_FILENAME)
 UF_FILENAME = "splunkforwarder-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
@@ -302,7 +302,6 @@ class TestCentos7(object):
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
-        assert "DOCKER_MONITORING - 'true or false' - enable docker monitoring" in output
         assert "SPLUNK_CMD - 'any splunk command' - execute any splunk commands separated by commas" in output
 
     def test_uf_entrypoint_create_defaults(self):
