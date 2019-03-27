@@ -51,9 +51,6 @@ COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
 # Copy scripts
 COPY [ "splunk/common-files/updateetc.sh", "uf/common-files/entrypoint.sh", "uf/common-files/checkstate.sh", "uf/common-files/createdefaults.py", "/sbin/"]
 
-# Copy TA to collect docker logs
-COPY [ "uf/common-files/bin/ta-dockerlogs_fileinput.tar.gz", "uf/common-files/bin/ta-dockerstats.tar.gz", "/tmp/" ]
-
 # Setup users and groups
 RUN groupadd -r ${SPLUNK_GROUP} \
     && useradd -r -m -g ${SPLUNK_GROUP} ${SPLUNK_USER} \
