@@ -31,7 +31,7 @@ SCANNER_DATE := `date +%Y-%m-%d`
 SCANNER_DATE_YEST := `TZ=GMT+24 +%Y:%m:%d`
 SCANNER_VERSION := v8
 SCANNER_LOCALIP := $(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $1}' | head -n 1)
-SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-centos-7 splunkforwarder-debian-9 splunkforwarder-centos-7
+SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunkforwarder-debian-9 splunkforwarder-debian-10 splunkforwarder-centos-7
 ifeq ($(shell uname), Linux)
 	SCANNER_FILE = clair-scanner_linux_amd64
 else ifeq ($(shell uname), Darwin)
@@ -54,7 +54,10 @@ ansible:
 	cd splunk-ansible && git rev-parse HEAD > version.txt
 
 ##### Base images #####
-base: base-debian-9 base-centos-7 base-windows-2016
+base: base-debian-9 base-debian-10 base-centos-7 base-windows-2016
+
+base-debian-10:
+	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
 
 base-debian-9:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-9:${IMAGE_VERSION} ./base/debian-9
@@ -66,7 +69,7 @@ base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
 
 ##### Splunk images #####
-splunk: ansible splunk-debian-9 splunk-centos-7
+splunk: ansible splunk-debian-9 splunk-debian-10 splunk-centos-7
 
 splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -74,6 +77,13 @@ splunk-debian-9: base-debian-9 ansible
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
 		-t splunk-debian-9:${IMAGE_VERSION} .
+
+splunk-debian-10: base-debian-10 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/debian-10/Dockerfile \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
+		-t splunk-debian-10:${IMAGE_VERSION} .
 
 splunk-centos-7: base-centos-7 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -90,7 +100,7 @@ splunk-windows-2016: base-windows-2016 ansible
 		-t splunk-windows-2016:${IMAGE_VERSION} .
 
 ##### UF images #####
-uf: ansible uf-debian-9 uf-centos-7
+uf: ansible uf-debian-9 uf-debian-10 uf-centos-7
 
 uf-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -98,6 +108,13 @@ uf-debian-9: base-debian-9 ansible
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		--build-arg SPLUNK_FILENAME=${UF_LINUX_FILENAME} \
 		-t splunkforwarder-debian-9:${IMAGE_VERSION} .
+
+uf-debian-10: base-debian-10 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f uf/debian-10/Dockerfile \
+		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
+		--build-arg SPLUNK_FILENAME=${UF_LINUX_FILENAME} \
+		-t splunkforwarder-debian-10:${IMAGE_VERSION} .
 
 uf-centos-7: base-centos-7 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -126,6 +143,8 @@ test_centos7: clean ansible splunk-centos-7 uf-centos-7 test_setup run_tests_cen
 
 test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_tests_debian9
 
+test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_tests_debian10
+
 run_tests_centos7:
 	@echo 'Running the super awesome tests; CentOS 7'
 	pytest -sv tests/test_centos_7.py --junitxml test-results/centos7-result/testresults_centos7.xml
@@ -140,6 +159,10 @@ test_setup:
 run_tests_debian9:
 	@echo 'Running the super awesome tests; Debian 9'
 	pytest -sv tests/test_debian_9.py --junitxml test-results/debian9-result/testresults_debian9.xml
+
+run_tests_debian10:
+	@echo 'Running the super awesome tests; Debian 10'
+	pytest -sv tests/test_debian_10.py --junitxml test-results/debian10-result/testresults_debian10.xml
 
 setup_clair_scanner:
 	mkdir clair-scanner-logs
@@ -174,9 +197,9 @@ clean:
 	rm -rf test-results/* || true
 	docker rm -f ${TEST_IMAGE_NAME} || true
 	docker system prune -f --volumes
-
 clean_ansible:
+
 	rm -rf splunk-ansible
 
 dev_loop:
-	SPLUNK_IMAGE="splunk-debian-9:latest" make sample-compose-down && sleep 15  &&  DOCKER_BUILD_FLAGS="--no-cache" make all && sleep 15 && SPLUNK_IMAGE="splunk-debian-9:latest" make sample-compose-up
+	SPLUNK_IMAGE="splunk-debian-10:latest" make sample-compose-down && sleep 15  &&  DOCKER_BUILD_FLAGS="--no-cache" make all && sleep 15 && SPLUNK_IMAGE="splunk-debian-10:latest" make sample-compose-up
