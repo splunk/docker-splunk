@@ -16,14 +16,13 @@
 # Download and unpack Splunk Universal Forwarder
 #
 FROM base-debian-9:latest as package
-ARG SPLUNK_FILENAME
 ARG SPLUNK_BUILD_URL
 ENV SPLUNK_HOME=/opt/splunkforwarder
 RUN echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}"
-RUN wget -qO /tmp/${SPLUNK_FILENAME} ${SPLUNK_BUILD_URL}
-RUN wget -qO /tmp/${SPLUNK_FILENAME}.sha512 ${SPLUNK_BUILD_URL}.sha512
-RUN (cd /tmp && sha512sum -c ${SPLUNK_FILENAME}.sha512)
-RUN tar -C /opt -zxf /tmp/${SPLUNK_FILENAME}
+RUN wget -qO /tmp/splunk.tgz ${SPLUNK_BUILD_URL}
+RUN wget -qO /tmp/splunk.tgz.md5 ${SPLUNK_BUILD_URL}.md5
+RUN test $(md5sum /tmp/splunk.tgz | sed 's,\([a-z0-9]*\).*,\1,') = $(cat /tmp/splunk.tgz.md5 | sed 's,MD5.*=.\([a-z0-9]*\).*,\1,')
+RUN tar -C /opt -zxf /tmp/splunk.tgz
 RUN mv ${SPLUNK_HOME}/etc ${SPLUNK_HOME}-etc
 RUN mkdir -p ${SPLUNK_HOME}/etc ${SPLUNK_HOME}/var
 COPY uf/common-files/apps ${SPLUNK_HOME}-etc/apps/
@@ -65,7 +64,7 @@ RUN groupadd -r ${SPLUNK_GROUP} \
     && mkdir ${CONTAINER_ARTIFACT_DIR} \
     && chown -R ${ANSIBLE_USER}:${ANSIBLE_GROUP} $CONTAINER_ARTIFACT_DIR \
     && chmod -R 555 ${SPLUNK_ANSIBLE_HOME} \
-    && chmod 755 "/sbin/entrypoint.sh"
+    && chmod 755 /sbin/updateetc.sh /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh
 
 # Copy files from package
 COPY --from=package --chown=splunk:splunk /opt /opt

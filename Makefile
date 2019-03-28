@@ -73,7 +73,6 @@ minimal-debian-9: base-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/debian-9/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
-		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
 		--target minimal-debian-9 -t minimal-debian-9:${IMAGE_VERSION} .	
 
 ##### Bare images #####
@@ -83,7 +82,6 @@ bare-debian-9: base-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/debian-9/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
-		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
 		--target bare-debian-9 -t bare-debian-9:${IMAGE_VERSION} .	
 
 ##### Splunk images #####
@@ -93,21 +91,18 @@ splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/debian-9/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
-		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
 		-t splunk-debian-9:${IMAGE_VERSION} .
 
 splunk-centos-7: base-centos-7 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/centos-7/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
-		--build-arg SPLUNK_FILENAME=${SPLUNK_LINUX_FILENAME} \
 		-t splunk-centos-7:${IMAGE_VERSION} .
 
 splunk-windows-2016: base-windows-2016 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/windows-2016/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_WIN_BUILD_URL} \
-		--build-arg SPLUNK_FILENAME=${SPLUNK_WIN_FILENAME} \
 		-t splunk-windows-2016:${IMAGE_VERSION} .
 
 ##### UF images #####
@@ -117,28 +112,24 @@ ufbare-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/debian-9/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
-		--build-arg SPLUNK_FILENAME=${UF_LINUX_FILENAME} \
 		--target ufbare-debian-9 -t ufbare-debian-9:${IMAGE_VERSION} .
 
 uf-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/debian-9/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
-		--build-arg SPLUNK_FILENAME=${UF_LINUX_FILENAME} \
 		-t uf-debian-9:${IMAGE_VERSION} .
 
 uf-centos-7: base-centos-7 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/centos-7/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
-		--build-arg SPLUNK_FILENAME=${UF_LINUX_FILENAME} \
 		-t uf-centos-7:${IMAGE_VERSION} .
 
 uf-windows-2016: base-windows-2016 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/windows-2016/Dockerfile \
 		--build-arg SPLUNK_BUILD_URL=${UF_WIN_BUILD_URL} \
-		--build-arg SPLUNK_FILENAME=${UF_WIN_FILENAME} \
 		-t uf-windows-2016:${IMAGE_VERSION} .
 
 ##### Tests #####
