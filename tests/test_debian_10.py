@@ -356,7 +356,6 @@ class TestDebian9(object):
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
-        assert "DOCKER_MONITORING - 'true or false' - enable docker monitoring" in output
         assert "SPLUNK_CMD - 'any splunk command' - execute any splunk commands separated by commas" in output
 
     def test_uf_entrypoint_create_defaults(self):

@@ -15,7 +15,7 @@
 
 set -e
 apt update
-apt install -y locales wget gnupg apt-utils
+apt install -y locales wget gnupg
 echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
 rm -f /usr/share/locale/locale.alias
 ln -s /etc/locale.alias /usr/share/locale/locale.alias
@@ -31,8 +31,9 @@ ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 apt update
 
 # put back tools for customer support
-apt install -y --no-install-recommends ansible curl sudo libgssapi-krb5-2 busybox procps acl
-apt install -y --no-install-recommends python-requests
+apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl
+apt-get install -y --no-install-recommends python-pip python-setuptools python-requests python-yaml
+pip --no-cache-dir install ansible
 
 cd /bin
 ln -s busybox killall
