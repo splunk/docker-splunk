@@ -12,77 +12,90 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+ARG SPLUNK_BASE_IMAGE=base-debian-10
+
 #
-# Download and unpack Splunk Universal Forwarder
+# Download and unpack Splunk Enterprise
 #
-FROM base-debian-9:latest as package
+FROM ${SPLUNK_BASE_IMAGE}:latest as package
 ARG SPLUNK_BUILD_URL
-ENV SPLUNK_HOME=/opt/splunkforwarder
+COPY splunk/common-files/splunk-minimal-exclude.list /tmp
 RUN echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}"
 RUN wget -qO /tmp/splunk.tgz ${SPLUNK_BUILD_URL}
 RUN wget -qO /tmp/splunk.tgz.md5 ${SPLUNK_BUILD_URL}.md5
 RUN test $(md5sum /tmp/splunk.tgz | sed 's,\([a-z0-9]*\).*,\1,') = $(cat /tmp/splunk.tgz.md5 | sed 's,MD5.*=.\([a-z0-9]*\).*,\1,')
-RUN tar -C /opt -zxf /tmp/splunk.tgz
-RUN mv ${SPLUNK_HOME}/etc ${SPLUNK_HOME}-etc
-RUN mkdir -p ${SPLUNK_HOME}/etc ${SPLUNK_HOME}/var
-COPY uf/common-files/apps ${SPLUNK_HOME}-etc/apps/
+RUN mkdir -p /opt/splunk/var /minimal/splunk/var /extras/splunk/var
+RUN tar -C /minimal/splunk --strip 1 --exclude-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/splunk.tgz
+RUN tar -C /extras/splunk --strip 1 --wildcards --files-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/splunk.tgz
+RUN mv /minimal/splunk/etc /minimal/splunk-etc
+RUN mv /extras/splunk/etc /extras/splunk-etc
+RUN mkdir -p /minimal/splunk/etc/apps/_splunk_config /extras/splunk/etc/apps/_splunk_config
+COPY splunk/common-files/apps /extras/splunk-etc/apps/
 
 
 #
-# Bare Splunk Universal Forwarder Image without Ansible (BYO entrypoint)
+# Minimal Splunk base image with many files excluded, intended for internal and experimental use
 #
-FROM base-debian-9:latest as ufbare-debian-9
+FROM ${SPLUNK_BASE_IMAGE}:latest as minimal
 LABEL maintainer="support@splunk.com"
-
-ENV SPLUNK_HOME=/opt/splunkforwarder \
+ENV SPLUNK_HOME=/opt/splunk \
     SPLUNK_GROUP=splunk \
-    SPLUNK_USER=splunk
+    SPLUNK_USER=splunk \
+    TMPSPLUNKDIR=${SPLUNK_HOME}/tmp \
+    TMPETCDIR=${TMPSPLUNKDIR}/etc
+
+# Currently kubernetes only accepts UID and not USER field to
+# start a container as a particular user. So we create Splunk
+# user with pre-determined UID.
+ARG UID=41812
+ARG GID=41812
 
 # Simple script used to populate/upgrade splunk/etc directory
-COPY [ "splunk/common-files/updateetc.sh", "/sbin/"]
+COPY [ "splunk/common-files/updateetc.sh", "/sbin/" ]
 
 # Setup users and groups
-RUN groupadd -r ${SPLUNK_GROUP} \
-    && useradd -r -m -g ${SPLUNK_GROUP} ${SPLUNK_USER} \
+RUN groupadd -r -g ${GID} ${SPLUNK_GROUP} \
+    && useradd -r -m -u ${UID} -g ${GID} ${SPLUNK_USER} \
     && chmod 755 /sbin/updateetc.sh
 
-# Copy files from package
-COPY --from=package --chown=splunk:splunk /opt /opt
+COPY --from=package --chown=splunk:splunk /minimal /opt
 
 USER ${SPLUNK_USER}
 WORKDIR ${SPLUNK_HOME}
-EXPOSE 8089 8088 9997
-VOLUME [ "/opt/splunkforwarder/etc", "/opt/splunkforwarder/var" ]
+EXPOSE 8000/tcp 8089/tcp
+
+
+#
+# Bare Splunk Enterprise Image without Ansible (BYO entrypoint)
+#
+FROM minimal as bare
+COPY --from=package --chown=splunk:splunk /extras /opt
+EXPOSE 4001 8000 8065 8088 8089 8191 9887 9997
+VOLUME [ "/opt/splunk/etc", "/opt/splunk/var" ]
 
 
 
 #
-# Full Splunk Universal Forwarder Image with Ansible
+# Full Splunk Enterprise Image with Ansible
 #
-FROM ufbare-debian-9
+FROM bare
 
 ARG SPLUNK_DEFAULTS_URL
 
-ENV SPLUNK_ROLE=splunk_universal_forwarder \
+ENV SPLUNK_ROLE=splunk_standalone \
     SPLUNK_DEFAULTS_URL=${SPLUNK_DEFAULTS_URL} \
     SPLUNK_ANSIBLE_HOME=/opt/ansible \
-    SPLUNK_OPT=/opt \
     ANSIBLE_USER=ansible \
     ANSIBLE_GROUP=ansible \
     CONTAINER_ARTIFACT_DIR=/opt/container_artifact
 
-# Copy ansible playbooks
-COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
-
-# Copy scripts
-COPY [ "uf/common-files/entrypoint.sh", "uf/common-files/checkstate.sh", "uf/common-files/createdefaults.py", "/sbin/"]
-
 USER root
 
-# Setup users and groups
-RUN \
-    # Set sudo rights
-    sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /etc/sudoers \
+COPY [ "splunk/common-files/entrypoint.sh", "splunk/common-files/createdefaults.py", "splunk/common-files/checkstate.sh", "/sbin/" ]
+COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
+
+# Set sudo rights
+RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /etc/sudoers \
     && sudo echo -e '\nansible ALL=(splunk)NOPASSWD:ALL' >> /etc/sudoers \
     # Create the ansible user/group
     && groupadd -r ${ANSIBLE_GROUP} \
