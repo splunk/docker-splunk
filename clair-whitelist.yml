@@ -1,0 +1,21 @@
+generalwhitelist:
+  CVE-2018-16876: Ansible is updated passed 2.7.5
+  CVE-2018-7169:  While shadow does exist in the debian containers, it is not actively referenced by splunk.
+  CVE-2016-10739: Once debian updates glibc, this will be fixed. This should not be exposed in Splunk
+  CVE-2011-3389: Installed in the base debian package, but not used.
+  CVE-2018-14647: Issue that exists in current Python, awaiting patch.
+  CVE-2016-10228: Installed with glibc, but miss flags on debian.  Verify version is > 2.25
+  CVE-2018-20679: Busybox is not used for anything related to DHCP by default in the container.
+  CVE-2016-2781: chroot is not used the container by default.
+  CVE-2011-3374: Apt is a required library of debian.  This must be updated from debian's side.
+  CVE-2013-4392: Systemd only has partial libraries installed in debian-slim packages.  Full systemd is not enabled.
+  CVE-2010-4052: False Positive.  Being flagged even though glibc is > 2.12
+  CVE-2010-4756: There is no ftp daemon running in the container.
+  CVE-2010-4051: False Positive.  Installed libc is > 2.12
+images:
+  splunk-debian-9:
+  splunk-debian-10:
+  splunk-centos-7:
+  splunkforwarder-debian-9:
+  splunkforwarder-debian-10:
+  splunkforwarder-centos-7:
