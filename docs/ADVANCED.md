@@ -28,6 +28,7 @@ Splunk's Docker image has several functions that can be configured. These option
 by passing in environment variables. Below is a list of environment variables that may/must be used when starting the container.
 
 #### Valid Splunk env vars
+
 | Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
 | --- | --- | --- | --- | --- |
 | SPLUNK_BUILD_URL | URL to Splunk build where we can fetch a Splunk build to install | no | no | no |
