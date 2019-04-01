@@ -54,7 +54,7 @@ RUN  chmod -R 555 ${SPLUNK_ANSIBLE_HOME}
 USER ${ANSIBLE_USER}
 COPY [ "splunk/common-files/entrypoint.sh", "splunk/common-files/checkstate.sh", "splunk/common-files/createdefaults.py", "/sbin/" ]
 
-EXPOSE 4001 8000 8065 8088 8089 8191 9887 9997
+EXPOSE 8000 8065 8088 8089 8191 9887 9997
 
 # Create the dirs before VOLUME tags so we can control permissions
 # on those folders

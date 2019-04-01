@@ -3,9 +3,28 @@ From a design perspective, the containers brought up with the `docker-splunk` im
 
 ## Navigation
 
+* [Networking](#networking)
 * [Design](#design)
     * [Remote networking](#remote-networking)
 * [Supported platforms](#supported-platforms)
+
+## Networking
+By default, the Docker image exposes a variety of ports for both external interaction as well as internal use. 
+```
+EXPOSE 8000 8065 8088 8089 8191 9887 9997
+```
+
+Below is a table detailing the purpose of each port, which can be used as a reference for determining whether the port should be published for external consumption.
+
+| Port Number | Description |
+| --- | --- |
+| 8000 | SplunkWeb UI |
+| 8065 | Splunk app server |
+| 8088 | HTTP Event Collector (HEC) |
+| 8089 | SplunkD management port (REST API access) |
+| 8191 | Key-value store replication |
+| 9887 | Index replication |
+| 9997 | Indexing/receiving |
 
 ## Design
 
