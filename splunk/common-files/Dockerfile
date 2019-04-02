@@ -70,7 +70,7 @@ EXPOSE 8000/tcp 8089/tcp
 #
 FROM minimal as bare
 COPY --from=package --chown=splunk:splunk /extras /opt
-EXPOSE 4001 8000 8065 8088 8089 8191 9887 9997
+EXPOSE 8000 8065 8088 8089 8191 9887 9997
 VOLUME [ "/opt/splunk/etc", "/opt/splunk/var" ]
 
 
