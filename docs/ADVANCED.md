@@ -58,6 +58,8 @@ by passing in environment variables. Below is a list of environment variables th
 | SPLUNK_HOME_OWNERSHIP_ENFORCEMENT | Recursively enforces ${SPLUNK_HOME} to be owned by the user "splunk". Default value is true. | no | no | no |
 | HIDE_PASSWORD | Set to true to hide all Ansible task logs with Splunk password in them in order to secure our output to stdout. | no | no | no |
 | JAVA_VERSION | Supply "oracle:8", "openjdk:8", or "openjdk:11" to install a respective Java distribution. | no | no | no |
+| SPLUNK_TAIL_FILE | Determine which file gets written to the container's stdout (default: splunkd_stderr.log) | no | no | no |
+
 
 * Password must be set either in default.yml or as the environment variable `SPLUNK_PASSWORD`
 
