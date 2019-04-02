@@ -23,6 +23,10 @@ locale-gen
 localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 export LANG=en_US.utf8
 
+# Set timezone to use UTC
+ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+/usr/sbin/dpkg-reconfigure -f noninteractive tzdata
+
 # Install additional dependencies
 echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu xenial main" >> /etc/apt/sources.list
 apt-key adv --keyserver https://keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367

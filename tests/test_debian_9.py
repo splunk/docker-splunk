@@ -41,7 +41,7 @@ LOGGER.addHandler(file_handler)
 # Docker varaibles
 BASE_IMAGE_NAME = "base-debian-9"
 SPLUNK_IMAGE_NAME = "splunk-debian-9"
-UF_IMAGE_NAME = "splunkforwarder-debian-9"
+UF_IMAGE_NAME = "uf-debian-9"
 # Splunk variables
 SPLUNK_VERSION = "7.2.5"
 SPLUNK_BUILD = "088f49762779"
