@@ -41,7 +41,7 @@ LOGGER.addHandler(file_handler)
 # Docker varaibles
 BASE_IMAGE_NAME = "base-debian-10"
 SPLUNK_IMAGE_NAME = "splunk-debian-10"
-UF_IMAGE_NAME = "splunkforwarder-debian-10"
+UF_IMAGE_NAME = "uf-debian-10"
 # Splunk variables
 SPLUNK_VERSION = "7.2.3"
 SPLUNK_BUILD = "06d57c595b80"
@@ -356,7 +356,6 @@ class TestDebian9(object):
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
-        assert "DOCKER_MONITORING - 'true or false' - enable docker monitoring" in output
         assert "SPLUNK_CMD - 'any splunk command' - execute any splunk commands separated by commas" in output
 
     def test_uf_entrypoint_create_defaults(self):
