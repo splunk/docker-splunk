@@ -18,6 +18,7 @@ In order to run this Docker image, you will need the following prerequisites and
     * Docker Enterprise Engine 17.06.2 or later
     * Docker Community Engine 17.06.2 or later
 5. `overlay2` Docker daemon storage driver
+    * Create a file /etc/docker/daemon.json on Linux systems, or C:\ProgramData\docker\config\daemon.json on Windows systems. Add {"storage-driver": "overlay2"} to the daemon.json. If you already have an existing json, please only add "storage-driver": "overlay2" as a key, value pair.
 
 For more details, please see the official [supported architectures and platforms for containerized Splunk environments](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms) as well as [hardware and capacity recommendations](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements). 
 
