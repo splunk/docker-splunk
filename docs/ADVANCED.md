@@ -33,7 +33,7 @@ by passing in environment variables. Below is a list of environment variables th
 | --- | --- | --- | --- | --- |
 | SPLUNK_BUILD_URL | URL to Splunk build where we can fetch a Splunk build to install | no | no | no |
 | SPLUNK_DEFAULTS_URL | default.yml URL | no | no | no |
-| SPLUNK_UPGRADE | If this is True, we won’t run any provisioning after installation. Use this to upgrade and redeploy containers with a newer version of Splunk. | no | no | no |
+| SPLUNK_ALLOW_UPGRADE | If this is True (default), we compare the target build version against the current installed one, and perform an upgrade if they're different. | no | no | no |
 | SPLUNK_ROLE | Specify the container’s current Splunk Enterprise role. Supported Roles: splunk_standalone, splunk_indexer, splunk_deployer, splunk_search_head, etc. | no | yes | yes |
 | DEBUG | Print Ansible vars to stdout (supports Docker logging) | no | no | no |
 | SPLUNK_START_ARGS | Accept the license with “—accept-license”. Please note, we will not start a container without the existence of --accept-license in this variable. | yes | yes | yes |
