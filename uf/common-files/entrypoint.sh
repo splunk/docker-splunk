@@ -53,7 +53,12 @@ watch_for_failure(){
 	echo
 	user_permission_change
 	# Any crashes/errors while Splunk is running should get logged to splunkd_stderr.log and sent to the container's stdout
-	sudo -u splunk tail -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
+	# Any crashes/errors while Splunk is running should get logged to splunkd_stderr.log and sent to the container's stdout
+	if [ -z "$SPLUNK_TAIL_FILE" ]; then
+		sudo -u ${SPLUNK_USER} tail -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
+	else
+		sudo -u ${SPLUNK_USER} tail -n 0 -f ${SPLUNK_TAIL_FILE} &
+	fi
 	wait
 }
 
