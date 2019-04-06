@@ -19,7 +19,8 @@ ARG SPLUNK_BASE_IMAGE=base-debian-10
 #
 FROM ${SPLUNK_BASE_IMAGE}:latest as package
 ARG SPLUNK_BUILD_URL
-COPY splunk/common-files/splunk-minimal-exclude.list /tmp
+COPY splunk/common-files/make-minimal-exclude.py /tmp
+RUN python /tmp/make-minimal-exclude.py ${SPLUNK_BUILD_URL} > /tmp/splunk-minimal-exclude.list
 RUN echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}"
 RUN wget -qO /tmp/splunk.tgz ${SPLUNK_BUILD_URL}
 RUN wget -qO /tmp/splunk.tgz.md5 ${SPLUNK_BUILD_URL}.md5
