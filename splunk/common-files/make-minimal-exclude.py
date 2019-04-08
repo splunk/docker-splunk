@@ -1,4 +1,8 @@
-*-manifest
+#!/usr/bin/python
+
+import re, sys
+
+EXCLUDE_V7 = """*-manifest
 */bin/installit.py
 */bin/jars/*
 */bin/jsmin*
@@ -11,7 +15,6 @@
 */etc/anonymizer*
 */etc/apps/SplunkForwarder*
 */etc/apps/SplunkLightForwarder*
-*/etc/apps/framework*
 */etc/apps/gettingstarted*
 */etc/apps/launcher*
 */etc/apps/legacy*
@@ -27,4 +30,14 @@
 */share/splunk/mbtiles*
 */share/splunk/migration*
 */share/splunk/pdf*
-*mrsparkle*
+*mrsparkle*"""
+
+m = re.match(".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+-[0-9a-z]+-Linux-[0-9a-z_-]+.tgz", sys.argv[1])
+
+if m and m.group(1):
+    if m.group(1) == "7":
+        print EXCLUDE_V7
+        if int(m.group(2)) < 3:
+            print "*/etc/apps/framework*"
+        else:
+            print "*/etc/apps/splunk_metrics_workspace*"
