@@ -15,7 +15,6 @@ EXCLUDE_V7 = """*-manifest
 */etc/anonymizer*
 */etc/apps/SplunkForwarder*
 */etc/apps/SplunkLightForwarder*
-*/etc/apps/gettingstarted*
 */etc/apps/launcher*
 */etc/apps/legacy*
 */etc/apps/sample_app*
@@ -39,5 +38,6 @@ if m and m.group(1):
         print EXCLUDE_V7
         if int(m.group(2)) < 3:
             print "*/etc/apps/framework*"
+            print "*/etc/apps/gettingstarted*"
         else:
             print "*/etc/apps/splunk_metrics_workspace*"
