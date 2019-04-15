@@ -24,6 +24,7 @@ jobs:
       - run:
           name: Running CI Tests
           command: make run_tests_debian9
+          no_output_timeout: 20m
       - store_artifacts:
           path: test-results
           destination: test-results
