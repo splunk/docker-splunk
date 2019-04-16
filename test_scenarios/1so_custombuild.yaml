@@ -19,6 +19,7 @@ services:
       - SPLUNK_BUILD_URL=https://download.splunk.com/products/splunk/releases/7.1.1/linux/splunk-7.1.1-8f0ead9ec3db-Linux-x86_64.tgz
       - SPLUNK_PASSWORD
       - DEBUG=true
+      - SPLUNK_ALLOW_UPGRADE=False
     ports:
       - 8000
       - 8089

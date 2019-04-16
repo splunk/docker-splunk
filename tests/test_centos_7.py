@@ -40,7 +40,7 @@ LOGGER.addHandler(file_handler)
 # Docker varaibles
 BASE_IMAGE_NAME = "base-centos-7"
 SPLUNK_IMAGE_NAME = "splunk-centos-7"
-UF_IMAGE_NAME = "splunkforwarder-centos-7"
+UF_IMAGE_NAME = "uf-centos-7"
 # Splunk variables
 SPLUNK_VERSION = "7.2.5.1"
 SPLUNK_BUILD = "962d9a8e1586"
