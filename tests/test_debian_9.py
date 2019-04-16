@@ -1362,6 +1362,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
 
+    @pytest.mark.skip(reason="Oracle is preventing automated downloads")
     def test_compose_1so_java_oracle(self):
         # Standup deployment
         self.compose_file_name = "1so_java_oracle.yaml"
