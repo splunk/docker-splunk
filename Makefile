@@ -32,6 +32,7 @@ SCANNER_DATE_YEST := `TZ=GMT+24 +%Y:%m:%d`
 SCANNER_VERSION := v8
 SCANNER_LOCALIP := $(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $1}' | head -n 1)
 SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8
+CONTAINERS_TO_SAVE := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8
 ifeq ($(shell uname), Linux)
 	SCANNER_FILE = clair-scanner_linux_amd64
 else ifeq ($(shell uname), Darwin)
@@ -263,6 +264,11 @@ run_tests_debian9:
 run_tests_debian10:
 	@echo 'Running the super awesome tests; Debian 10'
 	pytest -sv tests/test_debian_10.py --junitxml test-results/debian10-result/testresults_debian10.xml
+
+save_containers:
+	@echo 'Saving the following containers:${CONTAINERS_TO_SAVE}'
+	mkdir test-results/saved_images || true
+	$(foreach image,${CONTAINERS_TO_SAVE}, echo "Currently saving: ${image}"; docker save ${image} --output test-results/saved_images/${image}.tar; echo "Compressing: ${image}.tar"; gzip test-results/saved_images/${image}.tar; )
 
 setup_clair_scanner:
 	mkdir clair-scanner-logs
