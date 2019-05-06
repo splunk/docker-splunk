@@ -210,7 +210,7 @@ test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_tests_
 
 run_tests_centos7:
 	@echo 'Running the super awesome tests; CentOS 7'
-	pytest -sv tests/test_centos_7.py --junitxml test-results/centos7-result/testresults_centos7.xml
+	pytest -sv tests/test_docker_splunk.py --platform centos-7 --junitxml test-results/centos7-result/testresults_centos7.xml
 
 test_setup:
 	@echo 'Install test requirements'
@@ -221,11 +221,11 @@ test_setup:
 
 run_tests_debian9:
 	@echo 'Running the super awesome tests; Debian 9'
-	pytest -sv tests/test_debian_9.py --junitxml test-results/debian9-result/testresults_debian9.xml
+	pytest -sv tests/test_docker_splunk.py --platform debian-9 --junitxml test-results/debian9-result/testresults_debian9.xml
 
 run_tests_debian10:
 	@echo 'Running the super awesome tests; Debian 10'
-	pytest -sv tests/test_debian_10.py --junitxml test-results/debian10-result/testresults_debian10.xml
+	pytest -sv tests/test_docker_splunk.py --platform debian-10 --junitxml test-results/debian10-result/testresults_debian10.xml
 
 setup_clair_scanner:
 	mkdir clair-scanner-logs
