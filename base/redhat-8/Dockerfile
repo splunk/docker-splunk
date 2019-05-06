@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM registry.access.redhat.com/ubi8-dev-preview/ubi-minimal
+FROM registry.access.redhat.com/ubi8/ubi-minimal
 LABEL maintainer="support@splunk.com"
 
 COPY install.sh /install.sh
-COPY EULA_Red_Hat_Universal_Base_Image_English_20190312.pdf /EULA_Red_Hat_Universal_Base_Image_English_20190312.pdf
+COPY EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf /EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf
 RUN /install.sh && rm -rf /install.sh
