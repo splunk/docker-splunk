@@ -43,8 +43,8 @@ BASE_IMAGE_NAME = "base-debian-9"
 SPLUNK_IMAGE_NAME = "splunk-debian-9"
 UF_IMAGE_NAME = "uf-debian-9"
 # Splunk variables
-SPLUNK_VERSION = "7.2.5"
-SPLUNK_BUILD = "088f49762779"
+SPLUNK_VERSION = "7.2.5.1"
+SPLUNK_BUILD = "962d9a8e1586"
 SPLUNK_FILENAME = "splunk-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
 SPLUNK_BUILD_URL = "https://download.splunk.com/products/splunk/releases/{}/linux/{}".format(SPLUNK_VERSION, SPLUNK_FILENAME)
 UF_FILENAME = "splunkforwarder-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
