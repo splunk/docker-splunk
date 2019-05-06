@@ -43,8 +43,8 @@ BASE_IMAGE_NAME = "base-debian-9"
 SPLUNK_IMAGE_NAME = "splunk-debian-9"
 UF_IMAGE_NAME = "uf-debian-9"
 # Splunk variables
-SPLUNK_VERSION = "7.2.5.1"
-SPLUNK_BUILD = "962d9a8e1586"
+SPLUNK_VERSION = "7.2.6"
+SPLUNK_BUILD = "c0bf0f679ce9"
 SPLUNK_FILENAME = "splunk-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
 SPLUNK_BUILD_URL = "https://download.splunk.com/products/splunk/releases/{}/linux/{}".format(SPLUNK_VERSION, SPLUNK_FILENAME)
 UF_FILENAME = "splunkforwarder-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
@@ -1434,6 +1434,7 @@ class TestDebian9(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
 
+    @pytest.mark.skip(reason="Oracle is preventing automated downloads")
     def test_compose_1so_java_oracle(self):
         # Standup deployment
         self.compose_file_name = "1so_java_oracle.yaml"
