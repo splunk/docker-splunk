@@ -45,9 +45,6 @@ platform = "debian-9"
 def generate_random_string():
     return ''.join(choice(ascii_lowercase) for b in range(20))
 
-def pytest_addoption(parser):
-    parser.addoption("--platform", default="debian-9", action="store", help="Define which platform of images to run tests again (default: debian-9)")
-
 def pytest_generate_tests(metafunc):
     # This is called for every test. Only get/set command line arguments
     # if the argument is specified in the list of test "fixturenames".
