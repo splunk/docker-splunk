@@ -24,52 +24,11 @@ Let's dive into the nitty-gritty on how to tweak the setup of your containerized
     * [uf-debian-9](#uf-debian-9)
 
 ## Runtime configuration
-Splunk's Docker image has several functions that can be configured. These options are specified by either supplying a `default.yml` file or
-by passing in environment variables. Below is a list of environment variables that may/must be used when starting the container.
+Splunk's Docker image has several functions that can be configured. These options are specified by either supplying a `default.yml` file or by passing in environment variables. 
 
-#### Valid Splunk env vars
+Passed in environment variables and/or default.yml are consumed by the inventory script in [splunk-ansible project](https://github.com/splunk/splunk-ansible).
 
-| Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
-| --- | --- | --- | --- | --- |
-| SPLUNK_BUILD_URL | URL to Splunk build where we can fetch a Splunk build to install | no | no | no |
-| SPLUNK_DEFAULTS_URL | default.yml URL | no | no | no |
-| SPLUNK_UPGRADE | If this is True, we won’t run any provisioning after installation. Use this to upgrade and redeploy containers with a newer version of Splunk. | no | no | no |
-| SPLUNK_ROLE | Specify the container’s current Splunk Enterprise role. Supported Roles: splunk_standalone, splunk_indexer, splunk_deployer, splunk_search_head, etc. | no | yes | yes |
-| DEBUG | Print Ansible vars to stdout (supports Docker logging) | no | no | no |
-| SPLUNK_START_ARGS | Accept the license with “—accept-license”. Please note, we will not start a container without the existence of --accept-license in this variable. | yes | yes | yes |
-| SPLUNK_LICENSE_URI | URI we can fetch a Splunk Enterprise license. This can be a local path or a remote URL. | no | no | no |
-| SPLUNK_STANDALONE_URL | List of all Splunk Enterprise standalone hosts (network alias) separated by comma | no | no | no |
-| SPLUNK_SEARCH_HEAD_URL | List of all Splunk Enterprise search head hosts (network alias) separated by comma | no | yes | yes |
-| SPLUNK_INDEXER_URL| List of all Splunk Enterprise indexer hosts (network alias) separated by comma | no | yes | yes |
-| SPLUNK_HEAVY_FORWARDER_URL | List of all Splunk Enterprise heavy forwarder hosts (network alias) separated by comma | no | no | no |
-| SPLUNK_DEPLOYER_URL | One Splunk Enterprise deployer host (network alias) | no | yes | no |
-| SPLUNK_CLUSTER_MASTER_URL | One Splunk Enterprise cluster master host (network alias) | no | no | yes |
-| SPLUNK_SEARCH_HEAD_CAPTAIN_URL | One Splunk Enterprise search head host (network alias). Passing this ENV variable will enable search head clustering. | no | yes | no |
-| SPLUNK_DEPLOYMENT_SERVER | One Splunk host (network alias) that we use as a [deployment server](http://docs.splunk.com/Documentation/Splunk/latest/Updating/Configuredeploymentclients) | no | no | no |
-| SPLUNK_ADD | List of items to add to monitoring separated by comma. Example, SPLUNK_ADD=udp 1514,monitor /var/log/\*. This will monitor udp 1514 port and /var/log/\* files. | no | no | no |
-| SPLUNK_BEFORE_START_CMD | List of commands to run before Splunk starts separated by comma. Ansible will run “{{splunk.exec}} {{item}}”. | no | no | no |
-| SPLUNK_S2S_PORT | Default Forwarding Port | no | no | no |
-| SPLUNK_SVC_PORT | Default Admin Port | no | no | no |
-| SPLUNK_PASSWORD* | Default password of the admin user| yes | yes | yes |
-| SPLUNK_HEC_TOKEN | HEC (HTTP Event Collector) Token when enabled | no | no | no |
-| SPLUNK_SHC_SECRET | Search Head Clustering Shared secret | no | yes | no |
-| SPLUNK_IDXC_SECRET | Indexer Clustering Shared Secret | no | no | yes |
-| NO_HEALTHCHECK | Disable the Splunk healthcheck script | no | no | yes |
-| STEPDOWN_ANSIBLE_USER | Removes Ansible user from the sudo group when set to true. This means that no other users than root will have root access. | no | no | no |
-| SPLUNK_HOME_OWNERSHIP_ENFORCEMENT | Recursively enforces ${SPLUNK_HOME} to be owned by the user "splunk". Default value is true. | no | no | no |
-| HIDE_PASSWORD | Set to true to hide all Ansible task logs with Splunk password in them in order to secure our output to stdout. | no | no | no |
-| JAVA_VERSION | Supply "oracle:8", "openjdk:8", or "openjdk:11" to install a respective Java distribution. | no | no | no |
-
-* Password must be set either in default.yml or as the environment variable `SPLUNK_PASSWORD`
-
-#### Valid UF env vars
-The `splunk/universalforwarder` image accepts the majority* environment variables as the `splunk/splunk` image above. However, there are some additional ones that are specific to the Universal Forwarder.
-
-* **Note:** Specifically for the `splunk/universalforwarder` image, the environment variable `SPLUNK_ROLE` will by default be set to `splunk_universal_forwarder`. This image cannot accept any other role, and should not be changed (unlike its `splunk/splunk` image counterpart).
-
-| Environment Variable Name | Description | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
-| --- | --- | --- | --- | --- |
-| SPLUNK_CMD | List of commands to run after Splunk starts separated by comma. Ansible will run “{{splunk.exec}} {{item}}”. | no | no | no |
+Please refer to [Environment Variables List](https://splunk.github.io/splunk-ansible/ADVANCED.html#inventory-script)
 
 #### Using default.yml
 The purpose of the `default.yml` is to define a standard set of variables that controls how Splunk gets set up. This is particularly important when deploying clustered Splunk topologies, as there are frequent variables that you need to be consistent across all members of the cluster (ex. keys, passwords, secrets).
