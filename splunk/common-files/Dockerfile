@@ -41,9 +41,9 @@ FROM ${SPLUNK_BASE_IMAGE}:latest as minimal
 LABEL maintainer="support@splunk.com"
 ENV SPLUNK_HOME=/opt/splunk \
     SPLUNK_GROUP=splunk \
-    SPLUNK_USER=splunk \
-    TMPSPLUNKDIR=${SPLUNK_HOME}/tmp \
-    TMPETCDIR=${TMPSPLUNKDIR}/etc
+    SPLUNK_USER=splunk
+ENV TMPSPLUNKDIR=${SPLUNK_HOME}/tmp
+ENV TMPETCDIR=${TMPSPLUNKDIR}/etc
 
 # Currently kubernetes only accepts UID and not USER field to
 # start a container as a particular user. So we create Splunk
