@@ -31,7 +31,8 @@ SCANNER_DATE := `date +%Y-%m-%d`
 SCANNER_DATE_YEST := `TZ=GMT+24 +%Y:%m:%d`
 SCANNER_VERSION := v8
 SCANNER_LOCALIP := $(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $1}' | head -n 1)
-SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 uf-debian-9 uf-debian-10 uf-centos-7
+SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8
+CONTAINERS_TO_SAVE := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8
 ifeq ($(shell uname), Linux)
 	SCANNER_FILE = clair-scanner_linux_amd64
 else ifeq ($(shell uname), Darwin)
@@ -55,7 +56,7 @@ ansible:
 	@cat splunk-ansible/version.txt
 
 ##### Base images #####
-base: base-debian-9 base-debian-10 base-centos-7 base-windows-2016
+base: base-debian-9 base-debian-10 base-centos-7 base-redhat-8 base-windows-2016
 
 base-debian-10:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
@@ -66,11 +67,14 @@ base-debian-9:
 base-centos-7:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-centos-7:${IMAGE_VERSION} ./base/centos-7
 
+base-redhat-8:
+	docker build ${DOCKER_BUILD_FLAGS} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
+
 base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
 
 ##### Minimal images #####
-minimal: minimal-debian-9 minimal-debian-10 minimal-centos-7
+minimal: minimal-debian-9 minimal-debian-10 minimal-centos-7 minimal-redhat-8
 
 minimal-debian-9: base-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -93,8 +97,15 @@ minimal-centos-7: base-centos-7
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target minimal -t minimal-centos-7:${IMAGE_VERSION} .	
 
+minimal-redhat-8: base-redhat-8
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		--target minimal -t minimal-redhat-8:${IMAGE_VERSION} .
+
 ##### Bare images #####
-bare: bare-debian-9 bare-debian-10 bare-centos-7
+bare: bare-debian-9 bare-debian-10 bare-centos-7 bare-redhat-8
 
 bare-debian-9: base-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -117,8 +128,15 @@ bare-centos-7: base-centos-7
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target bare -t bare-centos-7:${IMAGE_VERSION} .	
 
+bare-redhat-8: base-redhat-8
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		--target bare -t bare-redhat-8:${IMAGE_VERSION} .
+
 ##### Splunk images #####
-splunk: ansible splunk-debian-9 splunk-debian-10 splunk-centos-7
+splunk: ansible splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8
 
 splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -141,6 +159,13 @@ splunk-centos-7: base-centos-7 ansible
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		-t splunk-centos-7:${IMAGE_VERSION} .
 
+splunk-redhat-8: base-redhat-8 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		-t splunk-redhat-8:${IMAGE_VERSION} .
+
 splunk-windows-2016: base-windows-2016 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/windows-2016/Dockerfile \
@@ -149,7 +174,7 @@ splunk-windows-2016: base-windows-2016 ansible
 		-t splunk-windows-2016:${IMAGE_VERSION} .
 
 ##### UF images #####
-uf: ansible uf-debian-9 uf-debian-10 uf-centos-7
+uf: ansible uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8
 
 ufbare-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -186,6 +211,13 @@ uf-centos-7: base-centos-7 ansible
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-centos-7:${IMAGE_VERSION} .
 
+uf-redhat-8: base-redhat-8 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f uf/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
+		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
+		-t uf-redhat-8:${IMAGE_VERSION} .
+
 uf-windows-2016: base-windows-2016 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/windows-2016/Dockerfile \
@@ -200,9 +232,11 @@ sample-compose-up: sample-compose-down
 sample-compose-down:
 	docker-compose -f test_scenarios/${SPLUNK_COMPOSE} down --volumes --remove-orphans || true
 
-test: clean ansible test_setup all run_tests_centos7 run_tests_debian9
+test: clean ansible test_setup all run_tests_centos7 run_tests_redhat8 run_tests_debian9
 
 test_centos7: clean ansible splunk-centos-7 uf-centos-7 test_setup run_tests_centos7
+
+test_redhat8: clean ansible splunk-redhat-8 uf-redhat-8 test_setup run_tests_redhat8
 
 test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_tests_debian9
 
@@ -211,6 +245,10 @@ test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_tests_
 run_tests_centos7:
 	@echo 'Running the super awesome tests; CentOS 7'
 	pytest -sv tests/test_docker_splunk.py --platform centos-7 --junitxml test-results/centos7-result/testresults_centos7.xml
+
+run_tests_redhat8:
+	@echo 'Running the super awesome tests; RedHat 8'
+	pytest -sv tests/test_redhat_8.py --junitxml test-results/redhat8-result/testresults_redhat8.xml
 
 test_setup:
 	@echo 'Install test requirements'
@@ -226,6 +264,11 @@ run_tests_debian9:
 run_tests_debian10:
 	@echo 'Running the super awesome tests; Debian 10'
 	pytest -sv tests/test_docker_splunk.py --platform debian-10 --junitxml test-results/debian10-result/testresults_debian10.xml
+
+save_containers:
+	@echo 'Saving the following containers:${CONTAINERS_TO_SAVE}'
+	mkdir test-results/saved_images || true
+	$(foreach image,${CONTAINERS_TO_SAVE}, echo "Currently saving: ${image}"; docker save ${image} --output test-results/saved_images/${image}.tar; echo "Compressing: ${image}.tar"; gzip test-results/saved_images/${image}.tar; )
 
 setup_clair_scanner:
 	mkdir clair-scanner-logs
