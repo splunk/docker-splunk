@@ -21,6 +21,8 @@ jobs:
           name: Run Vulnerability Scanner
           command: |
             make setup_and_run_clair
+      - run:
+          command: echo "helloworld2"
       - store_artifacts:
           name: Store Scanner Logs
           path: clair-scanner-logs
