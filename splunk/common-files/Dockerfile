@@ -60,6 +60,8 @@ RUN groupadd -r -g ${GID} ${SPLUNK_GROUP} \
     && chmod 755 /sbin/updateetc.sh
 
 COPY --from=package --chown=splunk:splunk /minimal /opt
+RUN mkdir -p ${SPLUNK_HOME}/share/splunk/search_mrsparkle/modules.new \
+    && chown -R splunk:splunk ${SPLUNK_HOME}/share/splunk
 
 USER ${SPLUNK_USER}
 WORKDIR ${SPLUNK_HOME}
