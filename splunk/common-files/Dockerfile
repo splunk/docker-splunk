@@ -30,7 +30,7 @@ RUN tar -C /minimal/splunk --strip 1 --exclude-from=/tmp/splunk-minimal-exclude.
 RUN tar -C /extras/splunk --strip 1 --wildcards --files-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/splunk.tgz
 RUN mv /minimal/splunk/etc /minimal/splunk-etc
 RUN mv /extras/splunk/etc /extras/splunk-etc
-RUN mkdir -p /minimal/splunk/etc/apps/_splunk_config /extras/splunk/etc/apps/_splunk_config
+RUN mkdir -p /minimal/splunk/share/splunk/search_mrsparkle/modules.new
 COPY splunk/common-files/apps /extras/splunk-etc/apps/
 
 
@@ -41,9 +41,9 @@ FROM ${SPLUNK_BASE_IMAGE}:latest as minimal
 LABEL maintainer="support@splunk.com"
 ENV SPLUNK_HOME=/opt/splunk \
     SPLUNK_GROUP=splunk \
-    SPLUNK_USER=splunk \
-    TMPSPLUNKDIR=${SPLUNK_HOME}/tmp \
-    TMPETCDIR=${TMPSPLUNKDIR}/etc
+    SPLUNK_USER=splunk
+ENV TMPSPLUNKDIR=${SPLUNK_HOME}/tmp
+ENV TMPETCDIR=${TMPSPLUNKDIR}/etc
 
 # Currently kubernetes only accepts UID and not USER field to
 # start a container as a particular user. So we create Splunk
