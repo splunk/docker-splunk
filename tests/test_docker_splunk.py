@@ -38,40 +38,44 @@ formatter = logging.Formatter('%(asctime)s %(levelname)s [%(name)s] [%(process)d
 file_handler.setFormatter(formatter)
 LOGGER.addHandler(file_handler)
 
-# Docker varaibles
-BASE_IMAGE_NAME = "base-debian-9"
-SPLUNK_IMAGE_NAME = "splunk-debian-9"
-UF_IMAGE_NAME = "uf-debian-9"
-# Splunk variables
-SPLUNK_VERSION = "7.2.6"
-SPLUNK_BUILD = "c0bf0f679ce9"
-SPLUNK_FILENAME = "splunk-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
-SPLUNK_BUILD_URL = "https://download.splunk.com/products/splunk/releases/{}/linux/{}".format(SPLUNK_VERSION, SPLUNK_FILENAME)
-UF_FILENAME = "splunkforwarder-{}-{}-Linux-x86_64.tgz".format(SPLUNK_VERSION, SPLUNK_BUILD)
-UF_BUILD_URL = "https://download.splunk.com/products/universalforwarder/releases/{}/linux/{}".format(SPLUNK_VERSION, UF_FILENAME)
 
+global platform
+platform = "debian-9"
 
 def generate_random_string():
     return ''.join(choice(ascii_lowercase) for b in range(20))
 
+def pytest_generate_tests(metafunc):
+    # This is called for every test. Only get/set command line arguments
+    # if the argument is specified in the list of test "fixturenames".
+    option_value = metafunc.config.option.platform
+    global platform
+    platform = option_value
+
 
 @pytest.mark.large
-class TestDebian9(object):
+class TestDockerSplunk(object):
     """
-    Test suite to validate the Splunk Docker image
+    Test suite to validate the Splunk/UF Docker image
     """
 
     logger = LOGGER
 
+
     @classmethod
     def setup_class(cls):
         cls.client = docker.APIClient()
+        # Docker variables
+        global platform
+        cls.BASE_IMAGE_NAME = "base-{}".format(platform)
+        cls.SPLUNK_IMAGE_NAME = "splunk-{}".format(platform)
+        cls.UF_IMAGE_NAME = "uf-{}".format(platform)
         # Setup password
         cls.password = generate_random_string()
         with open(os.path.join(REPO_DIR, ".env"), "w") as f:
             f.write("SPLUNK_PASSWORD={}\n".format(cls.password))
-            f.write("SPLUNK_IMAGE={}\n".format(SPLUNK_IMAGE_NAME))
-            f.write("UF_IMAGE={}\n".format(UF_IMAGE_NAME))
+            f.write("SPLUNK_IMAGE={}\n".format(cls.SPLUNK_IMAGE_NAME))
+            f.write("UF_IMAGE={}\n".format(cls.UF_IMAGE_NAME))
 
     @classmethod
     def teardown_class(cls):
@@ -317,7 +321,7 @@ class TestDebian9(object):
     
     def test_splunk_entrypoint_help(self):
         # Run container
-        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="help")
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="help")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -326,7 +330,7 @@ class TestDebian9(object):
     
     def test_splunk_entrypoint_create_defaults(self):
         # Run container
-        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -336,7 +340,7 @@ class TestDebian9(object):
     
     def test_splunk_entrypoint_start_no_password(self):
         # Run container
-        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="start",
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="start",
                                            environment={"SPLUNK_START_ARGS": "nothing"})
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
@@ -345,7 +349,7 @@ class TestDebian9(object):
     
     def test_splunk_entrypoint_start_no_accept_license(self):
         # Run container
-        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="start",
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="start",
                                            environment={"SPLUNK_PASSWORD": "something", "SPLUNK_START_ARGS": "nothing"})
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
@@ -356,7 +360,7 @@ class TestDebian9(object):
         cid = None
         try:
             # Run container
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="no-provision")
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="no-provision")
             cid = cid.get("Id")
             self.client.start(cid)
             # Wait a bit
@@ -375,7 +379,7 @@ class TestDebian9(object):
     
     def test_uf_entrypoint_help(self):
         # Run container
-        cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="help")
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="help")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -383,7 +387,7 @@ class TestDebian9(object):
 
     def test_uf_entrypoint_create_defaults(self):
         # Run container
-        cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -392,7 +396,7 @@ class TestDebian9(object):
     
     def test_uf_entrypoint_start_no_password(self):
         # Run container
-        cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="start",
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start",
                                            environment={"SPLUNK_START_ARGS": "nothing"})
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
@@ -401,7 +405,7 @@ class TestDebian9(object):
     
     def test_uf_entrypoint_start_no_accept_license(self):
         # Run container
-        cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="start",
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start",
                                            environment={"SPLUNK_PASSWORD": "something", "SPLUNK_START_ARGS": "nothing"})
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
@@ -412,7 +416,7 @@ class TestDebian9(object):
         cid = None
         try:
             # Run container
-            cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="no-provision")
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="no-provision")
             cid = cid.get("Id")
             self.client.start(cid)
             # Wait a bit
@@ -431,7 +435,7 @@ class TestDebian9(object):
     
     def test_adhoc_1so_using_default_yml(self):
         # Generate default.yml
-        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -447,7 +451,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="start", ports=[8089], 
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="start", ports=[8089], 
                                             volumes=["/tmp/defaults/"], name=splunk_container_name,
                                             environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
                                             host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
@@ -476,7 +480,7 @@ class TestDebian9(object):
     
     def test_adhoc_1uf_using_default_yml(self):
         # Generate default.yml
-        cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -492,7 +496,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="start", ports=[8089], 
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start", ports=[8089], 
                                             volumes=["/tmp/defaults/"], name=splunk_container_name,
                                             environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
                                             host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
@@ -521,7 +525,7 @@ class TestDebian9(object):
 
     def test_adhoc_1so_custom_conf(self):
         # Generate default.yml
-        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -544,7 +548,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="start", ports=[8089], 
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="start", ports=[8089], 
                                             volumes=["/tmp/defaults/"], name=splunk_container_name,
                                             environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
                                             host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
@@ -579,7 +583,7 @@ class TestDebian9(object):
     
     def test_adhoc_1uf_custom_conf(self):
         # Generate default.yml
-        cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -602,7 +606,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="start", ports=[8089], 
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start", ports=[8089], 
                                             volumes=["/tmp/defaults/"], name=splunk_container_name,
                                             environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
                                             host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
@@ -640,7 +644,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
                                             volumes=["/playbooks/play.yml"], name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
@@ -685,7 +689,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
                                             volumes=["/playbooks/play.yml"], name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
@@ -721,7 +725,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(UF_IMAGE_NAME, tty=True, ports=[8089], 
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089], 
                                             volumes=["/playbooks/play.yml"], name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
@@ -757,7 +761,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
                                             volumes=["/playbooks/play.yml"], name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
@@ -798,7 +802,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
                                             volumes=["/playbooks/play.yml"], name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
@@ -839,7 +843,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
                                             volumes=["/playbooks/play.yml"], name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
@@ -877,7 +881,7 @@ class TestDebian9(object):
 
     def test_adhoc_1so_bind_mount_apps(self):
         # Generate default.yml
-        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -892,7 +896,7 @@ class TestDebian9(object):
         try:
             # Spin up this container, but also bind-mount the app in the fixtures directory
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="start-service", ports=[8089], 
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="start-service", ports=[8089], 
                                             volumes=["/tmp/defaults/", "/opt/splunk/etc/apps/splunk_app_example/"], name=splunk_container_name,
                                             environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
                                             host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/", 
@@ -931,7 +935,7 @@ class TestDebian9(object):
     
     def test_adhoc_1uf_bind_mount_apps(self):
         # Generate default.yml
-        cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -946,7 +950,7 @@ class TestDebian9(object):
         try:
             # Spin up this container, but also bind-mount the app in the fixtures directory
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="start-service", ports=[8089], 
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start-service", ports=[8089], 
                                             volumes=["/tmp/defaults/", "/opt/splunkforwarder/etc/apps/splunk_app_example/"], name=splunk_container_name,
                                             environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
                                             host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/", 
@@ -985,7 +989,7 @@ class TestDebian9(object):
 
     def test_adhoc_1so_hec_ssl_disabled(self):
         # Generate default.yml
-        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -1004,7 +1008,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8088], 
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8088], 
                                             volumes=["/tmp/defaults/"], name=splunk_container_name,
                                             environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
                                             host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
@@ -1035,7 +1039,7 @@ class TestDebian9(object):
     
     def test_adhoc_1uf_hec_ssl_disabled(self):
         # Generate default.yml
-        cid = self.client.create_container(UF_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -1054,7 +1058,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(UF_IMAGE_NAME, tty=True, ports=[8089, 8088], 
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089, 8088], 
                                             volumes=["/tmp/defaults/"], name=splunk_container_name,
                                             environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
                                             host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
@@ -1093,7 +1097,7 @@ class TestDebian9(object):
             # Commands to generate self-signed certificates for SplunkWeb here: https://docs.splunk.com/Documentation/Splunk/latest/Security/Self-signcertificatesforSplunkWeb
             cmd = "openssl req -x509 -newkey rsa:4096 -passout pass:abcd1234 -keyout {path}/key.pem -out {path}/cert.pem -days 365 -subj /CN=localhost".format(path=FIXTURES_DIR)
             generate_certs = subprocess.check_output(cmd.split())
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8000, 8089], 
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8000, 8089], 
                                                volumes=["/tmp/defaults/"], name=splunk_container_name,
                                                environment={"DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
@@ -1758,7 +1762,7 @@ class TestDebian9(object):
 
     def test_compose_1cm_smartstore(self):
         # Generate default.yml
-        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
@@ -1782,7 +1786,7 @@ class TestDebian9(object):
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
                                             volumes=["/tmp/defaults/default.yml"], name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
@@ -1874,7 +1878,7 @@ class TestDebian9(object):
     
     def test_compose_1idx3sh1cm1dep(self):
         # Generate default.yml -- for SHC, we need a common default.yml otherwise things won't work
-        cid = self.client.create_container(SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
