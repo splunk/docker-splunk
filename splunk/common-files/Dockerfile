@@ -30,7 +30,7 @@ RUN tar -C /minimal/splunk --strip 1 --exclude-from=/tmp/splunk-minimal-exclude.
 RUN tar -C /extras/splunk --strip 1 --wildcards --files-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/splunk.tgz
 RUN mv /minimal/splunk/etc /minimal/splunk-etc
 RUN mv /extras/splunk/etc /extras/splunk-etc
-RUN mkdir -p /minimal/splunk/etc/apps/_splunk_config /extras/splunk/etc/apps/_splunk_config
+RUN mkdir -p /minimal/splunk/share/splunk/search_mrsparkle/modules.new
 COPY splunk/common-files/apps /extras/splunk-etc/apps/
 
 
@@ -60,8 +60,6 @@ RUN groupadd -r -g ${GID} ${SPLUNK_GROUP} \
     && chmod 755 /sbin/updateetc.sh
 
 COPY --from=package --chown=splunk:splunk /minimal /opt
-RUN mkdir -p ${SPLUNK_HOME}/share/splunk/search_mrsparkle/modules.new \
-    && chown -R splunk:splunk ${SPLUNK_HOME}/share/splunk
 
 USER ${SPLUNK_USER}
 WORKDIR ${SPLUNK_HOME}
