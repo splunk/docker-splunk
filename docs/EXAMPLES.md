@@ -19,6 +19,7 @@ Note that for more complex scenarios, we will opt to use a [Docker compose file]
 * [Create indexer cluster](#create-indexer-cluster)
 * [Create search head cluster](#create-search-head-cluster)
 * [Create indexer cluster and search head cluster](#create-indexer-cluster-and-search-head-cluster)
+* [Enable root endpoint on SplunkWeb](#enable-root-endpoint-on-splunkweb)
 * [More](#more)
 
 ## Create standalone from CLI
@@ -780,6 +781,32 @@ Execute the following to bring up your deployment:
 ```
 $ docker-compose up -d
 ```
+
+## Enable root endpoint on SplunkWeb
+<details><summary>docker-compose.yml</summary><p>
+
+```
+version: "3.6"
+
+services:
+  so1:
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    container_name: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_ROOT_ENDPOINT=/splunkweb
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+```
+</p></details>
+
+Execute the following to bring up your deployment:
+```
+$ SPLUNK_PASSWORD=<password> docker-compose up -d
+```
+
+Then, visit SplunkWeb on your browser with the root endpoint in the URL, such as `http://localhost:8000/splunkweb`.
 
 ## More
 There are a variety of Docker compose scenarios in the `docker-splunk` repo [here](https://github.com/splunk/docker-splunk/tree/develop/test_scenarios). Please feel free to use any of those for reference in terms of different topologies!
