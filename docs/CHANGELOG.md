@@ -2,6 +2,8 @@
 
 ## Navigation
 
+* [7.3.0](#730)
+* [7.2.7](#727)
 * [7.2.6](#726)
 * [7.2.5.1](#7251)
 * [7.2.5](#725)
@@ -10,6 +12,52 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 7.3.0
+
+#### What's New?
+* Adding base `debian-10` and `redhat-8` platform
+* Changing default `splunk/splunk` from `debian-9` to `debian-10` for enhanced security
+* Overarching changes to build structure to support multi-stage builds for various consumers
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.0/ReleaseNotes/Fixedissues
+* Changing default `splunk/splunk` from `debian-9` to `debian-10` for enhanced security
+* Overarching changes to build structure to support multi-stage builds for various consumers
+* Minor documentation changes
+
+#### splunk-ansible changes:
+* Adding ability to dynamically change `SPLUNK_ROOT_ENDPOINT` at start-up time
+* Adding ability to dynamically change SplunkWeb HTTP port at start-up time
+* Modified manner in which deployment server installs + distributes app bundles
+* More multi-site functionality
+* Support for Cygwin-based Windows environments
+* Minor documentation changes
+
+---
+
+## 7.2.7
+
+#### What's New?
+* Adding base `debian-10` and `redhat-8` platform
+* Changing default `splunk/splunk` from `debian-9` to `debian-10` for enhanced security
+* Overarching changes to build structure to support multi-stage builds for various consumers
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.7/ReleaseNotes/Fixedissues
+* Changing default `splunk/splunk` from `debian-9` to `debian-10` for enhanced security
+* Overarching changes to build structure to support multi-stage builds for various consumers
+* Minor documentation changes
+
+#### splunk-ansible changes:
+* Adding ability to dynamically change `SPLUNK_ROOT_ENDPOINT` at start-up time
+* Adding ability to dynamically change SplunkWeb HTTP port at start-up time
+* Modified manner in which deployment server installs + distributes app bundles
+* More multi-site functionality
+* Support for Cygwin-based Windows environments
+* Minor documentation changes
 
 ---
 
