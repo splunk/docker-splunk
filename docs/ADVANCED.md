@@ -96,6 +96,7 @@ splunk:
 | group | Operating System Group to Run Splunk Enterprise As | splunk | splunk | yes | yes | yes |
 | exec | Path to the Splunk Binary | splunk | /opt/splunk/bin/splunk | yes | yes | yes |
 | pid | Location to the Running PID File | splunk | /opt/splunk/var/run/splunk/splunkd.pid | yes | yes | yes
+| root_endpoint | Set root endpoint for SplunkWeb (for reverse proxy usage) | splunk | **none** | no | no | no |
 | password | Password for the admin account | splunk | **none** | yes | yes | yes |
 | svc_port | Default Admin Port | splunk | 8089 | yes | yes | yes |
 | s2s_port | Default Forwarding Port | splunk | 9997 | yes | yes | yes |
