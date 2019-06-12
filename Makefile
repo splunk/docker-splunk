@@ -225,6 +225,21 @@ uf-windows-2016: base-windows-2016 ansible
 		--build-arg SPLUNK_BUILD_URL=${UF_WIN_BUILD_URL} \
 		-t uf-windows-2016:${IMAGE_VERSION} .
 
+##### Spark images #####
+spark: spark-debian-10 spark-redhat-8
+
+spark-debian-10: base-debian-10
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f spark/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-debian-10 \
+		-t spark-debian-10:${IMAGE_VERSION} .
+
+spark-redhat-8: base-redhat-8
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f spark/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
+		-t spark-redhat-8:${IMAGE_VERSION} .
+
 ##### Tests #####
 sample-compose-up: sample-compose-down
 	docker-compose -f test_scenarios/${SPLUNK_COMPOSE} up -d 
