@@ -21,16 +21,15 @@ FROM ${SPLUNK_BASE_IMAGE}:latest as package
 ARG SPLUNK_BUILD_URL
 COPY splunk/common-files/make-minimal-exclude.py /tmp
 RUN python /tmp/make-minimal-exclude.py ${SPLUNK_BUILD_URL} > /tmp/splunk-minimal-exclude.list
-RUN echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}"
 RUN wget -qO /tmp/splunk.tgz ${SPLUNK_BUILD_URL}
 RUN wget -qO /tmp/splunk.tgz.md5 ${SPLUNK_BUILD_URL}.md5
 RUN test $(md5sum /tmp/splunk.tgz | sed 's,\([a-z0-9]*\).*,\1,') = $(cat /tmp/splunk.tgz.md5 | sed 's,MD5.*=.\([a-z0-9]*\).*,\1,')
-RUN mkdir -p /opt/splunk/var /minimal/splunk/var /extras/splunk/var
+RUN mkdir -p /minimal/splunk/var /extras/splunk/var
 RUN tar -C /minimal/splunk --strip 1 --exclude-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/splunk.tgz
 RUN tar -C /extras/splunk --strip 1 --wildcards --files-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/splunk.tgz
 RUN mv /minimal/splunk/etc /minimal/splunk-etc
 RUN mv /extras/splunk/etc /extras/splunk-etc
-RUN mkdir -p /minimal/splunk/share/splunk/search_mrsparkle/modules.new
+RUN mkdir -p /minimal/splunk/etc /minimal/splunk/share/splunk/search_mrsparkle/modules.new
 COPY splunk/common-files/apps /extras/splunk-etc/apps/
 
 
@@ -56,7 +55,8 @@ COPY [ "splunk/common-files/updateetc.sh", "/sbin/" ]
 
 # Setup users and groups
 RUN groupadd -r -g ${GID} ${SPLUNK_GROUP} \
-    && useradd -r -m -u ${UID} -g ${GID} ${SPLUNK_USER} \
+    && useradd -r -m -u ${UID} -g ${GID} -s /sbin/nologin -d ${SPLUNK_HOME} ${SPLUNK_USER} \
+    && chown -R splunk.splunk ${SPLUNK_HOME} \
     && chmod 755 /sbin/updateetc.sh
 
 COPY --from=package --chown=splunk:splunk /minimal /opt
