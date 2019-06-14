@@ -36,7 +36,8 @@ RUN mv /tmp/jdk*-jre/* /opt/jdk
 
 # add entrypoint and update permissions
 ADD spark/entrypoint.sh /opt/spark/entrypoint.sh
-RUN chmod a+x /opt/spark/entrypoint.sh
+ADD spark/setenv.sh /opt/spark/setenv.sh
+RUN chmod a+x /opt/spark/entrypoint.sh /opt/spark/setenv.sh
 RUN chmod -R a+r /opt/spark
 
 
@@ -49,6 +50,10 @@ LABEL maintainer="support@splunk.com"
 # setup environment variables
 ENV JAVA_HOME=/opt/jdk
 ENV SPARK_HOME=/opt/spark
+ENV SPARK_MASTER_HOSTNAME=127.0.0.1
+ENV SPARK_MASTER_PORT=7777
+ENV SPARK_MASTER_WEBUI_PORT=8009
+ENV SPARK_WORKER_WEBUI_PORT=7000
 ENV PATH=$PATH:/opt/jdk/bin:/opt/spark/bin
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SPLUNK_HOME=/opt/splunk \
@@ -64,7 +69,8 @@ ARG GID=41812
 # add splunk user and group
 RUN groupadd -r -g ${GID} ${SPLUNK_GROUP} \
     && useradd -r -m -u ${UID} -g ${GID} -s /sbin/nologin -d ${SPLUNK_HOME} ${SPLUNK_USER} \
-    && chown -R splunk.splunk ${SPLUNK_HOME}
+    && mkdir -p /mnt/jdk /mnt/spark \
+    && chown -R splunk.splunk ${SPLUNK_HOME} /mnt/jdk /mnt/spark
 
 # copy package files
 COPY --from=package --chown=splunk:splunk /opt /opt
