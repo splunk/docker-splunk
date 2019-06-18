@@ -56,7 +56,6 @@ COPY [ "splunk/common-files/updateetc.sh", "/sbin/" ]
 # Setup users and groups
 RUN groupadd -r -g ${GID} ${SPLUNK_GROUP} \
     && useradd -r -m -u ${UID} -g ${GID} ${SPLUNK_USER} \
-    && chown -R splunk.splunk ${SPLUNK_HOME} \
     && chmod 755 /sbin/updateetc.sh
 
 COPY --from=package --chown=splunk:splunk /minimal /opt
