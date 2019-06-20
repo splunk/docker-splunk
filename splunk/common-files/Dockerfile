@@ -105,6 +105,7 @@ RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /
     && mkdir ${CONTAINER_ARTIFACT_DIR} \
     && chown -R ${ANSIBLE_USER}:${ANSIBLE_GROUP} $CONTAINER_ARTIFACT_DIR \
     && chmod -R 555 ${SPLUNK_ANSIBLE_HOME} \
+    && chmod -R 777 ${CONTAINER_ARTIFACT_DIR} \
     && chmod 755 /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh
 
 USER ${ANSIBLE_USER}
