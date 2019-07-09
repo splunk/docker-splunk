@@ -55,8 +55,7 @@ COPY [ "splunk/common-files/updateetc.sh", "/sbin/" ]
 
 # Setup users and groups
 RUN groupadd -r -g ${GID} ${SPLUNK_GROUP} \
-    && useradd -r -m -u ${UID} -g ${GID} -s /sbin/nologin -d ${SPLUNK_HOME} ${SPLUNK_USER} \
-    && chown -R splunk.splunk ${SPLUNK_HOME} \
+    && useradd -r -m -u ${UID} -g ${GID} ${SPLUNK_USER} \
     && chmod 755 /sbin/updateetc.sh
 
 COPY --from=package --chown=splunk:splunk /minimal /opt
@@ -106,6 +105,7 @@ RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /
     && mkdir ${CONTAINER_ARTIFACT_DIR} \
     && chown -R ${ANSIBLE_USER}:${ANSIBLE_GROUP} $CONTAINER_ARTIFACT_DIR \
     && chmod -R 555 ${SPLUNK_ANSIBLE_HOME} \
+    && chmod -R 777 ${CONTAINER_ARTIFACT_DIR} \
     && chmod 755 /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh
 
 USER ${ANSIBLE_USER}
