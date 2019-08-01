@@ -21,16 +21,15 @@ FROM ${SPLUNK_BASE_IMAGE}:latest as package
 ARG SPLUNK_BUILD_URL
 COPY splunk/common-files/make-minimal-exclude.py /tmp
 RUN python /tmp/make-minimal-exclude.py ${SPLUNK_BUILD_URL} > /tmp/splunk-minimal-exclude.list
-RUN echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}"
 RUN wget -qO /tmp/splunk.tgz ${SPLUNK_BUILD_URL}
 RUN wget -qO /tmp/splunk.tgz.md5 ${SPLUNK_BUILD_URL}.md5
 RUN test $(md5sum /tmp/splunk.tgz | sed 's,\([a-z0-9]*\).*,\1,') = $(cat /tmp/splunk.tgz.md5 | sed 's,MD5.*=.\([a-z0-9]*\).*,\1,')
-RUN mkdir -p /opt/splunk/var /minimal/splunk/var /extras/splunk/var
+RUN mkdir -p /minimal/splunk/var /extras/splunk/var
 RUN tar -C /minimal/splunk --strip 1 --exclude-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/splunk.tgz
 RUN tar -C /extras/splunk --strip 1 --wildcards --files-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/splunk.tgz
 RUN mv /minimal/splunk/etc /minimal/splunk-etc
 RUN mv /extras/splunk/etc /extras/splunk-etc
-RUN mkdir -p /minimal/splunk/share/splunk/search_mrsparkle/modules.new
+RUN mkdir -p /minimal/splunk/etc /minimal/splunk/share/splunk/search_mrsparkle/modules.new
 COPY splunk/common-files/apps /extras/splunk-etc/apps/
 
 
@@ -106,6 +105,7 @@ RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /
     && mkdir ${CONTAINER_ARTIFACT_DIR} \
     && chown -R ${ANSIBLE_USER}:${ANSIBLE_GROUP} $CONTAINER_ARTIFACT_DIR \
     && chmod -R 555 ${SPLUNK_ANSIBLE_HOME} \
+    && chmod -R 777 ${CONTAINER_ARTIFACT_DIR} \
     && chmod 755 /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh
 
 USER ${ANSIBLE_USER}

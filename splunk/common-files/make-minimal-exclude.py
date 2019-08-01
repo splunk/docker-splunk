@@ -41,3 +41,6 @@ if m and m.group(1):
             print "*/etc/apps/gettingstarted*"
         else:
             print "*/etc/apps/splunk_metrics_workspace*"
+    elif int(m.group(1)) > 7:
+        print EXCLUDE_V7
+        print "*/etc/apps/splunk_metrics_workspace*"
