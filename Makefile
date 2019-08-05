@@ -248,7 +248,7 @@ run_tests_centos7:
 
 run_tests_redhat8:
 	@echo 'Running the super awesome tests; RedHat 8'
-	pytest -sv tests/test_redhat_8.py --junitxml test-results/redhat8-result/testresults_redhat8.xml
+	pytest -sv tests/test_docker_splunk.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_redhat8.xml
 
 test_setup:
 	@echo 'Install test requirements'
@@ -256,6 +256,8 @@ test_setup:
 	pip install -r $(shell pwd)/tests/requirements.txt --upgrade
 	mkdir test-results/centos7-result || true
 	mkdir test-results/debian9-result || true
+	mkdir test-results/debian10-result || true
+	mkdir test-results/redhat8-result || true
 
 run_tests_debian9:
 	@echo 'Running the super awesome tests; Debian 9'
@@ -269,6 +271,51 @@ save_containers:
 	@echo 'Saving the following containers:${CONTAINERS_TO_SAVE}'
 	mkdir test-results/saved_images || true
 	$(foreach image,${CONTAINERS_TO_SAVE}, echo "Currently saving: ${image}"; docker save ${image} --output test-results/saved_images/${image}.tar; echo "Compressing: ${image}.tar"; gzip test-results/saved_images/${image}.tar; )
+
+run_tests_centos7_py3:
+	@echo 'Running the super awesome tests; CentOS 7'
+	pytest -sv tests/test_docker_splunk.py --platform centos-7 --junitxml test-results/centos7-result/testresults_centos7.xml
+
+run_tests_redhat8_py3:
+	@echo 'Running the super awesome tests; RedHat 8'
+	pytest -sv tests/test_docker_splunk.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_redhat8.xml
+
+
+test_py3: clean ansible test_setup all run_tests_centos7_py3 run_tests_redhat8_py3 run_tests_debian9_py3
+
+test_centos7_py3: clean ansible splunk-centos-7 uf-centos-7 test_setup_py3 run_tests_centos7_py3
+
+test_redhat8_py3: clean ansible splunk-redhat-8 uf-redhat-8 test_setup_py3 run_tests_redhat8_py3
+
+test_debian9_py3: clean ansible splunk-debian-9 uf-debian-9 test_setup_py3 run_tests_debian9_py3
+
+test_debian10_py3: clean ansible splunk-debian-10 uf-debian-10 test_setup_py3 run_tests_debian10_py3
+
+test_setup_py3:
+	@echo 'Install test requirements'
+	pip3 install --upgrade pip3
+	pip3 install -r $(shell pwd)/tests/requirements.txt --upgrade
+	mkdir test-results/centos7-result || true
+	mkdir test-results/debian9-result || true
+	mkdir test-results/debian10-result || true
+	mkdir test-results/redhat8-result || true
+
+run_tests_debian9_py3:
+	@echo 'Running the super awesome tests; Debian 9'
+	python3 -m pytest -sv tests/test_docker_splunk.py --platform debian-9 --junitxml test-results/debian9-result/testresults_debian9.xml
+
+run_tests_debian10_py3:
+	@echo 'Running the super awesome tests; Debian 10'
+	python3 -m pytest -sv tests/test_docker_splunk.py --platform debian-10 --junitxml test-results/debian10-result/testresults_debian10.xml
+
+run_tests_centos7_py3:
+	@echo 'Running the super awesome tests; CentOS 7'
+	python3 -m pytest -sv tests/test_docker_splunk.py --platform centos-7 --junitxml test-results/centos7-result/testresults_centos7.xml
+
+run_tests_redhat8_py3:
+	@echo 'Running the super awesome tests; RedHat 8'
+	python3 -m pytest -sv tests/test_docker_splunk.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_redhat8.xml
+
 
 setup_clair_scanner:
 	mkdir clair-scanner-logs

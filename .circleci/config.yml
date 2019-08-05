@@ -26,7 +26,11 @@ jobs:
           path: clair-scanner-logs
           destintation: clair-scanner-logs
       - run:
-          name: Running CI Tests
+          name: Running debian9 CI Tests
+          command: make run_tests_debian9
+          no_output_timeout: 20m
+       - run:
+          name: Running debian9 python3 CI Tests
           command: make run_tests_debian9
           no_output_timeout: 20m
       - store_artifacts:
