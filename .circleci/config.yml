@@ -8,7 +8,7 @@ jobs:
       - run:
           name: Install python3
           command: |
-            sudo apt-get install python3.5
+            sudo apt-get install python3
             sudo apt-get install python3-pip
       - run:
           name: Build Container
@@ -18,6 +18,10 @@ jobs:
           name: Setup Tests / Scanner Requirements
           command: |
             make test_setup
+      - run:
+          name: Setup dependencies python3
+          command: make test_setup_py3
+          no_output_timeout: 10m
       - run:
           name: Export Build Images for Artifacts
           command: |
@@ -30,14 +34,6 @@ jobs:
           name: Store Scanner Logs
           path: clair-scanner-logs
           destintation: clair-scanner-logs
-      - run:
-          name: Setup dependencies
-          command: make test_setup
-          no_output_timeout: 10m
-      - run:
-          name: Setup dependencies python3
-          command: make test_setup_py3
-          no_output_timeout: 10m
       - run:
           name: Running debian9 CI Tests
           command: make run_tests_debian9
