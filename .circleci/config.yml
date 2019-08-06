@@ -2,7 +2,7 @@ version: 2
 jobs:
   docker-splunk-test:
     docker:
-      image: circleci/python:3.7.3
+      - image: circleci/python:3.7.3
     steps:
       - checkout
       - run:
@@ -26,12 +26,44 @@ jobs:
           path: clair-scanner-logs
           destintation: clair-scanner-logs
       - run:
+          name: Setup dependencies
+          command: make test_setup
+          no_output_timeout: 10m
+      - run:
+          name: Setup dependencies python3
+          command: make test_setup_py3
+          no_output_timeout: 10m
+      - run:
           name: Running debian9 CI Tests
           command: make run_tests_debian9
           no_output_timeout: 20m
       - run:
           name: Running debian9 python3 CI Tests
           command: make run_tests_debian9_py3
+          no_output_timeout: 20m
+      - run:
+          name: Running debian10 CI Tests
+          command: make run_tests_debian10
+          no_output_timeout: 20m
+      - run:
+          name: Running debian10 python3 CI Tests
+          command: make run_tests_debian10_py3
+          no_output_timeout: 20m
+      - run:
+          name: Running centos7 CI Tests
+          command: make run_tests_centos7
+          no_output_timeout: 20m
+      - run:
+          name: Running centos7 python3 CI Tests
+          command: make run_tests_centos7_py3
+          no_output_timeout: 20m
+      - run:
+          name: Running redhat8 CI Tests
+          command: make run_tests_redhat8
+          no_output_timeout: 20m
+      - run:
+          name: Running redhat8 python3 CI Tests
+          command: make run_tests_redhat8_py3
           no_output_timeout: 20m
       - store_artifacts:
           path: test-results
