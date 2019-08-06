@@ -33,9 +33,9 @@ apt update
 # put back tools for customer support
 apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl
 apt-get install -y --no-install-recommends python-pip python-setuptools python-requests python-yaml
-apt-get install -y --no-install-recommends python3 python3-pip
+apt-get install -y --no-install-recommends python3 python3-pip python3-setuptools python3-requests python3-yaml
 pip --no-cache-dir install ansible
-pip3 --no-cache-dir install requests pyyaml setuptools ansible
+pip3 --no-cache-dir install ansible
 
 cd /bin
 ln -s busybox killall

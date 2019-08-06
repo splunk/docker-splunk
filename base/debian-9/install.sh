@@ -36,8 +36,7 @@ apt-get update
 apt-cache show ansible
 apt-get install -y --no-install-recommends ansible curl sudo libgssapi-krb5-2 busybox procps acl
 apt-get install -y --no-install-recommends python-requests
-apt-get install -y --no-install-recommends python3 python3-pip
-pip3 --no-cache-dir install requests
+apt-get install -y --no-install-recommends python3 python3-pip python3-requests
 
 cd /bin
 ln -s busybox diff

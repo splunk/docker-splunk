@@ -272,14 +272,6 @@ save_containers:
 	mkdir test-results/saved_images || true
 	$(foreach image,${CONTAINERS_TO_SAVE}, echo "Currently saving: ${image}"; docker save ${image} --output test-results/saved_images/${image}.tar; echo "Compressing: ${image}.tar"; gzip test-results/saved_images/${image}.tar; )
 
-run_tests_centos7_py3:
-	@echo 'Running the super awesome tests; CentOS 7'
-	pytest -sv tests/test_docker_splunk.py --platform centos-7 --junitxml test-results/centos7-result/testresults_centos7.xml
-
-run_tests_redhat8_py3:
-	@echo 'Running the super awesome tests; RedHat 8'
-	pytest -sv tests/test_docker_splunk.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_redhat8.xml
-
 
 test_py3: clean ansible test_setup all run_tests_centos7_py3 run_tests_redhat8_py3 run_tests_debian9_py3
 
@@ -293,7 +285,7 @@ test_debian10_py3: clean ansible splunk-debian-10 uf-debian-10 test_setup_py3 ru
 
 test_setup_py3:
 	@echo 'Install test requirements'
-	pip3 install --upgrade pip3
+	pip3 install --upgrade pip
 	pip3 install -r $(shell pwd)/tests/requirements.txt --upgrade
 	mkdir test-results/centos7-result || true
 	mkdir test-results/debian9-result || true
