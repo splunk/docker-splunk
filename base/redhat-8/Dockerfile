@@ -12,9 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# NOTE that since OpenShift Container Platform 3.11
+# the container catalog moved from registry.access.redhat.com to registry.redhat.io
+# So at some point before they deprecate the old registry we have to make sure that
+# we have access to the new registry and change where we pull the ubi image from.
 FROM registry.access.redhat.com/ubi8/ubi-minimal
-LABEL maintainer="support@splunk.com"
+LABEL name="splunk" \
+      maintainer="support@splunk.com" \
+      vendor="splunk" \
+      version="1.0.0" \
+      release="1" \
+      summary="UBI 8 Docker image of Splunk Enterprise" \
+      description="Splunk Enterprise is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results."
+
+RUN mkdir /licenses; \
+	curl -o /licenses/apache-2.0.txt https://www.apache.org/licenses/LICENSE-2.0.txt; \
+	curl -o /licenses/EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf https://www.redhat.com/licenses/EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf
 
 COPY install.sh /install.sh
-COPY EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf /EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf
 RUN /install.sh && rm -rf /install.sh
