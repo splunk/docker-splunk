@@ -9,7 +9,7 @@ jobs:
           name: Install python3
           command: |
             sudo apt-get install python3
-            sudo python3 -m pip install
+            sudo apt-get install python3-pip
       - run:
           name: Build Container
           command: |
