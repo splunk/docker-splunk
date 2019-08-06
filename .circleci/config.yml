@@ -20,6 +20,12 @@ jobs:
           command: make test_setup_py3
           no_output_timeout: 10m
       - run:
+          name: Pylint
+          command: find . -iname "*.py" | xargs pylint 
+      - run:
+          name: Pylint python3
+          command: find . -iname "*.py" | xargs pylint --py3k
+      - run:
           name: Build Container
           command: |
             make all
