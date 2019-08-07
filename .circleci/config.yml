@@ -13,6 +13,7 @@ jobs:
             which python3
             python --version
             python3.4 --version
+            pyenv install python 3.5.2
             python3 --version
       - run:
           name: Setup Tests python3
