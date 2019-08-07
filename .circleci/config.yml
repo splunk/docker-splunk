@@ -10,18 +10,15 @@ jobs:
       - run:
           name: Install python3
           command: |
-            apt-get install python3.5
-            apt-get install python3-pip
-            echo "alias python3=python3.5" >> ~/.bashrc
-            python3 --version
-      - run:
-          name: Setup Tests / Scanner Requirements
-          command: |
-            make test_setup
+            echo "alias python3=python3.4" >> ~/.bashrc
       - run:
           name: Setup Tests python3
           command: |
             make test_setup_py3
+      - run:
+          name: Setup Tests / Scanner Requirements
+          command: |
+            make test_setup
       - run:
           name: Pylint
           command: find . -iname "*.py" | xargs pylint 
