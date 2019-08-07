@@ -9,8 +9,7 @@ jobs:
           name: Setup python3
           command: |
             pyenv uninstall -f 3.5.2
-            wget https://bootstrap.pypa.io/get-pip.py
-            python3 get-pip.py --user
+            sudo apt-get install python3-pip
             python3 --version
       - run:
           name: Setup Tests / Scanner Requirements
