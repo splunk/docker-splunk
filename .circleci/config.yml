@@ -3,13 +3,11 @@ jobs:
   docker-splunk-test:
     machine:
       image: circleci/classic:latest
-    environment:
-      BASH_ENV: ~/.bashrc
     steps:
       - checkout
       - run:
           name: Install python3
-          command: echo 'alias python3=python3.4' >> $BASH_ENV
+          command: echo 'alias python3=python3.4' >> $BASH_ENV && python3.4 --version
       - run:
           name: Setup Tests python3
           command: |
