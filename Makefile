@@ -285,8 +285,8 @@ test_debian10_py3: clean ansible splunk-debian-10 uf-debian-10 test_setup_py3 ru
 
 test_setup_py3:
 	@echo 'Install test requirements'
-	python3 -m pip install --upgrade pip
-	python3 -m pip install -r $(shell pwd)/tests/requirements.txt --upgrade
+	pip3 install --upgrade pip
+	pip3 install -r $(shell pwd)/tests/requirements.txt --upgrade
 	mkdir test-results/centos7-result || true
 	mkdir test-results/debian9-result || true
 	mkdir test-results/debian10-result || true
