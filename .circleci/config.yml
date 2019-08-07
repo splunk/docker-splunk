@@ -15,9 +15,10 @@ jobs:
             ./configure --prefix=$HOME/.local/bin/python3
             make
             make install
+            echo 'PATH=$PATH:$HOME/.local/bin' >> $BASH_ENV
+            source $BASH_ENV
             wget https://bootstrap.pypa.io/get-pip.py
             python3 get-pip.py --user
-            echo 'PATH=$PATH:$HOME/.local/bin' >> $BASH_ENV
       - run:
           name: Setup Tests python3
           command: |
