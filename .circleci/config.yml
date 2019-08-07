@@ -11,6 +11,7 @@ jobs:
             which python
             which python3.4
             which python3
+            pyenv versions
             python --version
             python3.4 --version
             pyenv install 3.5.2
