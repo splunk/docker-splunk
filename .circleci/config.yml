@@ -13,15 +13,14 @@ jobs:
             python3 get-pip.py --user
             echo 'PATH=$PATH:$HOME/.local/bin' >> $BASH_ENV
             python3 --version
-            pip3 --version
-      - run:
-          name: Setup Tests / Scanner Requirements
-          command: |
-            make test_setup
       - run:
           name: Setup Tests python3
           command: |
             make test_setup_py3
+      - run:
+          name: Setup Tests / Scanner Requirements
+          command: |
+            make test_setup
       - run:
           name: Pylint
           command: find . -iname "*.py" | xargs pylint 
