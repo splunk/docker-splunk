@@ -9,7 +9,7 @@ jobs:
           name: Setup python3
           command: |
             pyenv uninstall -f 3.5.2
-            sudo apt-get install python3.5 python3-pip
+            apt-get install python3.5 python3-pip
             python3 --version
       - run:
           name: Setup Tests python3
