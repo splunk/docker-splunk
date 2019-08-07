@@ -9,6 +9,7 @@ jobs:
           name: Install python3
           command: |
             which python3.4
+            unlink /usr/bin/python3
             ln -s $(which python3.4) /usr/bin/python3
             which python3
             python3.4 --version
