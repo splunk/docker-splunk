@@ -9,16 +9,16 @@ jobs:
           name: Setup python3
           command: |
             pyenv uninstall -f 3.5.2
-            apt-get install python3.5 python3-pip
+            sudo apt-get install python3.5 python3-pip
             python3 --version
-      - run:
-          name: Setup Tests python3
-          command: |
-            make test_setup_py3
       - run:
           name: Setup Tests / Scanner Requirements
           command: |
             make test_setup
+      - run:
+          name: Setup Tests python3
+          command: |
+            make test_setup_py3
       - run:
           name: Pylint
           command: find . -iname "*.py" | xargs pylint 
