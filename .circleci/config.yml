@@ -11,7 +11,7 @@ jobs:
             pyenv uninstall -f 3.5.2
             wget https://bootstrap.pypa.io/get-pip.py
             python3 get-pip.py --user
-            export PATH=$PATH:/home/circleci/.local/bin
+            echo 'PATH=$PATH:$HOME/.local/bin' >> $BASH_ENV
             python3 --version
             pip3 --version
       - run:
