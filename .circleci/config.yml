@@ -8,17 +8,13 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            pyenv uninstall -f 3.5.2
-            wget https://www.python.org/ftp/python/3.7.4/Python-3.7.4.tgz
-            tar zxfv Python-3.7.4.tgz
-            cd Python-3.7.4/
-            ./configure --prefix=$HOME/.local/bin/python3
-            make
-            make install
-            echo 'PATH=$PATH:$HOME/.local/bin' >> $BASH_ENV
-            source $BASH_ENV
-            wget https://bootstrap.pypa.io/get-pip.py
-            python3 get-pip.py --user
+            pyenv install 2.7.16
+            pyenv install 3.7.4
+            pyenv global 2.7.16 3.7.4
+            python --version
+            pip --version
+            python3 --version
+            pip3 --version
       - run:
           name: Setup Tests python3
           command: |
