@@ -8,10 +8,7 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            cd /opt/circleci/.pyenv/plugins/python-build/../.. && git pull && cd -
-            pyenv install 2.7.16
-            pyenv install 3.7.4
-            pyenv global 2.7.16 3.7.4
+            pyenv global 2.7.12 3.5.2
             python --version
             pip --version
             python3 --version
