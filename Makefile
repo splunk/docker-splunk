@@ -272,42 +272,42 @@ save_containers:
 	mkdir test-results/saved_images || true
 	$(foreach image,${CONTAINERS_TO_SAVE}, echo "Currently saving: ${image}"; docker save ${image} --output test-results/saved_images/${image}.tar; echo "Compressing: ${image}.tar"; gzip test-results/saved_images/${image}.tar; )
 
+test_python3_all: test_splunk_python3_all test_uf_python3_all
 
-test_py3: clean ansible test_setup all run_tests_centos7_py3 run_tests_redhat8_py3 run_tests_debian9_py3
+test_splunk_python3_all: test_splunk_centos7_python3 test_splunk_redhat8_python3 test_splunk_debian9_python3 test_splunk_debian10_python3
 
-test_centos7_py3: clean ansible splunk-centos-7 uf-centos-7 test_setup_py3 run_tests_centos7_py3
+test_uf_python3_all: test_uf_centos7_python3 test_uf_redhat8_python3 test_uf_debian9_python3 test_uf_debian10_python3
 
-test_redhat8_py3: clean ansible splunk-redhat-8 uf-redhat-8 test_setup_py3 run_tests_redhat8_py3
+test_splunk_centos7_python3:
+	$(call test_python3_installation, splunk-centos-7)
 
-test_debian9_py3: clean ansible splunk-debian-9 uf-debian-9 test_setup_py3 run_tests_debian9_py3
+test_splunk_redhat8_python3:
+	$(call test_python3_installation, splunk-redhat-8)
 
-test_debian10_py3: clean ansible splunk-debian-10 uf-debian-10 test_setup_py3 run_tests_debian10_py3
+test_splunk_debian9_python3:
+	$(call test_python3_installation, splunk-debian-9)
 
-test_setup_py3:
-	@echo 'Install test requirements'
-	pip3 install --upgrade pip
-	pip3 install -r $(shell pwd)/tests/requirements.txt --upgrade
-	mkdir test-results/centos7-result || true
-	mkdir test-results/debian9-result || true
-	mkdir test-results/debian10-result || true
-	mkdir test-results/redhat8-result || true
+test_splunk_debian10_python3:
+	$(call test_python3_installation, splunk-debian-10)
 
-run_tests_debian9_py3:
-	@echo 'Running the super awesome tests; Debian 9'
-	python3 -m pytest -sv tests/test_docker_splunk.py --platform debian-9 --junitxml test-results/debian9-result/testresults_debian9.xml
+test_uf_centos7_python3:
+	$(call test_python3_installation, uf-centos-7)
 
-run_tests_debian10_py3:
-	@echo 'Running the super awesome tests; Debian 10'
-	python3 -m pytest -sv tests/test_docker_splunk.py --platform debian-10 --junitxml test-results/debian10-result/testresults_debian10.xml
+test_uf_redhat8_python3:
+	$(call test_python3_installation, uf-redhat-8)
 
-run_tests_centos7_py3:
-	@echo 'Running the super awesome tests; CentOS 7'
-	python3 -m pytest -sv tests/test_docker_splunk.py --platform centos-7 --junitxml test-results/centos7-result/testresults_centos7.xml
+test_uf_debian9_python3:
+	$(call test_python3_installation, uf-debian-9)
 
-run_tests_redhat8_py3:
-	@echo 'Running the super awesome tests; RedHat 8'
-	python3 -m pytest -sv tests/test_docker_splunk.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_redhat8.xml
+test_uf_debian10_python3:
+	$(call test_python3_installation, uf-debian-10)
 
+define test_python3_installation
+docker run -d --rm --name $1 -it $1 bash
+docker exec -it $1 bash -c 'if [[ $$(python3 -V) =~ "Python 3" ]] ; then echo "$$(python3 -V) installed" ; else echo "No Python3 installation found" ; docker kill $1 ; exit 1 ; fi'
+docker kill $1
+endef
+	
 
 setup_clair_scanner:
 	mkdir clair-scanner-logs
