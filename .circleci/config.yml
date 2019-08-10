@@ -33,7 +33,7 @@ jobs:
           name: Store Scanner Logs
           path: clair-scanner-logs
           destintation: clair-scanner-logs
-      -run:
+      - run:
           name: Test Python3 installation
           command: make test_python3_all
       - run:
