@@ -41,14 +41,6 @@ jobs:
           command: make run_tests_debian9
           no_output_timeout: 20m
       - run:
-          name: Running debian10 CI Tests
-          command: make run_tests_debian10
-          no_output_timeout: 20m
-      - run:
-          name: Running centos7 CI Tests
-          command: make run_tests_centos7
-          no_output_timeout: 20m
-      - run:
           name: Running redhat8 CI Tests
           command: make run_tests_redhat8
           no_output_timeout: 20m
