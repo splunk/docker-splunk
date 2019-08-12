@@ -8,9 +8,7 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            pyenv install --list
-            CFLAGS=-I/usr/include/openssl LDFLAGS=-L/usr/lib pyenv install 3.7.4
-            pyenv global 2.7.12 3.7.4
+            pyenv global 2.7.12 3.5.2
             python --version
             pip --version
             python3 --version
