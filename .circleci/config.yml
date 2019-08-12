@@ -8,7 +8,9 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            pyenv global 2.7.12 3.5.2
+            sudo apt-get install python-openssl
+            pyenv install 3.7.4
+            pyenv global 2.7.12 3.7.4
             python --version
             pip --version
             python3 --version
@@ -39,10 +41,6 @@ jobs:
       - run:
           name: Running debian9 CI Tests
           command: make run_tests_debian9
-          no_output_timeout: 20m
-      - run:
-          name: Running redhat8 CI Tests
-          command: make run_tests_redhat8
           no_output_timeout: 20m
       - store_artifacts:
           path: test-results
