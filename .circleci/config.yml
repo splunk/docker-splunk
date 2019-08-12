@@ -8,8 +8,7 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            sudo apt-get install python-openssl
-            pyenv install 3.7.4
+            CFLAGS=-I/usr/include/openssl LDFLAGS=-L/usr/lib pyenv install 3.7.4
             pyenv global 2.7.12 3.7.4
             python --version
             pip --version
