@@ -36,7 +36,7 @@ jobs:
       - run:
           name: Test Python3 installation
           command: make test_python3_all
-       - run:
+      - run:
           name: Test Python2 as the default
           command: make test_python2_all
       - run:
