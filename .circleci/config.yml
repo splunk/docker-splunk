@@ -36,6 +36,9 @@ jobs:
       - run:
           name: Test Python3 installation
           command: make test_python3_all
+       - run:
+          name: Test Python2 as the default
+          command: make test_python2_all
       - run:
           name: Running debian9 CI Tests
           command: make run_tests_debian9

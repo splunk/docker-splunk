@@ -307,7 +307,44 @@ docker run -d --rm --name $1 -it $1 bash
 docker exec -it $1 bash -c 'if [[ $$(python3 -V) =~ "Python 3" ]] ; then echo "$$(python3 -V) installed" ; else echo "No Python3 installation found" ; docker kill $1 ; exit 1 ; fi'
 docker kill $1
 endef
-	
+
+test_python2_all: test_splunk_python2_all test_uf_python2_all
+
+test_splunk_python2_all: test_splunk_centos7_python2 test_splunk_redhat8_python2 test_splunk_debian9_python2 test_splunk_debian10_python2
+
+test_uf_python2_all: test_uf_centos7_python2 test_uf_redhat8_python2 test_uf_debian9_python2 test_uf_debian10_python2
+
+test_splunk_centos7_python2:
+	$(call test_python2_installation, splunk-centos-7)
+
+test_splunk_redhat8_python2:
+	$(call test_python2_installation, splunk-redhat-8)
+
+test_splunk_debian9_python2:
+	$(call test_python2_installation, splunk-debian-9)
+
+test_splunk_debian10_python2:
+	$(call test_python2_installation, splunk-debian-10)
+
+test_uf_centos7_python2:
+	$(call test_python2_installation, uf-centos-7)
+
+test_uf_redhat8_python2:
+	$(call test_python2_installation, uf-redhat-8)
+
+test_uf_debian9_python2:
+	$(call test_python2_installation, uf-debian-9)
+
+test_uf_debian10_python2:
+	$(call test_python2_installation, uf-debian-10)
+
+#python2 version print to stderr, hence the 2>&1
+define test_python2_installation
+docker run -d --rm --name $1 -it $1 bash
+docker exec -it $1 bash -c 'if [[ $$(python -V 2>&1) =~ "Python 2" ]] ; then echo "$$(python -V 2>&1) is the default python" ; else echo "Python is not default to python2" ; docker kill $1 ; exit 1 ; fi'
+docker kill $1
+endef
+
 
 setup_clair_scanner:
 	mkdir clair-scanner-logs
