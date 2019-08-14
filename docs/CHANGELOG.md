@@ -2,6 +2,7 @@
 
 ## Navigation
 
+* [7.3.1](#731)
 * [7.3.0](#730)
 * [7.2.7](#727)
 * [7.2.6](#726)
@@ -12,6 +13,24 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 7.3.1
+
+#### What's New?
+* New Splunk Enterprise release of 7.3.1
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.1/ReleaseNotes/Fixedissues
+* Documentation update
+* Minor bug fixes
+
+#### splunk-ansible changes:
+* Fixed Enterprise Security application installation issues
+* Refactored Systemd
+* Fixed Ansible formatting issue
+* Cleaned up Python files before install
 
 ---
 

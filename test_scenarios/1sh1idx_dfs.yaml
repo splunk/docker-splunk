@@ -1,0 +1,101 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+volumes:
+  mnt-spark:
+  mnt-jdk:
+
+services:
+  init:
+    image: ${SPARK_IMAGE:-splunk/spark:latest}
+    entrypoint: [ "sh", "-c" ]
+    command: [ "cp -r /opt/jdk /mnt && cp -r /opt/spark /mnt" ]
+    hostname: init
+    container_name: init
+    networks:
+      splunknet:
+        aliases:
+          - init
+    volumes:
+      - mnt-spark:/mnt/spark
+      - mnt-jdk:/mnt/jdk
+
+  sh1:
+    networks:
+      splunknet:
+        aliases:
+          - sh1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    command: start
+    hostname: sh1
+    container_name: sh1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_SEARCH_HEAD_URL=sh1
+      - SPLUNK_INDEXER_URL=idx1
+      - SPLUNK_ROLE=splunk_search_head
+      - SPLUNK_LICENSE_URI
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+      - SPLUNK_ENABLE_DFS=true
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_WEBUI_PORT=8009
+      - JAVA_HOME=/mnt/jdk
+      - SPARK_HOME=/mnt/spark
+      - SPLUNK_DFW_NUM_SLOTS_ENABLED=false
+    ports:
+      - 8000
+      - 8089
+    depends_on:
+      - init
+    volumes:
+      - mnt-spark:/mnt/spark
+      - mnt-jdk:/mnt/jdk
+
+  idx1:
+    networks:
+      splunknet:
+        aliases:
+          - idx1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    command: start
+    hostname: idx1
+    container_name: idx1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_SEARCH_HEAD_URL=sh1
+      - SPLUNK_INDEXER_URL=idx1
+      - SPLUNK_ROLE=splunk_indexer
+      - SPLUNK_LICENSE_URI
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+
+  spark-master:
+    image: ${SPARK_IMAGE:-splunk/spark:latest}
+    hostname: spark-master
+    container_name: spark-master
+    networks:
+      splunknet:
+        aliases:
+          - spark-master
+    environment:
+      - SPLUNK_ROLE=splunk_spark_master
+
+  spark-worker:
+    image: ${SPARK_IMAGE:-splunk/spark:latest}
+    hostname: spark-worker
+    container_name: spark-worker
+    networks:
+      splunknet:
+        aliases:
+          - spark-worker
+    environment:
+      - SPLUNK_ROLE=splunk_spark_worker
+      - SPARK_MASTER_HOSTNAME=spark-master
