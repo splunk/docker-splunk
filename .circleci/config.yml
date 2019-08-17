@@ -40,6 +40,9 @@ jobs:
           name: Test Python2 as the default
           command: make test_python2_all
       - run:
+          name: Test if image size increase
+          command: make test_debian9_image_size
+      - run:
           name: Running debian9 CI Tests
           command: make run_tests_debian9
           no_output_timeout: 20m
