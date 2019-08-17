@@ -20,8 +20,6 @@ export LANG=en_US.utf8
 
 yum -y update && yum -y install wget sudo epel-release
 yum -y install busybox ansible python-requests
-yum -y install python36 python36-requests
-python3 -m ensurepip
 
 cd /bin
 ln -s busybox killall

@@ -31,8 +31,8 @@ SCANNER_DATE := `date +%Y-%m-%d`
 SCANNER_DATE_YEST := `TZ=GMT+24 +%Y:%m:%d`
 SCANNER_VERSION := v8
 SCANNER_LOCALIP := $(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $1}' | head -n 1)
-SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8
-CONTAINERS_TO_SAVE := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8
+SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
+CONTAINERS_TO_SAVE := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
 ifeq ($(shell uname), Linux)
 	SCANNER_FILE = clair-scanner_linux_amd64
 else ifeq ($(shell uname), Darwin)
@@ -44,7 +44,7 @@ endif
 
 .PHONY: tests interactive_tutorials
 
-all: splunk uf
+all: splunk uf splunk-py23 uf-py23
 
 ansible:
 	@if [ -d "splunk-ansible" ]; then \
@@ -225,6 +225,61 @@ uf-windows-2016: base-windows-2016 ansible
 		--build-arg SPLUNK_BUILD_URL=${UF_WIN_BUILD_URL} \
 		-t uf-windows-2016:${IMAGE_VERSION} .
 
+
+##### Python 3 support #####
+splunk-py23: splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8
+
+splunk-py23-debian-9: splunk-debian-9
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/debian-9/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=splunk \
+		-t splunk-py23-debian-9:${IMAGE_VERSION} .
+
+splunk-py23-debian-10: splunk-debian-10
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/debian-10/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=splunk \
+		-t splunk-py23-debian-10:${IMAGE_VERSION} .
+
+splunk-py23-centos-7: splunk-centos-7
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/centos-7/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=splunk \
+		-t splunk-py23-centos-7:${IMAGE_VERSION} .
+
+splunk-py23-redhat-8: splunk-redhat-8
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/redhat-8/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=splunk \
+		-t splunk-py23-redhat-8:${IMAGE_VERSION} .
+
+uf-py23: uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
+
+uf-py23-debian-9: uf-debian-9
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/debian-9/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=uf \
+		-t uf-py23-debian-9:${IMAGE_VERSION} .
+
+uf-py23-debian-10: uf-debian-10
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/debian-10/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=uf \
+		-t uf-py23-debian-10:${IMAGE_VERSION} .
+
+uf-py23-centos-7: uf-centos-7
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/centos-7/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=uf \
+		-t uf-py23-centos-7:${IMAGE_VERSION} .
+
+uf-py23-redhat-8: uf-redhat-8
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/redhat-8/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=uf \
+		-t uf-py23-redhat-8:${IMAGE_VERSION} .
+
+
 ##### Tests #####
 sample-compose-up: sample-compose-down
 	docker-compose -f test_scenarios/${SPLUNK_COMPOSE} up -d 
@@ -279,28 +334,28 @@ test_splunk_python3_all: test_splunk_centos7_python3 test_splunk_redhat8_python3
 test_uf_python3_all: test_uf_centos7_python3 test_uf_redhat8_python3 test_uf_debian9_python3 test_uf_debian10_python3
 
 test_splunk_centos7_python3:
-	$(call test_python3_installation, splunk-centos-7)
+	$(call test_python3_installation, splunk-py23-centos-7)
 
 test_splunk_redhat8_python3:
-	$(call test_python3_installation, splunk-redhat-8)
+	$(call test_python3_installation, splunk-py23-redhat-8)
 
 test_splunk_debian9_python3:
-	$(call test_python3_installation, splunk-debian-9)
+	$(call test_python3_installation, splunk-py23-debian-9)
 
 test_splunk_debian10_python3:
-	$(call test_python3_installation, splunk-debian-10)
+	$(call test_python3_installation, splunk-py23-debian-10)
 
 test_uf_centos7_python3:
-	$(call test_python3_installation, uf-centos-7)
+	$(call test_python3_installation, uf-py23-centos-7)
 
 test_uf_redhat8_python3:
-	$(call test_python3_installation, uf-redhat-8)
+	$(call test_python3_installation, uf-py23-redhat-8)
 
 test_uf_debian9_python3:
-	$(call test_python3_installation, uf-debian-9)
+	$(call test_python3_installation, uf-py23-debian-9)
 
 test_uf_debian10_python3:
-	$(call test_python3_installation, uf-debian-10)
+	$(call test_python3_installation, uf-py23-debian-10)
 
 define test_python3_installation
 docker run -d --rm --name $1 -it $1 bash
@@ -315,28 +370,28 @@ test_splunk_python2_all: test_splunk_centos7_python2 test_splunk_redhat8_python2
 test_uf_python2_all: test_uf_centos7_python2 test_uf_redhat8_python2 test_uf_debian9_python2 test_uf_debian10_python2
 
 test_splunk_centos7_python2:
-	$(call test_python2_installation, splunk-centos-7)
+	$(call test_python2_installation, splunk-py23-centos-7)
 
 test_splunk_redhat8_python2:
-	$(call test_python2_installation, splunk-redhat-8)
+	$(call test_python2_installation, splunk-py23-redhat-8)
 
 test_splunk_debian9_python2:
-	$(call test_python2_installation, splunk-debian-9)
+	$(call test_python2_installation, splunk-py23-debian-9)
 
 test_splunk_debian10_python2:
-	$(call test_python2_installation, splunk-debian-10)
+	$(call test_python2_installation, splunk-py23-debian-10)
 
 test_uf_centos7_python2:
-	$(call test_python2_installation, uf-centos-7)
+	$(call test_python2_installation, uf-py23-centos-7)
 
 test_uf_redhat8_python2:
-	$(call test_python2_installation, uf-redhat-8)
+	$(call test_python2_installation, uf-py23-redhat-8)
 
 test_uf_debian9_python2:
-	$(call test_python2_installation, uf-debian-9)
+	$(call test_python2_installation, uf-py23-debian-9)
 
 test_uf_debian10_python2:
-	$(call test_python2_installation, uf-debian-10)
+	$(call test_python2_installation, uf-py23-debian-10)
 
 #python2 version print to stderr, hence the 2>&1
 define test_python2_installation

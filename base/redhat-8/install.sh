@@ -30,10 +30,8 @@ microdnf -y --nodocs install wget sudo shadow-utils procps
 wget https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-x86_64
 mv busybox-x86_64 /bin/busybox
 chmod +x /bin/busybox
-microdnf -y --nodocs install python2 tar python3
-alternatives --set python /usr/bin/python2
+microdnf -y --nodocs install python2 tar
 pip2 -q --no-cache-dir install requests ansible
-pip3 -q --no-cache-dir install requests ansible
 
 cd /bin
 ln -s busybox diff
