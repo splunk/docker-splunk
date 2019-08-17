@@ -334,28 +334,28 @@ test_splunk_python3_all: test_splunk_centos7_python3 test_splunk_redhat8_python3
 test_uf_python3_all: test_uf_centos7_python3 test_uf_redhat8_python3 test_uf_debian9_python3 test_uf_debian10_python3
 
 test_splunk_centos7_python3:
-	$(call test_python3_installation, splunk-py23-centos-7)
+	$(call test_python3_installation,splunk-py23-centos-7)
 
 test_splunk_redhat8_python3:
-	$(call test_python3_installation, splunk-py23-redhat-8)
+	$(call test_python3_installation,splunk-py23-redhat-8)
 
 test_splunk_debian9_python3:
-	$(call test_python3_installation, splunk-py23-debian-9)
+	$(call test_python3_installation,splunk-py23-debian-9)
 
 test_splunk_debian10_python3:
-	$(call test_python3_installation, splunk-py23-debian-10)
+	$(call test_python3_installation,splunk-py23-debian-10)
 
 test_uf_centos7_python3:
-	$(call test_python3_installation, uf-py23-centos-7)
+	$(call test_python3_installation,uf-py23-centos-7)
 
 test_uf_redhat8_python3:
-	$(call test_python3_installation, uf-py23-redhat-8)
+	$(call test_python3_installation,uf-py23-redhat-8)
 
 test_uf_debian9_python3:
-	$(call test_python3_installation, uf-py23-debian-9)
+	$(call test_python3_installation,uf-py23-debian-9)
 
 test_uf_debian10_python3:
-	$(call test_python3_installation, uf-py23-debian-10)
+	$(call test_python3_installation,uf-py23-debian-10)
 
 define test_python3_installation
 docker run -d --rm --name $1 -it $1 bash
@@ -370,28 +370,28 @@ test_splunk_python2_all: test_splunk_centos7_python2 test_splunk_redhat8_python2
 test_uf_python2_all: test_uf_centos7_python2 test_uf_redhat8_python2 test_uf_debian9_python2 test_uf_debian10_python2
 
 test_splunk_centos7_python2:
-	$(call test_python2_installation, splunk-py23-centos-7)
+	$(call test_python2_installation,splunk-py23-centos-7)
 
 test_splunk_redhat8_python2:
-	$(call test_python2_installation, splunk-py23-redhat-8)
+	$(call test_python2_installation,splunk-py23-redhat-8)
 
 test_splunk_debian9_python2:
-	$(call test_python2_installation, splunk-py23-debian-9)
+	$(call test_python2_installation,splunk-py23-debian-9)
 
 test_splunk_debian10_python2:
-	$(call test_python2_installation, splunk-py23-debian-10)
+	$(call test_python2_installation,splunk-py23-debian-10)
 
 test_uf_centos7_python2:
-	$(call test_python2_installation, uf-py23-centos-7)
+	$(call test_python2_installation,uf-py23-centos-7)
 
 test_uf_redhat8_python2:
-	$(call test_python2_installation, uf-py23-redhat-8)
+	$(call test_python2_installation,uf-py23-redhat-8)
 
 test_uf_debian9_python2:
-	$(call test_python2_installation, uf-py23-debian-9)
+	$(call test_python2_installation,uf-py23-debian-9)
 
 test_uf_debian10_python2:
-	$(call test_python2_installation, uf-py23-debian-10)
+	$(call test_python2_installation,uf-py23-debian-10)
 
 #python2 version print to stderr, hence the 2>&1
 define test_python2_installation
@@ -400,6 +400,17 @@ docker exec -it $1 bash -c 'if [[ $$(python -V 2>&1) =~ "Python 2" ]] ; then ech
 docker kill $1
 endef
 
+test_debian9_image_size:
+	$(call test_image_size,splunk-debian-9)
+
+define test_image_size
+docker pull splunk/splunk:edge
+CUR_SIZE=$$(docker image inspect $1:latest --format='{{.Size}}') ; \
+EDGE_SIZE=$$(docker image inspect splunk/splunk:edge --format='{{.Size}}') ; \
+echo "current $1 image size = "$$CUR_SIZE ; \
+echo "edge image size = "$$EDGE_SIZE ; \
+if [[ $$CUR_SIZE > $$EDGE_SIZE*1.01 ]] ; then echo "current image size is 10% more than edge image" ; exit 1 ; fi
+endef
 
 setup_clair_scanner:
 	mkdir clair-scanner-logs
