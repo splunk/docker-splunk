@@ -36,6 +36,7 @@ trap teardown SIGINT SIGTERM
 prep_ansible() {
 	cd ${SPLUNK_ANSIBLE_HOME}
 	if [[ "$DEBUG" == "true" ]]; then
+		whoami
 		ansible-playbook --version
 		python inventory/environ.py --write-to-file
 		cat /opt/container_artifact/ansible_inventory.json 2>/dev/null
@@ -54,10 +55,14 @@ watch_for_failure(){
 	echo
 	user_permission_change
 	# Any crashes/errors while Splunk is running should get logged to splunkd_stderr.log and sent to the container's stdout
+	TAILCMD="sudo -u ${SPLUNK_USER} tail"
+	if [ `whoami` = "splunk" ]; then
+		TAILCMD="tail"
+	fi
 	if [ -z "$SPLUNK_TAIL_FILE" ]; then
-		sudo -u ${SPLUNK_USER} tail -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
+		${TAILCMD} -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
 	else
-		sudo -u ${SPLUNK_USER} tail -n 0 -f ${SPLUNK_TAIL_FILE} &
+		${TAILCMD} -n 0 -f ${SPLUNK_TAIL_FILE} &
 	fi
 	wait
 }
