@@ -31,8 +31,8 @@ SCANNER_DATE := `date +%Y-%m-%d`
 SCANNER_DATE_YEST := `TZ=GMT+24 +%Y:%m:%d`
 SCANNER_VERSION := v8
 SCANNER_LOCALIP := $(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $1}' | head -n 1)
-SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8
-CONTAINERS_TO_SAVE := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8
+SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
+CONTAINERS_TO_SAVE := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
 ifeq ($(shell uname), Linux)
 	SCANNER_FILE = clair-scanner_linux_amd64
 else ifeq ($(shell uname), Darwin)
@@ -44,7 +44,7 @@ endif
 
 .PHONY: tests interactive_tutorials
 
-all: splunk uf
+all: splunk uf splunk-py23 uf-py23
 
 ansible:
 	@if [ -d "splunk-ansible" ]; then \
@@ -225,6 +225,61 @@ uf-windows-2016: base-windows-2016 ansible
 		--build-arg SPLUNK_BUILD_URL=${UF_WIN_BUILD_URL} \
 		-t uf-windows-2016:${IMAGE_VERSION} .
 
+
+##### Python 3 support #####
+splunk-py23: splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8
+
+splunk-py23-debian-9: splunk-debian-9
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/debian-9/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=splunk \
+		-t splunk-py23-debian-9:${IMAGE_VERSION} .
+
+splunk-py23-debian-10: splunk-debian-10
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/debian-10/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=splunk \
+		-t splunk-py23-debian-10:${IMAGE_VERSION} .
+
+splunk-py23-centos-7: splunk-centos-7
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/centos-7/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=splunk \
+		-t splunk-py23-centos-7:${IMAGE_VERSION} .
+
+splunk-py23-redhat-8: splunk-redhat-8
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/redhat-8/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=splunk \
+		-t splunk-py23-redhat-8:${IMAGE_VERSION} .
+
+uf-py23: uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
+
+uf-py23-debian-9: uf-debian-9
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/debian-9/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=uf \
+		-t uf-py23-debian-9:${IMAGE_VERSION} .
+
+uf-py23-debian-10: uf-debian-10
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/debian-10/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=uf \
+		-t uf-py23-debian-10:${IMAGE_VERSION} .
+
+uf-py23-centos-7: uf-centos-7
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/centos-7/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=uf \
+		-t uf-py23-centos-7:${IMAGE_VERSION} .
+
+uf-py23-redhat-8: uf-redhat-8
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/redhat-8/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=uf \
+		-t uf-py23-redhat-8:${IMAGE_VERSION} .
+
+
 ##### Tests #####
 sample-compose-up: sample-compose-down
 	docker-compose -f test_scenarios/${SPLUNK_COMPOSE} up -d 
@@ -248,7 +303,7 @@ run_tests_centos7:
 
 run_tests_redhat8:
 	@echo 'Running the super awesome tests; RedHat 8'
-	pytest -sv tests/test_redhat_8.py --junitxml test-results/redhat8-result/testresults_redhat8.xml
+	pytest -sv tests/test_docker_splunk.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_redhat8.xml
 
 test_setup:
 	@echo 'Install test requirements'
@@ -256,6 +311,8 @@ test_setup:
 	pip install -r $(shell pwd)/tests/requirements.txt --upgrade
 	mkdir test-results/centos7-result || true
 	mkdir test-results/debian9-result || true
+	mkdir test-results/debian10-result || true
+	mkdir test-results/redhat8-result || true
 
 run_tests_debian9:
 	@echo 'Running the super awesome tests; Debian 9'
@@ -269,6 +326,91 @@ save_containers:
 	@echo 'Saving the following containers:${CONTAINERS_TO_SAVE}'
 	mkdir test-results/saved_images || true
 	$(foreach image,${CONTAINERS_TO_SAVE}, echo "Currently saving: ${image}"; docker save ${image} --output test-results/saved_images/${image}.tar; echo "Compressing: ${image}.tar"; gzip test-results/saved_images/${image}.tar; )
+
+test_python3_all: test_splunk_python3_all test_uf_python3_all
+
+test_splunk_python3_all: test_splunk_centos7_python3 test_splunk_redhat8_python3 test_splunk_debian9_python3 test_splunk_debian10_python3
+
+test_uf_python3_all: test_uf_centos7_python3 test_uf_redhat8_python3 test_uf_debian9_python3 test_uf_debian10_python3
+
+test_splunk_centos7_python3:
+	$(call test_python3_installation,splunk-py23-centos-7)
+
+test_splunk_redhat8_python3:
+	$(call test_python3_installation,splunk-py23-redhat-8)
+
+test_splunk_debian9_python3:
+	$(call test_python3_installation,splunk-py23-debian-9)
+
+test_splunk_debian10_python3:
+	$(call test_python3_installation,splunk-py23-debian-10)
+
+test_uf_centos7_python3:
+	$(call test_python3_installation,uf-py23-centos-7)
+
+test_uf_redhat8_python3:
+	$(call test_python3_installation,uf-py23-redhat-8)
+
+test_uf_debian9_python3:
+	$(call test_python3_installation,uf-py23-debian-9)
+
+test_uf_debian10_python3:
+	$(call test_python3_installation,uf-py23-debian-10)
+
+define test_python3_installation
+docker run -d --rm --name $1 -it $1 bash
+docker exec -it $1 bash -c 'if [[ $$(python3 -V) =~ "Python 3" ]] ; then echo "$$(python3 -V) installed" ; else echo "No Python3 installation found" ; docker kill $1 ; exit 1 ; fi'
+docker kill $1
+endef
+
+test_python2_all: test_splunk_python2_all test_uf_python2_all
+
+test_splunk_python2_all: test_splunk_centos7_python2 test_splunk_redhat8_python2 test_splunk_debian9_python2 test_splunk_debian10_python2
+
+test_uf_python2_all: test_uf_centos7_python2 test_uf_redhat8_python2 test_uf_debian9_python2 test_uf_debian10_python2
+
+test_splunk_centos7_python2:
+	$(call test_python2_installation,splunk-py23-centos-7)
+
+test_splunk_redhat8_python2:
+	$(call test_python2_installation,splunk-py23-redhat-8)
+
+test_splunk_debian9_python2:
+	$(call test_python2_installation,splunk-py23-debian-9)
+
+test_splunk_debian10_python2:
+	$(call test_python2_installation,splunk-py23-debian-10)
+
+test_uf_centos7_python2:
+	$(call test_python2_installation,uf-py23-centos-7)
+
+test_uf_redhat8_python2:
+	$(call test_python2_installation,uf-py23-redhat-8)
+
+test_uf_debian9_python2:
+	$(call test_python2_installation,uf-py23-debian-9)
+
+test_uf_debian10_python2:
+	$(call test_python2_installation,uf-py23-debian-10)
+
+#python2 version print to stderr, hence the 2>&1
+define test_python2_installation
+docker run -d --rm --name $1 -it $1 bash
+docker exec -it $1 bash -c 'if [[ $$(python -V 2>&1) =~ "Python 2" ]] ; then echo "$$(python -V 2>&1) is the default python" ; else echo "Python is not default to python2" ; docker kill $1 ; exit 1 ; fi'
+docker kill $1
+endef
+
+test_debian9_image_size:
+	$(call test_image_size,splunk-debian-9)
+
+define test_image_size
+docker pull splunk/splunk:edge
+CUR_SIZE=$$(docker image inspect $1:latest --format='{{.Size}}') ; \
+EDGE_SIZE=$$(docker image inspect splunk/splunk:edge --format='{{.Size}}') ; \
+echo "current $1 image size = "$$CUR_SIZE ; \
+echo "edge image size = "$$EDGE_SIZE ; \
+if [[ $$CUR_SIZE -gt $$EDGE_SIZE*102/100 ]] ; then echo "current image size is 2% more than edge image" ; exit 1 ; fi
+endef
 
 setup_clair_scanner:
 	mkdir clair-scanner-logs
