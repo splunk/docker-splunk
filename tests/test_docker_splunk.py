@@ -8,6 +8,7 @@ import pytest
 import shlex
 import yaml
 import docker
+from docker.types import Mount
 import urllib
 import requests
 import subprocess
@@ -41,6 +42,8 @@ LOGGER.addHandler(file_handler)
 
 global platform
 platform = "debian-9"
+OLD_SPLUNK_VERSION = "7.2.7"
+
 
 def generate_random_string():
     return ''.join(choice(ascii_lowercase) for b in range(20))
@@ -239,7 +242,7 @@ class TestDockerSplunk(object):
         except Exception as e:
             self.logger.error(e)
             return None
-    
+
     def search_internal_distinct_hosts(self, container_id, username="admin", password="password"):
         query = "search index=_internal earliest=-1m | stats dc(host) as distinct_hosts"
         splunkd_port = self.client.port(container_id, 8089)[0]["HostPort"]
@@ -1134,6 +1137,94 @@ class TestDockerSplunk(object):
             except OSError:
                 pass
 
+    def test_adhoc_1so_upgrade(self):
+        # Pull the old image
+        for line in self.client.pull("splunk/splunk:{}".format(OLD_SPLUNK_VERSION), stream=True, decode=True):
+            continue
+        # Create the "splunk-old" container
+        try:
+            cid = None
+            splunk_container_name = generate_random_string()
+            password = generate_random_string()
+            cid = self.client.create_container("splunk/splunk:{}".format(OLD_SPLUNK_VERSION), tty=True, ports=[8089, 8088], hostname="splunk",
+                                            name=splunk_container_name, environment={"DEBUG": "true", "SPLUNK_HEC_TOKEN": "qwerty", "SPLUNK_PASSWORD": password, "SPLUNK_START_ARGS": "--accept-license"},
+                                            host_config=self.client.create_host_config(mounts=[Mount("/opt/splunk/etc", "opt-splunk-etc"), Mount("/opt/splunk/var", "opt-splunk-var")],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", password)
+            # Add some data via HEC
+            splunk_hec_port = self.client.port(cid, 8088)[0]["HostPort"]
+            url = "https://localhost:{}/services/collector/event".format(splunk_hec_port)
+            kwargs = {"json": {"event": "world never says hello back"}, "verify": False, "headers": {"Authorization": "Splunk qwerty"}}
+            status, content = self.handle_request_retry("POST", url, kwargs)
+            assert status == 200
+            # Remove the "splunk-old" container
+            self.client.remove_container(cid, v=False, force=True)
+            # Create the "splunk-new" container re-using volumes
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8000], hostname="splunk",
+                                            name=splunk_container_name, environment={"DEBUG": "true", "SPLUNK_HEC_TOKEN": "qwerty", "SPLUNK_PASSWORD": password, "SPLUNK_START_ARGS": "--accept-license"},
+                                            host_config=self.client.create_host_config(mounts=[Mount("/opt/splunk/etc", "opt-splunk-etc"), Mount("/opt/splunk/var", "opt-splunk-var")],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8000: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", password)
+            # Run a search - we should be getting 2 hosts because the hostnames were different in the two containers created above
+            query = "search index=main earliest=-3m"
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/search/jobs?output_mode=json".format(splunkd_port)
+            kwargs = {
+                        "auth": ("admin", password),
+                        "data": "search={}".format(urllib.quote_plus(query)),
+                        "verify": False
+                    }
+            resp = requests.post(url, **kwargs)
+            assert resp.status_code == 201
+            sid = json.loads(resp.content)["sid"]
+            assert sid
+            self.logger.info("Search job {} created against on {}".format(sid, cid))
+            # Wait for search to finish
+            # TODO: implement polling mechanism here
+            job_status = None
+            for _ in range(10):
+                url = "https://localhost:{}/services/search/jobs/{}?output_mode=json".format(splunkd_port, sid)
+                kwargs = {"auth": ("admin", password), "verify": False}
+                job_status = requests.get(url, **kwargs)
+                done = json.loads(job_status.content)["entry"][0]["content"]["isDone"]
+                self.logger.info("Search job {} done status is {}".format(sid, done))
+                if done:
+                    break
+                time.sleep(3)
+            # Check searchProviders - use the latest job_status check from the polling
+            assert job_status.status_code == 200
+            # Check search results
+            url = "https://localhost:{}/services/search/jobs/{}/results?output_mode=json".format(splunkd_port, sid)
+            kwargs = {"auth": ("admin", password), "verify": False}
+            resp = requests.get(url, **kwargs)
+            assert resp.status_code == 200
+            results = json.loads(resp.content)["results"]
+            assert len(results) == 1
+            assert results[0]["_raw"] == "world never says hello back"
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
+            except OSError:
+                pass
+
     def test_compose_1so_trial(self):
         # Standup deployment
         self.compose_file_name = "1so_trial.yaml"
@@ -1616,7 +1707,7 @@ class TestDockerSplunk(object):
         url = "https://localhost:{}/services/collector/event".format(splunk_hec_port)
         kwargs = {"json": {"event": "hello world"}, "verify": False, "headers": {"Authorization": "Splunk abcd1234"}}
         status, content = self.handle_request_retry("POST", url, kwargs)
-        assert status == 200 
+        assert status == 200
 
     def test_compose_1uf_hec(self):
         # Standup deployment
