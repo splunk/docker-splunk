@@ -6,13 +6,21 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Build Container
+          name: Setup python3
           command: |
-            make all
+            pyenv global 2.7.12 3.5.2
+            python --version
+            pip --version
+            python3 --version
+            pip3 --version
       - run:
           name: Setup Tests / Scanner Requirements
           command: |
             make test_setup
+      - run:
+          name: Build Container
+          command: |
+            make all
       - run:
           name: Export Build Images for Artifacts
           command: |
@@ -26,7 +34,16 @@ jobs:
           path: clair-scanner-logs
           destintation: clair-scanner-logs
       - run:
-          name: Running CI Tests
+          name: Test Python3 installation
+          command: make test_python3_all
+      - run:
+          name: Test Python2 as the default
+          command: make test_python2_all
+      - run:
+          name: Test if image size increase
+          command: make test_debian9_image_size
+      - run:
+          name: Running debian9 CI Tests
           command: make run_tests_debian9
           no_output_timeout: 20m
       - store_artifacts:

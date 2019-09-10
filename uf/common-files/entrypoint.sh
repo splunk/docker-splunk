@@ -20,8 +20,8 @@ setup() {
 	# Check if the user accepted the license
 	if [[ "$SPLUNK_START_ARGS" != *"--accept-license"* ]]; then
 		printf "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag\n"
-		printf "For example: docker run -e SPLUNK_START_ARGS=--accept-license splunk/splunk\n\n"
-		printf "For additional information and examples, see the help: docker run -it splunk/splunk help\n"
+		printf "For example: docker run -e SPLUNK_START_ARGS=--accept-license splunk/universalforwarder\n\n"
+		printf "For additional information and examples, see the help: docker run -it splunk/universalforwarder help\n"
 		exit 1
 	fi
 }
@@ -35,6 +35,9 @@ trap teardown SIGINT SIGTERM
 
 prep_ansible() {
 	cd ${SPLUNK_ANSIBLE_HOME}
+	if [ `whoami` == "${SPLUNK_USER}" ]; then
+		sed -i -e "s,^become\\s*=.*,become = false," ansible.cfg
+	fi
 	if [[ "$DEBUG" == "true" ]]; then
 		ansible-playbook --version
 		python inventory/environ.py --write-to-file
@@ -52,42 +55,44 @@ watch_for_failure(){
 	echo Ansible playbook complete, will begin streaming var/log/splunk/splunkd_stderr.log
 	echo
 	user_permission_change
-	# Any crashes/errors while Splunk is running should get logged to splunkd_stderr.log and sent to the container's stdout
+	if [ `whoami` != "${SPLUNK_USER}" ]; then
+		RUN_AS_SPLUNK="sudo -u ${SPLUNK_USER}"
+	fi
 	# Any crashes/errors while Splunk is running should get logged to splunkd_stderr.log and sent to the container's stdout
 	if [ -z "$SPLUNK_TAIL_FILE" ]; then
-		sudo -u ${SPLUNK_USER} tail -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
+		${RUN_AS_SPLUNK} tail -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
 	else
-		sudo -u ${SPLUNK_USER} tail -n 0 -f ${SPLUNK_TAIL_FILE} &
+		${RUN_AS_SPLUNK} tail -n 0 -f ${SPLUNK_TAIL_FILE} &
 	fi
 	wait
 }
 
 create_defaults() {
-    createdefaults.py
+	createdefaults.py
 }
 
 start_and_exit() {
-    if [ -z "$SPLUNK_PASSWORD" ]
-    then
-        echo "WARNING: No password ENV var.  Stack may fail to provision if splunk.password is not set in ENV or a default.yml"
-    fi
+	if [ -z "$SPLUNK_PASSWORD" ]
+	then
+		echo "WARNING: No password ENV var.  Stack may fail to provision if splunk.password is not set in ENV or a default.yml"
+	fi
 	sh -c "echo 'starting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
 	setup
-    prep_ansible
+	prep_ansible
 	ansible-playbook $ANSIBLE_EXTRA_FLAGS -i inventory/environ.py site.yml
 }
 
 start() {
-    trap teardown EXIT
+	trap teardown EXIT
 	start_and_exit
-    watch_for_failure
+	watch_for_failure
 }
 
 restart(){
 	trap teardown EXIT
 	sh -c "echo 'restarting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
-    prep_ansible
-  	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
+	prep_ansible
+	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
 	ansible-playbook -i inventory/environ.py start.yml
 	watch_for_failure
 }
@@ -123,7 +128,7 @@ Environment Variables:
 
 
 EOF
-    exit 1
+	exit 1
 }
 
 case "$1" in
@@ -136,12 +141,12 @@ case "$1" in
 		start_and_exit $@
 		;;
 	create-defaults)
-	    create_defaults
-	    ;;
+		create_defaults
+		;;
 	restart)
-	    shift
-	    restart $@
-	    ;;
+		shift
+		restart $@
+		;;
 	no-provision)
 		user_permission_change
 		tail -n 0 -f /etc/hosts &
