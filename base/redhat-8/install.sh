@@ -30,21 +30,24 @@ microdnf -y --nodocs install wget sudo shadow-utils procps
 #install busybox direct from the multiarch since epel isn't availible yet for redhat8
 wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
 chmod +x /bin/busybox
-microdnf -y --nodocs install python2 tar
+microdnf -y --nodocs install gcc redhat-rpm-config python2-devel libffi-devel openssl-devel tar
+pip2 install --upgrade pip
 pip2 -q --no-cache-dir install requests ansible
 
 cd /bin
-ln -s busybox diff
-ln -s busybox hostname
-ln -s busybox killall
-ln -s busybox netstat
-ln -s busybox nslookup
-ln -s busybox ping
-ln -s busybox ping6
-ln -s busybox readline
-ln -s busybox route
-ln -s busybox syslogd
-ln -s busybox traceroute
+ln -s python2 python || true
+python -V
+ln -s busybox diff || true
+ln -s busybox hostname || true
+ln -s busybox killall || true
+ln -s busybox netstat || true
+ln -s busybox nslookup || true
+ln -s busybox ping || true
+ln -s busybox ping6 || true
+ln -s busybox readline || true
+ln -s busybox route || true
+ln -s busybox syslogd || true
+ln -s busybox traceroute || true
 chmod u+s /bin/ping
 groupadd sudo
 
