@@ -16,6 +16,7 @@
 set -e
 
 # reinstalling local en def for now, removed in minimal image https://bugzilla.redhat.com/show_bug.cgi?id=1665251
+microdnf -y update
 microdnf -y --nodocs install glibc-langpack-en
 
 #Currently there is no access to the UTF-8 char map, the following command is commented out until
@@ -27,8 +28,7 @@ export LANG=en_US.utf8
 
 microdnf -y --nodocs install wget sudo shadow-utils procps
 #install busybox direct from the multiarch since epel isn't availible yet for redhat8
-wget https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-x86_64
-mv busybox-x86_64 /bin/busybox
+wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
 chmod +x /bin/busybox
 microdnf -y --nodocs install python2 tar
 pip2 -q --no-cache-dir install requests ansible
