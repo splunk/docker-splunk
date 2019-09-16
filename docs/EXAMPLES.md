@@ -13,6 +13,7 @@ Note that for more complex scenarios, we will opt to use a [Docker compose file]
     * [...with HEC](#create-standalone-with-hec)
     * [...with any app](#create-standalone-with-app)
     * [...with a SplunkBase app](#create-standalone-with-splunkbase-app)
+    * [...with SSL enabled](#create-standalone-with-ssl-enabled)
 * [Create standalone and universal forwarder](#create-standalone-and-universal-forwarder)
 * [Create heavy forwarder](#create-heavy-forwarder)
 * [Create heavy forwarder and deployment server](#create-heavy-forwarder-and-deployment-server)
@@ -179,6 +180,26 @@ services:
 Execute the following to bring up your deployment:
 ```
 $ SPLUNKBASE_PASSWORD=<splunkbase_password> SPLUNK_PASSWORD=<password> docker-compose up -d
+```
+
+## Create standalone with SSL enabled
+
+To enable SSL over SplunkWeb, you'll first need to generate your self-signed certificates. Please see the [Splunk docs](https://docs.splunk.com/Documentation/Splunk/latest/Security/Self-signcertificatesforSplunkWeb) on how to go about doing this. For the purposes of local development, you can use:
+```
+openssl req -x509 -newkey rsa:4096 -passout pass:abcd1234 -keyout /home/key.pem -out /home/cert.pem -days 365 -subj /CN=localhost
+```
+
+Once you have your certificates available, you can execute the following to bring up your deployment with SSL enabled on the Splunk Web UI:
+```
+$ docker run --name so1 --hostname so1 -p 8000:8000 \
+              -e "SPLUNK_HTTP_ENABLESSL=true" \
+              -e "SPLUNK_HTTP_ENABLESSL_CERT=/home/cert.pem" \
+              -e "SPLUNK_HTTP_ENABLESSL_PRIVKEY=/home/key.pem" \
+              -e "SPLUNK_HTTP_ENABLESSL_PRIVKEY_PASSWORD=abcd1234" \
+              -e "SPLUNK_PASSWORD=<password>" \
+              -e "SPLUNK_START_ARGS=--accept-license" \
+              -v /home:/home \ 
+              -it splunk/splunk:latest
 ```
 
 ## Create standalone and universal forwarder
