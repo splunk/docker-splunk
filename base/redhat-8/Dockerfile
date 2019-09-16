@@ -25,9 +25,9 @@ LABEL name="splunk" \
       summary="UBI 8 Docker image of Splunk Enterprise" \
       description="Splunk Enterprise is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results."
 
-RUN mkdir /licenses; \
-	curl -o /licenses/apache-2.0.txt https://www.apache.org/licenses/LICENSE-2.0.txt; \
-	curl -o /licenses/EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf https://www.redhat.com/licenses/EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf
-
 COPY install.sh /install.sh
-RUN /install.sh && rm -rf /install.sh
+
+RUN mkdir /licenses \
+    && curl -o /licenses/apache-2.0.txt https://www.apache.org/licenses/LICENSE-2.0.txt \
+    && curl -o /licenses/EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf https://www.redhat.com/licenses/EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf \
+    && /install.sh && rm -rf /install.sh
