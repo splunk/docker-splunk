@@ -31,7 +31,7 @@ EXCLUDE_V7 = """*-manifest
 */share/splunk/pdf*
 *mrsparkle*"""
 
-m = re.match(".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+-[0-9a-z]+-Linux-[0-9a-z_-]+.tgz", sys.argv[1])
+m = re.match(".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+\.?[0-9]?-[0-9a-z]+-Linux-[0-9a-z_-]+.tgz", sys.argv[1])
 
 if m and m.group(1):
     if m.group(1) == "7":
