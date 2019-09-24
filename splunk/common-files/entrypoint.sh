@@ -163,7 +163,7 @@ case "$1" in
 		configure_multisite $0
 		;;
 	create-defaults)
-	  create_defaults
+		create_defaults
 		;;
 	restart)
 		shift
