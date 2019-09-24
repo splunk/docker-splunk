@@ -41,9 +41,9 @@ jobs:
           command: make test_python2_all
       - run:
           name: Test if image size increase
-          command: make test_debian9_image_size
+          command: make test_debian10_image_size
       - run:
-          name: Running debian9 CI Tests
+          name: Running debian10 CI Tests
           command: make run_tests_debian10
           no_output_timeout: 20m
       - store_artifacts:
