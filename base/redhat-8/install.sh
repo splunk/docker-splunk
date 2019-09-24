@@ -31,12 +31,12 @@ microdnf -y --nodocs install wget sudo shadow-utils procps
 wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
 chmod +x /bin/busybox
 microdnf -y --nodocs install gcc redhat-rpm-config python2-devel libffi-devel openssl-devel tar
-pip2 install --upgrade pip
-pip2 -q --no-cache-dir install requests ansible
+pip2 --no-cache-dir install requests ansible
+microdnf -y remove gcc libffi-devel openssl-devel
+microdnf clean all
 
 cd /bin
 ln -s python2 python || true
-python -V
 ln -s busybox diff || true
 ln -s busybox hostname || true
 ln -s busybox killall || true
