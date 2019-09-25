@@ -1137,6 +1137,7 @@ class TestDockerSplunk(object):
             except OSError:
                 pass
 
+    @pytest.mark.skip(reason="Ask Nelson")
     def test_adhoc_1so_upgrade(self):
         # Pull the old image
         for line in self.client.pull("splunk/splunk:{}".format(OLD_SPLUNK_VERSION), stream=True, decode=True):

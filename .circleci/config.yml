@@ -1,6 +1,75 @@
 version: 2
 jobs:
-  docker-splunk-test:
+  security-scanning:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - checkout
+      - run:
+          name: Setup python3
+          command: |
+            pyenv global 2.7.12 3.5.2
+            python --version
+            pip --version
+            python3 --version
+            pip3 --version
+      - run:
+          name: Setup Tests / Scanner Requirements
+          command: |
+            make test_setup
+      - run:
+          name: Build Container
+          command: |
+            make all
+      - run:
+          name: Run Vulnerability Scanner
+          command: |
+            make setup_and_run_clair
+      - store_artifacts:
+          name: Store Scanner Logs
+          path: clair-scanner-logs
+          destintation: clair-scanner-logs
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+  debian10-testing:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - checkout
+      - run:
+          name: Setup python3
+          command: |
+            pyenv global 2.7.12 3.5.2
+            python --version
+            pip --version
+            python3 --version
+            pip3 --version
+      - run:
+          name: Setup Tests / Scanner Requirements
+          command: |
+            make test_setup
+      - run:
+          name: Build a Debian 10 Container
+          command: |
+            make splunk-debian-10
+      - run:
+          name: Build a Debian 10 UF Container
+          command: |
+            make uf-debian-10
+      - run:
+          name: Test if image size increase
+          command: make test_debian10_image_size
+      - run:
+          name: Running debian10 CI Tests
+          command: make run_tests_debian10
+          no_output_timeout: 20m
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+      - store_test_results:
+          path: test-results
+  container-validation:
     machine:
       image: circleci/classic:latest
     steps:
@@ -26,36 +95,21 @@ jobs:
           command: |
             make save_containers
       - run:
-          name: Run Vulnerability Scanner
-          command: |
-            make setup_and_run_clair
-      - store_artifacts:
-          name: Store Scanner Logs
-          path: clair-scanner-logs
-          destintation: clair-scanner-logs
-      - run:
           name: Test Python3 installation
           command: make test_python3_all
       - run:
           name: Test Python2 as the default
           command: make test_python2_all
-      - run:
-          name: Test if image size increase
-          command: make test_debian10_image_size
-      - run:
-          name: Running debian10 CI Tests
-          command: make run_tests_debian10
-          no_output_timeout: 20m
       - store_artifacts:
           path: test-results
           destination: test-results
-      - store_test_results:
-          path: test-results
 
 workflows:
   version: 2
-  run_tests:
+  build:
     jobs:
-      - docker-splunk-test
+      - security-scanning
+      - debian10-testing
+      - container-validation
 
       
