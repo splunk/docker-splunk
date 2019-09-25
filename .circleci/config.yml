@@ -69,6 +69,40 @@ jobs:
           destination: test-results
       - store_test_results:
           path: test-results
+redhat8-testing:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - checkout
+      - run:
+          name: Setup python3
+          command: |
+            pyenv global 2.7.12 3.5.2
+            python --version
+            pip --version
+            python3 --version
+            pip3 --version
+      - run:
+          name: Setup Tests / Scanner Requirements
+          command: |
+            make test_setup
+      - run:
+          name: Build a Debian 10 Container
+          command: |
+            make splunk-redhat-8
+      - run:
+          name: Build a Debian 10 UF Container
+          command: |
+            make uf-redhat-8
+      - run:
+          name: Running debian10 CI Tests
+          command: make run_tests_redhat8
+          no_output_timeout: 20m
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+      - store_test_results:
+          path: test-results
   container-validation:
     machine:
       image: circleci/classic:latest
@@ -111,5 +145,6 @@ workflows:
       - security-scanning
       - debian10-testing
       - container-validation
+      - redhat8-testing
 
       
