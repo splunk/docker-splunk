@@ -1671,82 +1671,91 @@ class TestDockerSplunk(object):
 
     @pytest.mark.skip(reason="Oracle is preventing automated downloads")
     def test_compose_1so_java_oracle(self):
-        # Standup deployment
-        self.compose_file_name = "1so_java_oracle.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        # Check ansible inventory json
-        log_json = self.extract_json("so1")
-        self.check_common_keys(log_json, "so")
-        try:
-            assert log_json["all"]["vars"]["java_version"] == "oracle:8"
-        except KeyError as e:
-            self.logger.error(e)
-            raise e
-        # Check container logs
-        output = self.get_container_logs("so1")
-        self.check_ansible(output)
-        # Check Splunkd on all the containers
-        assert self.check_splunkd("admin", self.password)
-        # Check if java is installed
-        exec_command = self.client.exec_create("so1", "java -version")
-        std_out = self.client.exec_start(exec_command)
-        assert "java version \"1.8.0" in std_out
+        if 'redhat' in platform:
+            assert 'Not supported'
+        else:
+            # Standup deployment
+            self.compose_file_name = "1so_java_oracle.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+            # Check ansible inventory json
+            log_json = self.extract_json("so1")
+            self.check_common_keys(log_json, "so")
+            try:
+                assert log_json["all"]["vars"]["java_version"] == "oracle:8"
+            except KeyError as e:
+                self.logger.error(e)
+                raise e
+            # Check container logs
+            output = self.get_container_logs("so1")
+            self.check_ansible(output)
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Check if java is installed
+            exec_command = self.client.exec_create("so1", "java -version")
+            std_out = self.client.exec_start(exec_command)
+            assert "java version \"1.8.0" in std_out
 
     def test_compose_1so_java_openjdk8(self):
-        # Standup deployment
-        self.compose_file_name = "1so_java_openjdk8.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        # Check ansible inventory json
-        log_json = self.extract_json("so1")
-        self.check_common_keys(log_json, "so")
-        try:
-            assert log_json["all"]["vars"]["java_version"] == "openjdk:8"
-        except KeyError as e:
-            self.logger.error(e)
-            raise e
-        # Check container logs
-        output = self.get_container_logs("so1")
-        self.check_ansible(output)
-        # Check Splunkd on all the containers
-        assert self.check_splunkd("admin", self.password)
-        # Check if java is installed
-        exec_command = self.client.exec_create("so1", "java -version")
-        std_out = self.client.exec_start(exec_command)
-        assert "openjdk version \"1.8.0" in std_out
+        if 'redhat' in platform:
+            assert 'Not supported'
+        else:
+            # Standup deployment
+            self.compose_file_name = "1so_java_openjdk8.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+            # Check ansible inventory json
+            log_json = self.extract_json("so1")
+            self.check_common_keys(log_json, "so")
+            try:
+                assert log_json["all"]["vars"]["java_version"] == "openjdk:8"
+            except KeyError as e:
+                self.logger.error(e)
+                raise e
+            # Check container logs
+            output = self.get_container_logs("so1")
+            self.check_ansible(output)
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Check if java is installed
+            exec_command = self.client.exec_create("so1", "java -version")
+            std_out = self.client.exec_start(exec_command)
+            assert "openjdk version \"1.8.0" in std_out
 
     def test_compose_1so_java_openjdk11(self):
-        # Standup deployment
-        self.compose_file_name = "1so_java_openjdk11.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        # Check ansible inventory json
-        log_json = self.extract_json("so1")
-        self.check_common_keys(log_json, "so")
-        try:
-            assert log_json["all"]["vars"]["java_version"] == "openjdk:11"
-        except KeyError as e:
-            self.logger.error(e)
-            raise e
-        # Check container logs
-        output = self.get_container_logs("so1")
-        self.check_ansible(output)
-        # Check Splunkd on all the containers
-        assert self.check_splunkd("admin", self.password)
-        # Check if java is installed
-        exec_command = self.client.exec_create("so1", "java -version")
-        std_out = self.client.exec_start(exec_command)
-        assert "openjdk version \"11.0.2" in std_out
+        if 'redhat' in platform:
+            assert 'Not supported'
+        else:
+            # Standup deployment
+            self.compose_file_name = "1so_java_openjdk11.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+            # Check ansible inventory json
+            log_json = self.extract_json("so1")
+            self.check_common_keys(log_json, "so")
+            try:
+                assert log_json["all"]["vars"]["java_version"] == "openjdk:11"
+            except KeyError as e:
+                self.logger.error(e)
+                raise e
+            # Check container logs
+            output = self.get_container_logs("so1")
+            self.check_ansible(output)
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Check if java is installed
+            exec_command = self.client.exec_create("so1", "java -version")
+            std_out = self.client.exec_start(exec_command)
+            assert "openjdk version \"11.0.2" in std_out
 
     def test_compose_1so_hec(self):
         # Standup deployment
@@ -1835,9 +1844,14 @@ class TestDockerSplunk(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if service is registered
-        exec_command = self.client.exec_create("so1", "sudo service splunk status")
-        std_out = self.client.exec_start(exec_command)
-        assert "splunkd is running" in std_out
+        if 'debian' in platform:
+            exec_command = self.client.exec_create("so1", "sudo service splunk status")
+            std_out = self.client.exec_start(exec_command)
+            assert "splunkd is running" in std_out
+        else:
+            exec_command = self.client.exec_create("so1", "stat /etc/init.d/splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "/etc/init.d/splunk" in std_out
 
     def test_compose_1uf_enable_service(self):
         # Standup deployment
@@ -1862,9 +1876,14 @@ class TestDockerSplunk(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if service is registered
-        exec_command = self.client.exec_create("uf1", "sudo service splunk status")
-        std_out = self.client.exec_start(exec_command)
-        assert "splunkd is running" in std_out
+        if 'debian' in platform:
+            exec_command = self.client.exec_create("uf1", "sudo service splunk status")
+            std_out = self.client.exec_start(exec_command)
+            assert "splunkd is running" in std_out
+        else:
+            exec_command = self.client.exec_create("uf1", "stat /etc/init.d/splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "/etc/init.d/splunk" in std_out
     
     def test_compose_1so_apps(self):
         # Tar the app before spinning up the scenario
