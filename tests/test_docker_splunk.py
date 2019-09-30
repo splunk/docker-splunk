@@ -280,13 +280,6 @@ class TestDockerSplunk(object):
         job_results = json.loads(job_results.content)
         return job_metadata, job_results
 
-
-
-        #search_providers = json.loads(job_status.content)["entry"][0]["content"]["searchProviders"]
-        #assert search_providers
-
-
-
     def search_internal_distinct_hosts(self, container_id, username="admin", password="password"):
         query = "search index=_internal earliest=-1m | stats dc(host) as distinct_hosts"
         meta, results = self._run_splunk_query(container_id, query, username, password)
