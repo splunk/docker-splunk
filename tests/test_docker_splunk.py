@@ -243,8 +243,7 @@ class TestDockerSplunk(object):
             self.logger.error(e)
             return None
 
-    def search_internal_distinct_hosts(self, container_id, username="admin", password="password"):
-        query = "search index=_internal earliest=-1m | stats dc(host) as distinct_hosts"
+    def _run_splunk_query(self, container_id, query, username="admin", password="password"):
         splunkd_port = self.client.port(container_id, 8089)[0]["HostPort"]
         url = "https://localhost:{}/services/search/jobs?output_mode=json".format(splunkd_port)
         kwargs = {
@@ -258,30 +257,43 @@ class TestDockerSplunk(object):
         assert sid
         self.logger.info("Search job {} created against on {}".format(sid, container_id))
         # Wait for search to finish
-        # TODO: implement polling mechanism here
         job_status = None
+        url = "https://localhost:{}/services/search/jobs/{}?output_mode=json".format(splunkd_port, sid)
+        kwargs = {
+                    "auth": (username, password), 
+                    "verify": False
+                }
         for _ in range(10):
-            url = "https://localhost:{}/services/search/jobs/{}?output_mode=json".format(splunkd_port, sid)
-            kwargs = {"auth": (username, password), "verify": False}
             job_status = requests.get(url, **kwargs)
             done = json.loads(job_status.content)["entry"][0]["content"]["isDone"]
             self.logger.info("Search job {} done status is {}".format(sid, done))
             if done:
                 break
             time.sleep(3)
-        # Check searchProviders - use the latest job_status check from the polling
-        assert job_status.status_code == 200
-        search_providers = json.loads(job_status.content)["entry"][0]["content"]["searchProviders"]
-        assert search_providers
+        assert job_status and job_status.status_code == 200
+        # Get job metadata
+        job_metadata = json.loads(job_status.content)
         # Check search results
         url = "https://localhost:{}/services/search/jobs/{}/results?output_mode=json".format(splunkd_port, sid)
-        kwargs = {"auth": (username, password), "verify": False}
-        resp = requests.get(url, **kwargs)
-        assert resp.status_code == 200
-        distinct_hosts = int(json.loads(resp.content)["results"][0]["distinct_hosts"])
-        assert distinct_hosts
+        job_results = requests.get(url, **kwargs)
+        assert job_results.status_code == 200
+        job_results = json.loads(job_results.content)
+        return job_metadata, job_results
+
+
+
+        #search_providers = json.loads(job_status.content)["entry"][0]["content"]["searchProviders"]
+        #assert search_providers
+
+
+
+    def search_internal_distinct_hosts(self, container_id, username="admin", password="password"):
+        query = "search index=_internal earliest=-1m | stats dc(host) as distinct_hosts"
+        meta, results = self._run_splunk_query(container_id, query, username, password)
+        search_providers = meta["entry"][0]["content"]["searchProviders"]
+        distinct_hosts = int(results["results"][0]["distinct_hosts"])
         return search_providers, distinct_hosts
-        
+
     def check_common_keys(self, log_output, role):
         try:
             assert log_output["all"]["vars"]["ansible_ssh_user"] == "splunk"
@@ -1215,7 +1227,7 @@ class TestDockerSplunk(object):
         try:
             cid = None
             splunk_container_name = generate_random_string()
-            password = generate_random_string()
+            user, password = "admin", generate_random_string()
             cid = self.client.create_container("splunk/splunk:{}".format(OLD_SPLUNK_VERSION), tty=True, ports=[8089, 8088], hostname="splunk",
                                             name=splunk_container_name, environment={"DEBUG": "true", "SPLUNK_HEC_TOKEN": "qwerty", "SPLUNK_PASSWORD": password, "SPLUNK_START_ARGS": "--accept-license"},
                                             host_config=self.client.create_host_config(mounts=[Mount("/opt/splunk/etc", "opt-splunk-etc"), Mount("/opt/splunk/var", "opt-splunk-var")],
@@ -1226,13 +1238,15 @@ class TestDockerSplunk(object):
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", password)
+            assert self.check_splunkd(user, password)
             # Add some data via HEC
             splunk_hec_port = self.client.port(cid, 8088)[0]["HostPort"]
             url = "https://localhost:{}/services/collector/event".format(splunk_hec_port)
             kwargs = {"json": {"event": "world never says hello back"}, "verify": False, "headers": {"Authorization": "Splunk qwerty"}}
             status, content = self.handle_request_retry("POST", url, kwargs)
             assert status == 200
+            # Sleep to let the data index
+            time.sleep(3)
             # Remove the "splunk-old" container
             self.client.remove_container(cid, v=False, force=True)
             # Create the "splunk-new" container re-using volumes
@@ -1247,41 +1261,12 @@ class TestDockerSplunk(object):
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", password)
-            # Run a search - we should be getting 2 hosts because the hostnames were different in the two containers created above
-            query = "search index=main earliest=-3m"
-            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
-            url = "https://localhost:{}/services/search/jobs?output_mode=json".format(splunkd_port)
-            kwargs = {
-                        "auth": ("admin", password),
-                        "data": "search={}".format(urllib.quote_plus(query)),
-                        "verify": False
-                    }
-            resp = requests.post(url, **kwargs)
-            assert resp.status_code == 201
-            sid = json.loads(resp.content)["sid"]
-            assert sid
-            self.logger.info("Search job {} created against on {}".format(sid, cid))
-            # Wait for search to finish
-            # TODO: implement polling mechanism here
-            job_status = None
-            for _ in range(10):
-                url = "https://localhost:{}/services/search/jobs/{}?output_mode=json".format(splunkd_port, sid)
-                kwargs = {"auth": ("admin", password), "verify": False}
-                job_status = requests.get(url, **kwargs)
-                done = json.loads(job_status.content)["entry"][0]["content"]["isDone"]
-                self.logger.info("Search job {} done status is {}".format(sid, done))
-                if done:
-                    break
-                time.sleep(3)
-            # Check searchProviders - use the latest job_status check from the polling
-            assert job_status.status_code == 200
-            # Check search results
-            url = "https://localhost:{}/services/search/jobs/{}/results?output_mode=json".format(splunkd_port, sid)
-            kwargs = {"auth": ("admin", password), "verify": False}
-            resp = requests.get(url, **kwargs)
-            assert resp.status_code == 200
-            results = json.loads(resp.content)["results"]
+            assert self.check_splunkd(user, password)
+            # Run a search
+            time.sleep(3)
+            query = "search index=main earliest=-10m"
+            meta, results = self._run_splunk_query(cid, query, user, password)
+            results = results["results"]
             assert len(results) == 1
             assert results[0]["_raw"] == "world never says hello back"
         except Exception as e:
