@@ -52,7 +52,7 @@ Let's break down what this command does:
 After the container starts up successfully, you should be able to access SplunkWeb at http://localhost:8000 with `admin:<password>`.
 
 ##### Splunk Universal Forwarder
-Use the following command to start a single standalone instance of Splunk Enterprise:
+Use the following command to start a single standalone instance of Splunk Universal Forwarder:
 ```
 $ docker run --network skynet --name uf1 --hostname uf1 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -e "SPLUNK_STANDALONE_URL=so1" -it splunk/universalforwarder:latest
 ```
