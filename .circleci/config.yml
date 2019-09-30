@@ -50,18 +50,18 @@ jobs:
           command: |
             make test_setup
       - run:
-          name: Build a Debian 10 Container
+          name: Build Debian 10 Splunk
           command: |
             make splunk-debian-10
       - run:
-          name: Build a Debian 10 UF Container
+          name: Build Debian 10 UF
           command: |
             make uf-debian-10
       - run:
           name: Test if image size increase
           command: make test_debian10_image_size
       - run:
-          name: Running debian10 CI Tests
+          name: Run Debian 10 image tests
           command: make run_tests_debian10
           no_output_timeout: 20m
       - store_artifacts:
@@ -87,15 +87,15 @@ jobs:
           command: |
             make test_setup
       - run:
-          name: Build a Debian 10 Container
+          name: Build Redhat 8 Splunk
           command: |
             make splunk-redhat-8
       - run:
-          name: Build a Debian 10 UF Container
+          name: Build Redhat 8 UF
           command: |
             make uf-redhat-8
       - run:
-          name: Running debian10 CI Tests
+          name: Run Redhat 8 image tests
           command: make run_tests_redhat8
           no_output_timeout: 20m
       - store_artifacts:
