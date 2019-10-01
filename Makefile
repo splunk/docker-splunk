@@ -400,8 +400,8 @@ docker exec -it $1 bash -c 'if [[ $$(python -V 2>&1) =~ "Python 2" ]] ; then ech
 docker kill $1
 endef
 
-test_debian9_image_size:
-	$(call test_image_size,splunk-debian-9)
+test_debian10_image_size:
+	$(call test_image_size,splunk-debian-10)
 
 define test_image_size
 docker pull splunk/splunk:edge
@@ -409,7 +409,7 @@ CUR_SIZE=$$(docker image inspect $1:latest --format='{{.Size}}') ; \
 EDGE_SIZE=$$(docker image inspect splunk/splunk:edge --format='{{.Size}}') ; \
 echo "current $1 image size = "$$CUR_SIZE ; \
 echo "edge image size = "$$EDGE_SIZE ; \
-if [[ $$CUR_SIZE -gt $$EDGE_SIZE*102/100 ]] ; then echo "current image size is 2% more than edge image" ; exit 1 ; fi
+if [[ $$CUR_SIZE -gt $$EDGE_SIZE*120/100 ]] ; then echo "current image size is 20% more than edge image" ; exit 1 ; fi
 endef
 
 setup_clair_scanner:

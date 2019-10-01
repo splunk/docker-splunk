@@ -16,6 +16,7 @@
 set -e
 
 # reinstalling local en def for now, removed in minimal image https://bugzilla.redhat.com/show_bug.cgi?id=1665251
+microdnf -y update
 microdnf -y --nodocs install glibc-langpack-en
 
 #Currently there is no access to the UTF-8 char map, the following command is commented out until
@@ -27,24 +28,26 @@ export LANG=en_US.utf8
 
 microdnf -y --nodocs install wget sudo shadow-utils procps
 #install busybox direct from the multiarch since epel isn't availible yet for redhat8
-wget https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-x86_64
-mv busybox-x86_64 /bin/busybox
+wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
 chmod +x /bin/busybox
-microdnf -y --nodocs install python2 tar
-pip2 -q --no-cache-dir install requests ansible
+microdnf -y --nodocs install gcc redhat-rpm-config python2-devel libffi-devel openssl-devel tar
+pip2 --no-cache-dir install requests ansible
+microdnf -y remove gcc libffi-devel openssl-devel
+microdnf clean all
 
 cd /bin
-ln -s busybox diff
-ln -s busybox hostname
-ln -s busybox killall
-ln -s busybox netstat
-ln -s busybox nslookup
-ln -s busybox ping
-ln -s busybox ping6
-ln -s busybox readline
-ln -s busybox route
-ln -s busybox syslogd
-ln -s busybox traceroute
+ln -s python2 python || true
+ln -s busybox diff || true
+ln -s busybox hostname || true
+ln -s busybox killall || true
+ln -s busybox netstat || true
+ln -s busybox nslookup || true
+ln -s busybox ping || true
+ln -s busybox ping6 || true
+ln -s busybox readline || true
+ln -s busybox route || true
+ln -s busybox syslogd || true
+ln -s busybox traceroute || true
 chmod u+s /bin/ping
 groupadd sudo
 

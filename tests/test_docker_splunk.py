@@ -243,8 +243,7 @@ class TestDockerSplunk(object):
             self.logger.error(e)
             return None
 
-    def search_internal_distinct_hosts(self, container_id, username="admin", password="password"):
-        query = "search index=_internal earliest=-1m | stats dc(host) as distinct_hosts"
+    def _run_splunk_query(self, container_id, query, username="admin", password="password"):
         splunkd_port = self.client.port(container_id, 8089)[0]["HostPort"]
         url = "https://localhost:{}/services/search/jobs?output_mode=json".format(splunkd_port)
         kwargs = {
@@ -258,30 +257,36 @@ class TestDockerSplunk(object):
         assert sid
         self.logger.info("Search job {} created against on {}".format(sid, container_id))
         # Wait for search to finish
-        # TODO: implement polling mechanism here
         job_status = None
+        url = "https://localhost:{}/services/search/jobs/{}?output_mode=json".format(splunkd_port, sid)
+        kwargs = {
+                    "auth": (username, password), 
+                    "verify": False
+                }
         for _ in range(10):
-            url = "https://localhost:{}/services/search/jobs/{}?output_mode=json".format(splunkd_port, sid)
-            kwargs = {"auth": (username, password), "verify": False}
             job_status = requests.get(url, **kwargs)
             done = json.loads(job_status.content)["entry"][0]["content"]["isDone"]
             self.logger.info("Search job {} done status is {}".format(sid, done))
             if done:
                 break
             time.sleep(3)
-        # Check searchProviders - use the latest job_status check from the polling
-        assert job_status.status_code == 200
-        search_providers = json.loads(job_status.content)["entry"][0]["content"]["searchProviders"]
-        assert search_providers
+        assert job_status and job_status.status_code == 200
+        # Get job metadata
+        job_metadata = json.loads(job_status.content)
         # Check search results
         url = "https://localhost:{}/services/search/jobs/{}/results?output_mode=json".format(splunkd_port, sid)
-        kwargs = {"auth": (username, password), "verify": False}
-        resp = requests.get(url, **kwargs)
-        assert resp.status_code == 200
-        distinct_hosts = int(json.loads(resp.content)["results"][0]["distinct_hosts"])
-        assert distinct_hosts
+        job_results = requests.get(url, **kwargs)
+        assert job_results.status_code == 200
+        job_results = json.loads(job_results.content)
+        return job_metadata, job_results
+
+    def search_internal_distinct_hosts(self, container_id, username="admin", password="password"):
+        query = "search index=_internal earliest=-1m | stats dc(host) as distinct_hosts"
+        meta, results = self._run_splunk_query(container_id, query, username, password)
+        search_providers = meta["entry"][0]["content"]["searchProviders"]
+        distinct_hosts = int(results["results"][0]["distinct_hosts"])
         return search_providers, distinct_hosts
-        
+
     def check_common_keys(self, log_output, role):
         try:
             assert log_output["all"]["vars"]["ansible_ssh_user"] == "splunk"
@@ -759,6 +764,76 @@ class TestDockerSplunk(object):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
+    def test_adhoc_1so_splunk_secret_env(self):
+        # Create a splunk container
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], name=splunk_container_name,
+                                               environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_SECRET": "wubbalubbadubdub"
+                                                        },
+                                               host_config=self.client.create_host_config(port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/auth/splunk.secret", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "wubbalubbadubdub" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
+    def test_adhoc_1uf_splunk_secret_env(self):
+        # Create a uf container
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089], name=splunk_container_name,
+                                               environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_SECRET": "wubbalubbadubdub"
+                                                        },
+                                               host_config=self.client.create_host_config(port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/auth/splunk.secret", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "wubbalubbadubdub" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
     def test_adhoc_1so_preplaybook_with_sudo(self):
         # Create a splunk container
         cid = None
@@ -1145,7 +1220,7 @@ class TestDockerSplunk(object):
         try:
             cid = None
             splunk_container_name = generate_random_string()
-            password = generate_random_string()
+            user, password = "admin", generate_random_string()
             cid = self.client.create_container("splunk/splunk:{}".format(OLD_SPLUNK_VERSION), tty=True, ports=[8089, 8088], hostname="splunk",
                                             name=splunk_container_name, environment={"DEBUG": "true", "SPLUNK_HEC_TOKEN": "qwerty", "SPLUNK_PASSWORD": password, "SPLUNK_START_ARGS": "--accept-license"},
                                             host_config=self.client.create_host_config(mounts=[Mount("/opt/splunk/etc", "opt-splunk-etc"), Mount("/opt/splunk/var", "opt-splunk-var")],
@@ -1156,13 +1231,15 @@ class TestDockerSplunk(object):
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", password)
+            assert self.check_splunkd(user, password)
             # Add some data via HEC
             splunk_hec_port = self.client.port(cid, 8088)[0]["HostPort"]
             url = "https://localhost:{}/services/collector/event".format(splunk_hec_port)
             kwargs = {"json": {"event": "world never says hello back"}, "verify": False, "headers": {"Authorization": "Splunk qwerty"}}
             status, content = self.handle_request_retry("POST", url, kwargs)
             assert status == 200
+            # Sleep to let the data index
+            time.sleep(3)
             # Remove the "splunk-old" container
             self.client.remove_container(cid, v=False, force=True)
             # Create the "splunk-new" container re-using volumes
@@ -1177,41 +1254,12 @@ class TestDockerSplunk(object):
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", password)
-            # Run a search - we should be getting 2 hosts because the hostnames were different in the two containers created above
-            query = "search index=main earliest=-3m"
-            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
-            url = "https://localhost:{}/services/search/jobs?output_mode=json".format(splunkd_port)
-            kwargs = {
-                        "auth": ("admin", password),
-                        "data": "search={}".format(urllib.quote_plus(query)),
-                        "verify": False
-                    }
-            resp = requests.post(url, **kwargs)
-            assert resp.status_code == 201
-            sid = json.loads(resp.content)["sid"]
-            assert sid
-            self.logger.info("Search job {} created against on {}".format(sid, cid))
-            # Wait for search to finish
-            # TODO: implement polling mechanism here
-            job_status = None
-            for _ in range(10):
-                url = "https://localhost:{}/services/search/jobs/{}?output_mode=json".format(splunkd_port, sid)
-                kwargs = {"auth": ("admin", password), "verify": False}
-                job_status = requests.get(url, **kwargs)
-                done = json.loads(job_status.content)["entry"][0]["content"]["isDone"]
-                self.logger.info("Search job {} done status is {}".format(sid, done))
-                if done:
-                    break
-                time.sleep(3)
-            # Check searchProviders - use the latest job_status check from the polling
-            assert job_status.status_code == 200
-            # Check search results
-            url = "https://localhost:{}/services/search/jobs/{}/results?output_mode=json".format(splunkd_port, sid)
-            kwargs = {"auth": ("admin", password), "verify": False}
-            resp = requests.get(url, **kwargs)
-            assert resp.status_code == 200
-            results = json.loads(resp.content)["results"]
+            assert self.check_splunkd(user, password)
+            # Run a search
+            time.sleep(3)
+            query = "search index=main earliest=-10m"
+            meta, results = self._run_splunk_query(cid, query, user, password)
+            results = results["results"]
             assert len(results) == 1
             assert results[0]["_raw"] == "world never says hello back"
         except Exception as e:
@@ -1600,82 +1648,91 @@ class TestDockerSplunk(object):
 
     @pytest.mark.skip(reason="Oracle is preventing automated downloads")
     def test_compose_1so_java_oracle(self):
-        # Standup deployment
-        self.compose_file_name = "1so_java_oracle.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        # Check ansible inventory json
-        log_json = self.extract_json("so1")
-        self.check_common_keys(log_json, "so")
-        try:
-            assert log_json["all"]["vars"]["java_version"] == "oracle:8"
-        except KeyError as e:
-            self.logger.error(e)
-            raise e
-        # Check container logs
-        output = self.get_container_logs("so1")
-        self.check_ansible(output)
-        # Check Splunkd on all the containers
-        assert self.check_splunkd("admin", self.password)
-        # Check if java is installed
-        exec_command = self.client.exec_create("so1", "java -version")
-        std_out = self.client.exec_start(exec_command)
-        assert "java version \"1.8.0" in std_out
+        if 'redhat' in platform:
+            assert 'Not supported'
+        else:
+            # Standup deployment
+            self.compose_file_name = "1so_java_oracle.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+            # Check ansible inventory json
+            log_json = self.extract_json("so1")
+            self.check_common_keys(log_json, "so")
+            try:
+                assert log_json["all"]["vars"]["java_version"] == "oracle:8"
+            except KeyError as e:
+                self.logger.error(e)
+                raise e
+            # Check container logs
+            output = self.get_container_logs("so1")
+            self.check_ansible(output)
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Check if java is installed
+            exec_command = self.client.exec_create("so1", "java -version")
+            std_out = self.client.exec_start(exec_command)
+            assert "java version \"1.8.0" in std_out
 
     def test_compose_1so_java_openjdk8(self):
-        # Standup deployment
-        self.compose_file_name = "1so_java_openjdk8.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        # Check ansible inventory json
-        log_json = self.extract_json("so1")
-        self.check_common_keys(log_json, "so")
-        try:
-            assert log_json["all"]["vars"]["java_version"] == "openjdk:8"
-        except KeyError as e:
-            self.logger.error(e)
-            raise e
-        # Check container logs
-        output = self.get_container_logs("so1")
-        self.check_ansible(output)
-        # Check Splunkd on all the containers
-        assert self.check_splunkd("admin", self.password)
-        # Check if java is installed
-        exec_command = self.client.exec_create("so1", "java -version")
-        std_out = self.client.exec_start(exec_command)
-        assert "openjdk version \"1.8.0" in std_out
+        if 'redhat' in platform:
+            assert 'Not supported'
+        else:
+            # Standup deployment
+            self.compose_file_name = "1so_java_openjdk8.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+            # Check ansible inventory json
+            log_json = self.extract_json("so1")
+            self.check_common_keys(log_json, "so")
+            try:
+                assert log_json["all"]["vars"]["java_version"] == "openjdk:8"
+            except KeyError as e:
+                self.logger.error(e)
+                raise e
+            # Check container logs
+            output = self.get_container_logs("so1")
+            self.check_ansible(output)
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Check if java is installed
+            exec_command = self.client.exec_create("so1", "java -version")
+            std_out = self.client.exec_start(exec_command)
+            assert "openjdk version \"1.8.0" in std_out
 
     def test_compose_1so_java_openjdk11(self):
-        # Standup deployment
-        self.compose_file_name = "1so_java_openjdk11.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        # Check ansible inventory json
-        log_json = self.extract_json("so1")
-        self.check_common_keys(log_json, "so")
-        try:
-            assert log_json["all"]["vars"]["java_version"] == "openjdk:11"
-        except KeyError as e:
-            self.logger.error(e)
-            raise e
-        # Check container logs
-        output = self.get_container_logs("so1")
-        self.check_ansible(output)
-        # Check Splunkd on all the containers
-        assert self.check_splunkd("admin", self.password)
-        # Check if java is installed
-        exec_command = self.client.exec_create("so1", "java -version")
-        std_out = self.client.exec_start(exec_command)
-        assert "openjdk version \"11.0.2" in std_out
+        if 'redhat' in platform:
+            assert 'Not supported'
+        else:
+            # Standup deployment
+            self.compose_file_name = "1so_java_openjdk11.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+            # Check ansible inventory json
+            log_json = self.extract_json("so1")
+            self.check_common_keys(log_json, "so")
+            try:
+                assert log_json["all"]["vars"]["java_version"] == "openjdk:11"
+            except KeyError as e:
+                self.logger.error(e)
+                raise e
+            # Check container logs
+            output = self.get_container_logs("so1")
+            self.check_ansible(output)
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Check if java is installed
+            exec_command = self.client.exec_create("so1", "java -version")
+            std_out = self.client.exec_start(exec_command)
+            assert "openjdk version \"11.0.2" in std_out
 
     def test_compose_1so_hec(self):
         # Standup deployment
@@ -1764,9 +1821,14 @@ class TestDockerSplunk(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if service is registered
-        exec_command = self.client.exec_create("so1", "sudo service splunk status")
-        std_out = self.client.exec_start(exec_command)
-        assert "splunkd is running" in std_out
+        if 'debian' in platform:
+            exec_command = self.client.exec_create("so1", "sudo service splunk status")
+            std_out = self.client.exec_start(exec_command)
+            assert "splunkd is running" in std_out
+        else:
+            exec_command = self.client.exec_create("so1", "stat /etc/init.d/splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "/etc/init.d/splunk" in std_out
 
     def test_compose_1uf_enable_service(self):
         # Standup deployment
@@ -1791,9 +1853,14 @@ class TestDockerSplunk(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if service is registered
-        exec_command = self.client.exec_create("uf1", "sudo service splunk status")
-        std_out = self.client.exec_start(exec_command)
-        assert "splunkd is running" in std_out
+        if 'debian' in platform:
+            exec_command = self.client.exec_create("uf1", "sudo service splunk status")
+            std_out = self.client.exec_start(exec_command)
+            assert "splunkd is running" in std_out
+        else:
+            exec_command = self.client.exec_create("uf1", "stat /etc/init.d/splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "/etc/init.d/splunk" in std_out
     
     def test_compose_1so_apps(self):
         # Tar the app before spinning up the scenario
