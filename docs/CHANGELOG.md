@@ -2,8 +2,10 @@
 
 ## Navigation
 
+* [7.3.2](#732)
 * [7.3.1](#731)
 * [7.3.0](#730)
+* [7.2.7](#728)
 * [7.2.7](#727)
 * [7.2.6](#726)
 * [7.2.5.1](#7251)
@@ -13,6 +15,24 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 7.3.2
+
+#### What's New?
+* New Splunk Enterprise release of 7.3.2
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.2/ReleaseNotes/Fixedissues
+* Support for Redhat 8 UF on s390x
+* Various bugfixes
+
+#### splunk-ansible changes:
+* Python 2 and Python 3 cross compatibility support
+* Support SPLUNK_SECRET as an environment variable
+* Prevent double-installation issue when SPLUNK_BUILD_URL is supplied
+* Various bugfixes
 
 ---
 
@@ -54,6 +74,19 @@
 * More multi-site functionality
 * Support for Cygwin-based Windows environments
 * Minor documentation changes
+
+---
+
+## 7.2.8
+
+#### What's New?
+Nothing - releasing new images to support Splunk Enterprise maintenance patch.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.8/ReleaseNotes/Fixedissues
+
+#### splunk-ansible changes:
+* Nothing - releasing new images to support Splunk Enterprise maintenance patch
 
 ---
 
