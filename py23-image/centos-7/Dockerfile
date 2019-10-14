@@ -20,6 +20,6 @@ RUN wget https://www.python.org/ftp/python/3.7.4/Python-3.7.4.tgz \
     && ln -sf /usr/bin/pip2 /usr/bin/pip \
     && ln -sf /usr/bin/pip3.7 /usr/bin/pip3
 RUN yum remove -y --setopt=tsflags=noscripts gcc openssl-devel bzip2-devel libffi-devel \
-    && yum -y autoremove \
+    && yum autoremove -y \
     && yum clean all
 RUN pip3 --no-cache-dir install ansible requests
