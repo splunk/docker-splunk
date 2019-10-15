@@ -183,8 +183,8 @@ class TestDockerSplunk(object):
         return True
     
     def handle_request_retry(self, method, url, kwargs):
-        RETRIES = 6
-        IMPLICIT_WAIT = 3
+        RETRIES = 10
+        IMPLICIT_WAIT = 6
         for n in range(RETRIES):
             try:
                 self.logger.info("Attempt #{}: running {} against {} with kwargs {}".format(n+1, method, url, kwargs))
