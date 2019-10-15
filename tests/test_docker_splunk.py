@@ -2171,10 +2171,26 @@ class TestDockerSplunk(object):
                     assert json.loads(content)["entry"][0]["content"]["preferred_captain"] == "1"
             # Search results won't return the correct results immediately :(
             time.sleep(30)
-            search_providers, distinct_hosts = self.search_internal_distinct_hosts("sh1", password=self.password)
-            assert len(search_providers) == 2
-            assert "idx1" in search_providers and "sh1" in search_providers
-            assert distinct_hosts == 6
+            RETRIES = 10
+            IMPLICIT_WAIT = 6
+            for n in range(RETRIES):
+                try:
+                    self.logger.info("Attempt #{}: checking internal search host count".format(n+1))
+                    search_providers, distinct_hosts = self.search_internal_distinct_hosts("sh1", password=self.password)
+                    assert len(search_providers) == 2
+                    assert "idx1" in search_providers
+                    assert "cm1" in search_providers
+                    assert "dep1" in search_providers
+                    assert "sh1" in search_providers
+                    assert "sh2" in search_providers
+                    assert "sh3" in search_providers
+                    assert distinct_hosts == 6
+                except Exception as e:
+                    self.logger.error("Attempt #{} error: {}".format(n+1, str(e)))
+                    if n < RETRIES-1:
+                        time.sleep(IMPLICIT_WAIT)
+                        continue
+                    raise e
         except Exception as e:
             self.logger.error(e)
             raise e
