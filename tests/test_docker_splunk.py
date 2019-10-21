@@ -145,13 +145,14 @@ class TestDockerSplunk(object):
             yml = yaml.load(f)
         return len(yml["services"])
     
-    def wait_for_containers(self, count, label=None, name=None):
+    def wait_for_containers(self, count, label=None, name=None, timeout=300):
         '''
         NOTE: This helper method can only be used for `compose up` scenarios where self.project_name is defined
         '''
         start = time.time()
         end = start
-        while end-start < 300:
+        # Wait 
+        while end-start < timeout:
             filters = {}
             if name:
                 filters["name"] = name
@@ -182,8 +183,8 @@ class TestDockerSplunk(object):
         return True
     
     def handle_request_retry(self, method, url, kwargs):
-        RETRIES = 6
-        IMPLICIT_WAIT = 3
+        RETRIES = 10
+        IMPLICIT_WAIT = 6
         for n in range(RETRIES):
             try:
                 self.logger.info("Attempt #{}: running {} against {} with kwargs {}".format(n+1, method, url, kwargs))
@@ -2125,7 +2126,7 @@ class TestDockerSplunk(object):
             container_count, rc = self.compose_up()
             assert rc == 0
             # Wait for containers to come up
-            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
             # Get container logs
             container_mapping = {"sh1": "sh", "sh2": "sh", "sh3": "sh", "cm1": "cm", "idx1": "idx", "dep1": "dep"}
             for container in container_mapping:
@@ -2169,11 +2170,23 @@ class TestDockerSplunk(object):
                     status, content = self.handle_request_retry("GET", url, kwargs)
                     assert json.loads(content)["entry"][0]["content"]["preferred_captain"] == "1"
             # Search results won't return the correct results immediately :(
-            time.sleep(15)
-            search_providers, distinct_hosts = self.search_internal_distinct_hosts("sh1", password=self.password)
-            assert len(search_providers) == 2
-            assert "idx1" in search_providers and "sh1" in search_providers
-            assert distinct_hosts == 6
+            time.sleep(30)
+            RETRIES = 10
+            IMPLICIT_WAIT = 6
+            for n in range(RETRIES):
+                try:
+                    self.logger.info("Attempt #{}: checking internal search host count".format(n+1))
+                    search_providers, distinct_hosts = self.search_internal_distinct_hosts("sh1", password=self.password)
+                    assert len(search_providers) == 2
+                    assert "idx1" in search_providers and "sh1" in search_providers
+                    assert distinct_hosts == 6
+                    break
+                except Exception as e:
+                    self.logger.error("Attempt #{} error: {}".format(n+1, str(e)))
+                    if n < RETRIES-1:
+                        time.sleep(IMPLICIT_WAIT)
+                        continue
+                    raise e
         except Exception as e:
             self.logger.error(e)
             raise e

@@ -2,10 +2,11 @@
 
 ## Navigation
 
+* [8.0.0](#800)
 * [7.3.2](#732)
 * [7.3.1](#731)
 * [7.3.0](#730)
-* [7.2.7](#728)
+* [7.2.8](#728)
 * [7.2.7](#727)
 * [7.2.6](#726)
 * [7.2.5.1](#7251)
@@ -15,6 +16,23 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.0.0
+
+#### What's New?
+* New Splunk Enterprise release of 8.0.0
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/8.0.0/ReleaseNotes/Fixedissues
+* Reduced base image size due to package management inflation
+* Additional Python 2/Python 3 compatibility changes
+
+#### splunk-ansible changes:
+* Increasing delay intervals to better handle different platforms
+* Adding vars needed for Ansible Galaxy
+* Bugfix for pre-playbook tasks not supporting URLs
 
 ---
 
