@@ -31,9 +31,11 @@ ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 apt update
 
 # put back tools for customer support
-apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl gcc libssl-dev libffi-dev python2-dev
+apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl gcc libpython-dev libffi-dev libssl-dev
 apt-get install -y --no-install-recommends python-pip python-setuptools python-requests python-yaml
 pip --no-cache-dir install ansible
+apt-get remove -y gcc libffi-dev libssl-dev libpython-dev
+apt-get autoremove -y
 
 cd /bin
 ln -s busybox killall

@@ -26,14 +26,14 @@ microdnf -y --nodocs install glibc-langpack-en
 #We get around the gen above by forcing the language install, and then point to it.
 export LANG=en_US.utf8
 
-microdnf -y --nodocs install wget sudo shadow-utils procps
+microdnf -y --nodocs install wget sudo shadow-utils procps tar
 #install busybox direct from the multiarch since epel isn't availible yet for redhat8
 wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
 chmod +x /bin/busybox
-microdnf -y --nodocs install gcc redhat-rpm-config python2-devel libffi-devel openssl-devel tar
+microdnf -y --nodocs install python2-pip python2-devel redhat-rpm-config gcc libffi-devel openssl-devel
 pip2 --no-cache-dir install requests ansible
-microdnf -y remove gcc libffi-devel openssl-devel
-microdnf clean all
+microdnf -y remove gcc libffi-devel openssl-devel redhat-rpm-config python2-devel device-mapper-libs device-mapper cryptsetup-libs systemd systemd-pam dbus dbus-common dbus-daemon dbus-tools dbus-libs go-srpm-macros iptables-libs ocaml-srpm-macros openblas-srpm-macros qt5-srpm-macros perl-srpm-macros rust-srpm-macros ghc-srpm-macros platform-python python3-rpm-generators platform-python-setuptools python3-libs platform-python-pip python3-rpm-generators python3-rpm-macros elfutils-libs efi-srpm-macros zip unzip xkeyboard-config libxkbcommon redhat-rpm-config util-linux dwz file file-libs findutils iptables-libs diffutils annobin python-rpm-macros python-srpm-macros python2-devel python2-rpm-macros kmod-libs libfdisk libffi-devel libpcap libseccomp libutempter
+
 
 cd /bin
 ln -s python2 python || true
