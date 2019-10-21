@@ -42,7 +42,7 @@ LOGGER.addHandler(file_handler)
 
 global platform
 platform = "debian-9"
-OLD_SPLUNK_VERSION = "7.2.7"
+OLD_SPLUNK_VERSION = "7.3.2"
 
 
 def generate_random_string():
