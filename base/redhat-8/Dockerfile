@@ -20,7 +20,6 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal
 LABEL name="splunk" \
       maintainer="support@splunk.com" \
       vendor="splunk" \
-      version="7.3.2" \
       release="1" \
       summary="UBI 8 Docker image of Splunk Enterprise" \
       description="Splunk Enterprise is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results."

@@ -68,7 +68,7 @@ base-centos-7:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-centos-7:${IMAGE_VERSION} ./base/centos-7
 
 base-redhat-8:
-	docker build ${DOCKER_BUILD_FLAGS} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
+	docker build ${DOCKER_BUILD_FLAGS} --label version=${SPLUNK_VERSION} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
 
 base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
