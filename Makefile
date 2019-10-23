@@ -7,8 +7,8 @@ SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
-SPLUNK_VERSION := 7.3.2
-SPLUNK_BUILD := c60db69f8e32
+SPLUNK_VERSION := 8.0.0
+SPLUNK_BUILD := 1357bef0a7f6
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
@@ -409,7 +409,7 @@ CUR_SIZE=$$(docker image inspect $1:latest --format='{{.Size}}') ; \
 EDGE_SIZE=$$(docker image inspect splunk/splunk:edge --format='{{.Size}}') ; \
 echo "current $1 image size = "$$CUR_SIZE ; \
 echo "edge image size = "$$EDGE_SIZE ; \
-if [[ $$CUR_SIZE -gt $$EDGE_SIZE*120/100 ]] ; then echo "current image size is 20% more than edge image" ; exit 1 ; fi
+if [[ $$CUR_SIZE -gt $$EDGE_SIZE*140/100 ]] ; then echo "current image size is 40% more than edge image" ; exit 1 ; fi
 endef
 
 setup_clair_scanner:
