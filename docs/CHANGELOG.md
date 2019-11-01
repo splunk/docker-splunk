@@ -6,6 +6,7 @@
 * [7.3.2](#732)
 * [7.3.1](#731)
 * [7.3.0](#730)
+* [7.2.9](#729)
 * [7.2.8](#728)
 * [7.2.7](#727)
 * [7.2.6](#726)
@@ -92,6 +93,21 @@
 * More multi-site functionality
 * Support for Cygwin-based Windows environments
 * Minor documentation changes
+
+---
+
+## 7.2.9
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise maintenance patch.
+* Bundling in changes to be consistent with the release of [8.0.0](#800)
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.9/ReleaseNotes/Fixedissues
+* See [8.0.0](#800) changes
+
+#### splunk-ansible changes:
+* See [8.0.0](#800) changes
 
 ---
 
