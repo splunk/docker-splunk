@@ -27,7 +27,7 @@ We can bind-mount this upon container start and use it as a regular Splunk app:
 $ docker run -it -v ./splunk_app_example:/opt/splunk/etc/apps/splunk_app_example/ --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
 ```
 
-You should be able to view the `splunk_app_example` in SplunkWeb after the container successfully finished provisioning.
+You should be able to view the `splunk_app_example` in SplunkWeb after the container successfully finished provisioning.x
 
 ## Download via URL
 In most cases, you're likely hosting the app as a tar file somewhere accessible in your network. This decouples the need for Splunk apps and configuration files to exist locally on a node, which enables Splunk to run in a container orchestration environment.
