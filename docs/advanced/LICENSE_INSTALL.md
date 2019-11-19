@@ -8,6 +8,7 @@ There are primarily two different ways to apply a license when starting your con
 
 * [Path to file](#path-to-file)
 * [Download via URL](#download-via-url)
+* [Free license](#splunk-free-license)
 * [Using a license master](#using-a-license-master)
 
 ## Path to file
@@ -92,6 +93,14 @@ services:
 You should be able to bring up your deployment with the Splunk license automatically applied with the following command:
 ```
 $ SPLUNK_PASSWORD=<password> docker stack deploy --compose-file=docker-compose.yml splunk_deployment
+```
+
+## Splunk Free license
+Not to be confused with an actual free Splunk enterprise license, but [Splunk Free](https://docs.splunk.com/Documentation/Splunk/latest/Admin/MoreaboutSplunkFree) is a product offering that enables the power of Splunk with a never-expiring but ingest-limited license. By default, when you create a Splunk environment using this Docker container, it will enable a Splunk Trial license which is good for 30 days from the start of your instance. With Splunk Free, you can create a full developer environment of Splunk for any personal, sustained usage. 
+
+To bring up a single instance using Splunk Free, you can run the following command:
+```
+$ docker run --name so1 --hostname so1 -p 8000:8000 -e SPLUNK_PASSWORD=<password> -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_LICENSE_URI=Free -it splunk/splunk:latest
 ```
 
 ## Using a license master
