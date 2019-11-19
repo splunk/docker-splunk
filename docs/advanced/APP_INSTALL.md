@@ -27,14 +27,13 @@ We can bind-mount this upon container start and use it as a regular Splunk app:
 $ docker run -it -v ./splunk_app_example:/opt/splunk/etc/apps/splunk_app_example/ --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
 ```
 
-You should be able to view the `splunk_app_example` in SplunkWeb after the container successfully finished provisioning.x
+You should be able to view the `splunk_app_example` in SplunkWeb after the container successfully finished provisioning.
 
 ## Download via URL
 In most cases, you're likely hosting the app as a tar file somewhere accessible in your network. This decouples the need for Splunk apps and configuration files to exist locally on a node, which enables Splunk to run in a container orchestration environment.
 
 #### SplunkBase apps
 Please refer to this docker-compose.yml file for how to download SplunkBase apps with authentication:
-<details><summary>docker-compose.yml</summary><p>
 
 ```
 version: "3.6"
@@ -52,11 +51,9 @@ services:
     ports:
       - 8000
 ```
-</p></details>
 
 #### Self-hosted apps
 Please refer to this docker-compose.yml file for how to download any app hosted at an arbitrary location:
-<details><summary>docker-compose.yml</summary><p>
 
 ```
 version: "3.6"
@@ -72,13 +69,11 @@ services:
     ports:
       - 8000
 ```
-</p></details>
 
 #### Apps on filesystem
 If you build your own image on top of the `splunk/splunk` or `splunk/universalforwarder` image, it's possible you may embedd a tar file of an app inside. Or, you can go with the bind-mount volume approach and inject a tar file on container run time. In either case, it's still possible to install an app from this file on the container's filesystem with the following.
 
 Please refer to this docker-compose.yml file for how to install an app in the container's filesystem:
-<details><summary>docker-compose.yml</summary><p>
 
 ```
 version: "3.6"
@@ -94,13 +89,11 @@ services:
     ports:
       - 8000
 ```
-</p></details>
 
 ## Multiple apps
 As one would expect, Splunk can and should support downloading any combination or series of apps. This can be incredibly useful when cross-referencing data from various sources.
 
 The `SPLUNK_APPS_URL` supports multiple apps, as long as they are comma-separated. Plase refer to this docker-compose.yml file for how to install multiple apps:
-<details><summary>docker-compose.yml</summary><p>
 
 ```
 version: "3.6"
@@ -118,14 +111,11 @@ services:
     ports:
       - 8000
 ```
-</p></details>
 
 ## Apps in distributed environments
 This docker image also deploys apps when running Splunk in distributed environments. There are, however, special cases and instructions for how apps get deployed in these scenarios.
 
 In the case of multiple search heads (no clustering) and multiple indexers (no clustering), you will explicitly need to tell each container what apps to install by defining a `SPLUNK_APPS_URL` for each role. See the example below and note the different apps used for search heads and indexers:
-
-<details><summary>2idx2sh.yml</summary><p>
 
 ```
 version: "3.6"
@@ -212,11 +202,9 @@ services:
     ports:
       - 8000
 ```
-</p></details>
 
 In the case of search head clusters, you will explicitly need to tell the `splunk_deployer` what apps to install by defining a `SPLUNK_APPS_URL` for that particular role. The deployer will manage the distribution of apps to each of the search head cluster members (search heads). See the example below and note the different apps used for search heads and indexers:
 
-<details><summary>1dep3sh2idx.yml</summary><p>
 
 ```
 version: "3.6"
@@ -342,11 +330,8 @@ services:
     ports:
       - 8000    
 ```
-</p></details>
 
 In the case of indexer clusters, you will explicitly need to tell the `splunk_cluster_master` what apps to install by defining a `SPLUNK_APPS_URL` for that particular role. The cluster master will manage the distribution of apps to each of the indexer cluster members (indexers). See the example below and note the different apps used for search heads and indexers:
-
-<details><summary>3idx1sh1cm.yml</summary><p>
 
 ```
 version: "3.6"
@@ -453,4 +438,3 @@ services:
     ports:
       - 8000
 ```
-</p></details>
