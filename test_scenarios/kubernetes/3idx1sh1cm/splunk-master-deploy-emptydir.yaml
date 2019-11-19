@@ -1,5 +1,5 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: master 
@@ -9,6 +9,11 @@ metadata:
     tier: management
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: splunk
+      role: splunk_cluster_master
+      tier: management
   template:
     metadata:
       labels:
