@@ -1647,93 +1647,83 @@ class TestDockerSplunk(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
 
-    @pytest.mark.skip(reason="Oracle is preventing automated downloads")
     def test_compose_1so_java_oracle(self):
-        if 'redhat' in platform:
-            assert 'Not supported'
-        else:
-            # Standup deployment
-            self.compose_file_name = "1so_java_oracle.yaml"
-            self.project_name = generate_random_string()
-            container_count, rc = self.compose_up()
-            assert rc == 0
-            # Wait for containers to come up
-            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-            # Check ansible inventory json
-            log_json = self.extract_json("so1")
-            self.check_common_keys(log_json, "so")
-            try:
-                assert log_json["all"]["vars"]["java_version"] == "oracle:8"
-            except KeyError as e:
-                self.logger.error(e)
-                raise e
-            # Check container logs
-            output = self.get_container_logs("so1")
-            self.check_ansible(output)
-            # Check Splunkd on all the containers
-            assert self.check_splunkd("admin", self.password)
-            # Check if java is installed
-            exec_command = self.client.exec_create("so1", "java -version")
-            std_out = self.client.exec_start(exec_command)
-            assert "java version \"1.8.0" in std_out
+        # Standup deployment
+        self.compose_file_name = "1so_java_oracle.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        # Check ansible inventory json
+        log_json = self.extract_json("so1")
+        self.check_common_keys(log_json, "so")
+        try:
+            assert log_json["all"]["vars"]["java_version"] == "oracle:8"
+        except KeyError as e:
+            self.logger.error(e)
+            raise e
+        # Check container logs
+        output = self.get_container_logs("so1")
+        self.check_ansible(output)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check if java is installed
+        exec_command = self.client.exec_create("so1", "java -version")
+        std_out = self.client.exec_start(exec_command)
+        assert "java version \"1.8.0" in std_out
 
     def test_compose_1so_java_openjdk8(self):
-        if 'redhat' in platform:
-            assert 'Not supported'
-        else:
-            # Standup deployment
-            self.compose_file_name = "1so_java_openjdk8.yaml"
-            self.project_name = generate_random_string()
-            container_count, rc = self.compose_up()
-            assert rc == 0
-            # Wait for containers to come up
-            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-            # Check ansible inventory json
-            log_json = self.extract_json("so1")
-            self.check_common_keys(log_json, "so")
-            try:
-                assert log_json["all"]["vars"]["java_version"] == "openjdk:8"
-            except KeyError as e:
-                self.logger.error(e)
-                raise e
-            # Check container logs
-            output = self.get_container_logs("so1")
-            self.check_ansible(output)
-            # Check Splunkd on all the containers
-            assert self.check_splunkd("admin", self.password)
-            # Check if java is installed
-            exec_command = self.client.exec_create("so1", "java -version")
-            std_out = self.client.exec_start(exec_command)
-            assert "openjdk version \"1.8.0" in std_out
+        # Standup deployment
+        self.compose_file_name = "1so_java_openjdk8.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        # Check ansible inventory json
+        log_json = self.extract_json("so1")
+        self.check_common_keys(log_json, "so")
+        try:
+            assert log_json["all"]["vars"]["java_version"] == "openjdk:8"
+        except KeyError as e:
+            self.logger.error(e)
+            raise e
+        # Check container logs
+        output = self.get_container_logs("so1")
+        self.check_ansible(output)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check if java is installed
+        exec_command = self.client.exec_create("so1", "java -version")
+        std_out = self.client.exec_start(exec_command)
+        assert "openjdk version \"1.8.0" in std_out
 
     def test_compose_1so_java_openjdk11(self):
-        if 'redhat' in platform:
-            assert 'Not supported'
-        else:
-            # Standup deployment
-            self.compose_file_name = "1so_java_openjdk11.yaml"
-            self.project_name = generate_random_string()
-            container_count, rc = self.compose_up()
-            assert rc == 0
-            # Wait for containers to come up
-            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-            # Check ansible inventory json
-            log_json = self.extract_json("so1")
-            self.check_common_keys(log_json, "so")
-            try:
-                assert log_json["all"]["vars"]["java_version"] == "openjdk:11"
-            except KeyError as e:
-                self.logger.error(e)
-                raise e
-            # Check container logs
-            output = self.get_container_logs("so1")
-            self.check_ansible(output)
-            # Check Splunkd on all the containers
-            assert self.check_splunkd("admin", self.password)
-            # Check if java is installed
-            exec_command = self.client.exec_create("so1", "java -version")
-            std_out = self.client.exec_start(exec_command)
-            assert "openjdk version \"11.0.2" in std_out
+        # Standup deployment
+        self.compose_file_name = "1so_java_openjdk11.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        # Check ansible inventory json
+        log_json = self.extract_json("so1")
+        self.check_common_keys(log_json, "so")
+        try:
+            assert log_json["all"]["vars"]["java_version"] == "openjdk:11"
+        except KeyError as e:
+            self.logger.error(e)
+            raise e
+        # Check container logs
+        output = self.get_container_logs("so1")
+        self.check_ansible(output)
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check if java is installed
+        exec_command = self.client.exec_create("so1", "java -version")
+        std_out = self.client.exec_start(exec_command)
+        assert "openjdk version \"11.0.2" in std_out
 
     def test_compose_1so_hec(self):
         # Standup deployment
@@ -1987,6 +1977,129 @@ class TestDockerSplunk(object):
         assert len(search_providers) == 1
         assert search_providers[0] == "so1"
         assert distinct_hosts == 2
+
+    def test_compose_3idx1cm_default_repl_factor(self):
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search("  password: (.*)", output).group(1).strip()
+        assert password
+        # Write the default.yml to a file
+        with open(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
+            f.write(output)
+        # Standup deployment
+        try:
+            self.compose_file_name = "3idx1cm.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
+            # Get container logs
+            container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
+            for container in container_mapping:
+                # Check ansible version & configs
+                ansible_logs = self.get_container_logs(container)
+                self.check_ansible(ansible_logs)
+                # Check values in log output
+                inventory_json = self.extract_json(container)
+                self.check_common_keys(inventory_json, container_mapping[container])
+                try:
+                    assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
+                    assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
+                except KeyError as e:
+                    self.logger.error(e)
+                    raise e
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Make sure apps are installed, and shcluster is setup properly
+            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+            assert len(containers) == 4
+            for container in containers:
+                container_name = container["Names"][0].strip("/")
+                splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
+                if container_name == "cm1":
+                    # Check the replication factor & search factor
+                    url = "https://localhost:{}/services/cluster/config/config?output_mode=json".format(splunkd_port)
+                    kwargs = {"auth": ("admin", self.password), "verify": False}
+                    status, content = self.handle_request_retry("GET", url, kwargs)
+                    assert status == 200
+                    assert json.loads(content)["entry"][0]["content"]["replication_factor"] == 3
+                    assert json.loads(content)["entry"][0]["content"]["search_factor"] == 3
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            try:
+                os.remove(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"))
+            except OSError as e:
+                pass
+
+    def test_compose_3idx1cm_custom_repl_factor(self):
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search("  password: (.*)", output).group(1).strip()
+        assert password
+        # Change repl factor & search factor
+        output = re.sub(r'    replication_factor: 3', r'''    replication_factor: 2''', output)
+        output = re.sub(r'    search_factor: 3', r'''    search_factor: 1''', output)
+        # Write the default.yml to a file
+        with open(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
+            f.write(output)
+        # Standup deployment
+        try:
+            self.compose_file_name = "3idx1cm.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
+            # Get container logs
+            container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
+            for container in container_mapping:
+                # Check ansible version & configs
+                ansible_logs = self.get_container_logs(container)
+                self.check_ansible(ansible_logs)
+                # Check values in log output
+                inventory_json = self.extract_json(container)
+                self.check_common_keys(inventory_json, container_mapping[container])
+                try:
+                    assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
+                    assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
+                except KeyError as e:
+                    self.logger.error(e)
+                    raise e
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Make sure apps are installed, and shcluster is setup properly
+            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+            assert len(containers) == 4
+            for container in containers:
+                container_name = container["Names"][0].strip("/")
+                splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
+                if container_name == "cm1":
+                    # Check the replication factor & search factor
+                    url = "https://localhost:{}/services/cluster/config/config?output_mode=json".format(splunkd_port)
+                    kwargs = {"auth": ("admin", self.password), "verify": False}
+                    status, content = self.handle_request_retry("GET", url, kwargs)
+                    assert status == 200
+                    assert json.loads(content)["entry"][0]["content"]["replication_factor"] == 2
+                    assert json.loads(content)["entry"][0]["content"]["search_factor"] == 1
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            try:
+                os.remove(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"))
+            except OSError as e:
+                pass
 
     def test_compose_1cm_smartstore(self):
         # Generate default.yml

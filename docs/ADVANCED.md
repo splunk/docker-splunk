@@ -242,28 +242,28 @@ To build images directly from this repository, there is a supplied `Makefile` in
     ```
 3. Run all the tests to verify your environment
     ```
-    $ make splunk-debian-9
-    $ make uf-debian-9
+    $ make splunk-redhat-8
+    $ make uf-redhat-8
     ```
 
-Additionally, there are multiple images and layers that are produced by the previous commands: `base-debian-9`, `splunk-debian-9`, and `uf-debian-9`.
+Additionally, there are multiple images and layers that are produced by the previous commands: `base-redhat-8`, `splunk-redhat-8`, and `uf-redhat-8`.
 
-#### base-debian-9
-The directory `base/debian-9` contains a Dockerfile to create a base image on top of which all the other images are built. In order to minimize image size and provide a stable foundation for other images to build on, we elected to use `debian:stretch-slim` (55MB) for our base image. In the future, we plan to add support for additional operating systems.
+#### base-redhat-8
+The directory `base-redhat-8` contains a Dockerfile to create a base image on top of which all the other images are built. In order to minimize image size and provide a stable foundation for other images to build on, we elected to use `registry.access.redhat.com/ubi8/ubi-minimal:8.0` (90MB) for our base image. In the future, we plan to add support for additional operating systems.
 ```
-$ make base-debian-9
+$ make base-redhat-8
 ```
 
 **WARNING:** Modifications made to the "base" image can result in Splunk being unable to start or run correctly.
 
-#### splunk-debian-9
-The directory `splunk/debian-9` contains a Dockerfile that extends the base image by installing Splunk and adding tools for provisioning. Advanced Splunk provisioning capabilities are provided through the utilization of an entrypoint script and playbooks published separately via the [splunk-ansible project](https://github.com/splunk/splunk-ansible).
+#### splunk-redhat-8
+The directory `splunk/common-files` contains a Dockerfile that extends the base image by installing Splunk and adding tools for provisioning. Advanced Splunk provisioning capabilities are provided through the utilization of an entrypoint script and playbooks published separately via the [splunk-ansible project](https://github.com/splunk/splunk-ansible).
 ```
-$ make splunk-debian-9
+$ make splunk-redhat-8
 ```
 
-#### uf-debian-9
-The directory `uf/debian-9` contains a Dockerfile that extends the base image by installing Splunk Universal Forwarder and adding tools for provisioning. This image is similar to the Splunk Enterprise image (`splunk-debian-9`), except the more lightweight Splunk Universal Forwarder package is installed instead.
+#### uf-redhat-8
+The directory `uf/common-files` contains a Dockerfile that extends the base image by installing Splunk Universal Forwarder and adding tools for provisioning. This image is similar to the Splunk Enterprise image (`splunk-redhat-8`), except the more lightweight Splunk Universal Forwarder package is installed instead.
 ```
-$ make uf-debian-9
+$ make uf-redhat-8
 ```

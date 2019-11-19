@@ -16,7 +16,6 @@
 set -e
 
 # reinstalling local en def for now, removed in minimal image https://bugzilla.redhat.com/show_bug.cgi?id=1665251
-microdnf -y update
 microdnf -y --nodocs install glibc-langpack-en
 
 #Currently there is no access to the UTF-8 char map, the following command is commented out until
