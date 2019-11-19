@@ -3,6 +3,7 @@
 ## Navigation
 
 * [8.0.0](#800)
+* [7.3.3](#733)
 * [7.3.2](#732)
 * [7.3.1](#731)
 * [7.3.0](#730)
@@ -34,6 +35,26 @@
 * Increasing delay intervals to better handle different platforms
 * Adding vars needed for Ansible Galaxy
 * Bugfix for pre-playbook tasks not supporting URLs
+
+---
+
+## 7.3.3
+
+#### What's New?
+* New Splunk Enterprise release of 7.3.3
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.3/ReleaseNotes/Fixedissues
+* Better management of deployment server apps
+* Support for variety of Splunk package types
+* Bugfixes around app installation
+
+#### splunk-ansible changes:
+* Removing unnecessary apps in distributed ITSI installations
+* Partioning apps in serverclass.conf when using the deployment server
+* Adding support for activating Splunk Free license on boot
+* Support for cluster labels via environment variables
+* Bugfixes around app installation (through default.yml and pathing)
 
 ---
 
