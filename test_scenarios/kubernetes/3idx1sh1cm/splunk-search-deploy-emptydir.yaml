@@ -1,5 +1,5 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: search 
@@ -9,6 +9,11 @@ metadata:
     tier: search
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: splunk
+      role: splunk_search_head
+      tier: search
   template:
     metadata:
       labels:
