@@ -2170,14 +2170,15 @@ class TestDockerSplunk(object):
         assert password
         # Add a custom conf file
         output = re.sub(r'  smartstore: null', r'''  smartstore:
-    - indexName: default
-      remoteName: remote_vol
-      scheme: s3
-      remoteLocation: smartstore-test
-      s3:
-        access_key: abcd
-        secret_key: 1234
-        endpoint: https://s3-region.amazonaws.com''', output)
+    index:
+        - indexName: default
+          remoteName: remote_vol
+          scheme: s3
+          remoteLocation: smartstore-test
+          s3:
+            access_key: abcd
+            secret_key: 1234
+            endpoint: https://s3-region.amazonaws.com''', output)
         # Write the default.yml to a file
         with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
             f.write(output)
