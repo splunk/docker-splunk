@@ -2,6 +2,7 @@
 
 ## Navigation
 
+* [8.0.1](#801)
 * [8.0.0](#800)
 * [7.3.3](#733)
 * [7.3.2](#732)
@@ -18,6 +19,20 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.0.1
+
+#### What's New?
+* New Splunk Enterprise release of 8.0.1
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/8.0.1/ReleaseNotes/Fixedissues
+* See [8.0.0](#800) changes
+
+#### splunk-ansible changes:
+* See [8.0.0](#800) changes
 
 ---
 
