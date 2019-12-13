@@ -29,10 +29,13 @@
 
 #### docker-splunk changes:
 * Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/8.0.1/ReleaseNotes/Fixedissues
-* See [8.0.0](#800) changes
+* Bugfixes and increasing test coverage for new features
 
 #### splunk-ansible changes:
-* See [8.0.0](#800) changes
+* Service name fixes for AWS
+* Bugfixes around forwarding and SHC-readiness
+* Additional options to control SmartStore configuration
+**NOTE** If you are currently using SmartStore, this change does break backwards-compatibility with former versions of the `default.yml` schema. This was necessary to expose the additional features asked for by the community. Please regenerate the `default.yml` if you plan on upgrading to this version.
 
 ---
 
