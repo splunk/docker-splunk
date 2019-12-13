@@ -209,15 +209,33 @@ Here's an overview of what this looks like if you want to persist *all* your ind
 ---
 splunk:
   smartstore:
-    - indexName: default
-      remoteName: remote_store
-      scheme: s3
-      remoteLocation: <bucket-name>
-      s3:
-        access_key: <access_key>
-        secret_key: <secret_key>
-        endpoint: http://s3-us-west-2.amazonaws.com
+    index:
+      - indexName: default
+        remoteName: remote_store
+        scheme: s3
+        remoteLocation: <bucket-name>
+        s3:
+          access_key: <access_key>
+          secret_key: <secret_key>
+          endpoint: http://s3-us-west-2.amazonaws.com
   ...
+```
+
+Some cache management options are also available. Options defined under the index stanza correspond to options in `indexes.conf` https://docs.splunk.com/Documentation/Splunk/latest/admin/Indexesconf. While options defined outside the index correspond to options in `server.conf` https://docs.splunk.com/Documentation/Splunk/latest/admin/Serverconf, note that currently only `[cachemanager]` stanza is supported. This is an example config that defines cache settings and retention policy:
+```
+smartstore:
+  cachemanager:
+    max_cache_size: 500
+    max_concurrent_uploads: 7
+  index:
+    - indexName: custom_index
+      remoteName: my_storage
+      scheme: http
+      remoteLocation: my_storage.net
+      maxGlobalDataSizeMB: 500
+      maxGlobalRawDataSizeMB: 200
+      hotlist_recency_secs: 30
+      hotlist_bloom_filter_recency_hours: 1
 ```
 
 ## Using deployment servers
