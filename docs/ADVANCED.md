@@ -221,7 +221,7 @@ splunk:
   ...
 ```
 
-Some cache management options are also available. Options defined under the index stanza correspond to options in `index.conf` https://docs.splunk.com/Documentation/Splunk/8.0.0/admin/Indexesconf. While options defined outside the index correspond to options in `server.conf` https://docs.splunk.com/Documentation/Splunk/8.0.0/admin/Serverconf, note that currently only `[cachemanager]` stanza is supported. This is an example config that defines cache settings and retention policy:
+Some cache management options are also available. Options defined under the index stanza correspond to options in `indexes.conf` https://docs.splunk.com/Documentation/Splunk/latest/admin/Indexesconf. While options defined outside the index correspond to options in `server.conf` https://docs.splunk.com/Documentation/Splunk/latest/admin/Serverconf, note that currently only `[cachemanager]` stanza is supported. This is an example config that defines cache settings and retention policy:
 ```
 smartstore:
   cachemanager:
