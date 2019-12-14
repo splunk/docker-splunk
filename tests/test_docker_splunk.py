@@ -958,6 +958,64 @@ class TestDockerSplunk(object):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
+    def test_adhoc_1so_apps_location_in_default_yml(self):
+    	with tarfile.open(EXAMPLE_APP_TGZ, "w:gz") as tar:
+            tar.add(EXAMPLE_APP, arcname=os.path.basename(EXAMPLE_APP))
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search("  password: (.*)", output).group(1).strip()
+        assert password
+        # Change repl factor & search factor
+        output = re.sub(r'  user: splunk', r'  user: splunk\n  apps_location: /tmp/defaults/splunk_app_example.tgz', output)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            # Spin up this container, but also bind-mount the app in the fixtures directory
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="start-service", ports=[8089], 
+                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                            environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check the app endpoint
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port)
+            kwargs = {"auth": ("admin", password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Let's go further and check app version
+            output = json.loads(content)
+            assert output["entry"][0]["content"]["version"] == "0.0.1"
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            try:
+            	os.remove(EXAMPLE_APP_TGZ)
+                os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
+            except OSError:
+                pass
+
     def test_adhoc_1so_bind_mount_apps(self):
         # Generate default.yml
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
@@ -2112,14 +2170,15 @@ class TestDockerSplunk(object):
         assert password
         # Add a custom conf file
         output = re.sub(r'  smartstore: null', r'''  smartstore:
-    - indexName: default
-      remoteName: remote_vol
-      scheme: s3
-      remoteLocation: smartstore-test
-      s3:
-        access_key: abcd
-        secret_key: 1234
-        endpoint: https://s3-region.amazonaws.com''', output)
+    index:
+        - indexName: default
+          remoteName: remote_vol
+          scheme: s3
+          remoteLocation: smartstore-test
+          s3:
+            access_key: abcd
+            secret_key: 1234
+            endpoint: https://s3-region.amazonaws.com''', output)
         # Write the default.yml to a file
         with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
             f.write(output)
