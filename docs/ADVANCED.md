@@ -18,6 +18,7 @@ Let's dive into the nitty-gritty on how to tweak the setup of your containerized
 * [Enable SmartStore](#enable-smartstore)
 * [Using deployment servers](#using-deployment-servers)
 * [Deploy distributed topology](#deploy-distributed-topology)
+* [Enable SSL internal communication](#enable-ssl-internal-communication)
 * [Build from source](#build-from-source)
     * [base-debian-9](#base-debian-9)
     * [splunk-debian-9](#splunk-debian-9)
@@ -247,6 +248,25 @@ See the [full deployment server guide](advanced/DEPLOYMENT_SERVER.md) to underst
 While running a standalone Splunk instance may be fine for testing and development, you may eventually want to scale out to enable better performance of running Splunk at scale. This image does support a fully-vetted distributed Splunk environment, by using environment variables that enable certain containers to assume certain roles, and to network everything together.
 
 See the [instructions on standing up a distributed environment](advanced/DISTRIBUTED_TOPOLOGY.md) to understand how to get started.
+
+## Enable SSL Internal Communication
+For users looking to secure the network traffic from one Splunk instance to another Splunk instance (ex: forwarders to indexers), you can enable forwarding and receiving to use SSL certificates. 
+
+If you wish to enable SSL on one tier of your Splunk topology, it's very likely all instances will need it. To achieve this, we recommend you generate your server and CA certificates and add them to the `default.yml` which gets shared across all Splunk docker containers. Use this example `default.yml` snippet for the configuration of Splunk TCP with SSL.  
+```
+splunk:
+  ...
+  s2s:
+    ca: /mnt/certs/ca.pem
+    cert: /mnt/certs/cert.pem
+    enable: true
+    password: abcd1234
+    port: 9997
+    ssl: true
+  ...
+```
+
+For more instructions on how to bring your own certificates, please see: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
 
 ## Build from source
 While we don't support or recommend you building your own images from source, it is entirely possible. This can be useful if you want to incorporate very experimental features, test new features, and if you have your own registry for persistent images.
