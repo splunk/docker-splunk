@@ -302,8 +302,10 @@ class TestDockerSplunk(object):
             assert log_output["all"]["vars"]["ansible_ssh_user"] == "splunk"
             assert log_output["all"]["vars"]["ansible_pre_tasks"] == None
             assert log_output["all"]["vars"]["ansible_post_tasks"] == None
-            assert log_output["all"]["vars"]["retry_num"] == 50
-            assert log_output["all"]["vars"]["delay_num"] == 3
+            assert log_output["all"]["vars"]["retry_num"] == 60
+            assert log_output["all"]["vars"]["retry_delay"] == 3
+            assert log_output["all"]["vars"]["wait_for_splunk_retry_num"] == 60
+            assert log_output["all"]["vars"]["shc_sync_retry_num"] == 60
             assert log_output["all"]["vars"]["splunk"]["group"] == "splunk"
             assert log_output["all"]["vars"]["splunk"]["license_download_dest"] == "/tmp/splunk.lic"
             assert log_output["all"]["vars"]["splunk"]["nfr_license"] == "/tmp/nfr_enterprise.lic"
