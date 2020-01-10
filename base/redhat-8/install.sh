@@ -15,6 +15,8 @@
 
 set -e
 
+# Per: https://github.com/rpm-software-management/microdnf/issues/50
+mkdir -p /run/user/$UID
 # reinstalling local en def for now, removed in minimal image https://bugzilla.redhat.com/show_bug.cgi?id=1665251
 microdnf -y --nodocs install glibc-langpack-en
 
@@ -25,7 +27,8 @@ microdnf -y --nodocs install glibc-langpack-en
 #We get around the gen above by forcing the language install, and then point to it.
 export LANG=en_US.utf8
 
-microdnf -y --nodocs install wget sudo shadow-utils procps tar
+rpm -e --nodeps tzdata
+microdnf -y --nodocs install wget sudo shadow-utils procps tar tzdata
 #install busybox direct from the multiarch since epel isn't availible yet for redhat8
 wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
 chmod +x /bin/busybox
