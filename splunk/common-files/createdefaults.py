@@ -25,7 +25,9 @@ sys.path.append(os.path.abspath(splunk_ansible_inventory))
 splunk_hec_token = os.environ.get("SPLUNK_HEC_TOKEN", None)
 splunk_password = os.environ.get("SPLUNK_PASSWORD", None)
 splunk_idxc_secret = os.environ.get("SPLUNK_IDXC_SECRET", None)
+splunk_idxc_pass4SymmKey = os.environ.get("SPLUNK_IDXC_PASS4SYMMKEY", None)
 splunk_shc_secret = os.environ.get("SPLUNK_SHC_SECRET", None)
+splunk_shc_pass4SymmKey = os.environ.get("SPLUNK_SHC_PASS4SYMMKEY", None)
 
 def random_generator(size=24):
     # Use System Random for
@@ -41,10 +43,18 @@ if not splunk_hec_token:
     os.environ["SPLUNK_HEC_TOKEN"] = str(tempuuid)
 if not splunk_password:
     os.environ["SPLUNK_PASSWORD"] = random_generator()
-if not splunk_idxc_secret:
-    os.environ["SPLUNK_IDXC_SECRET"] = random_generator()
-if not splunk_shc_secret:
-    os.environ["SPLUNK_SHC_SECRET"] = random_generator()
+if splunk_idxc_pass4SymmKey:
+    os.environ["SPLUNK_IDXC_PASS4SYMMKEY"] = os.environ["SPLUNK_IDXC_SECRET"] = splunk_idxc_pass4SymmKey
+elif splunk_idxc_secret:
+    os.environ["SPLUNK_IDXC_PASS4SYMMKEY"] = os.environ["SPLUNK_IDXC_SECRET"] = splunk_idxc_secret
+else:
+    os.environ["SPLUNK_IDXC_PASS4SYMMKEY"] = os.environ["SPLUNK_IDXC_SECRET"] = random_generator()
+if splunk_shc_secret:
+    os.environ["SPLUNK_SHC_PASS4SYMMKEY"] = os.environ["SPLUNK_SHC_SECRET"] = splunk_shc_pass4SymmKey
+elif splunk_shc_pass4SymmKey:
+    os.environ["SPLUNK_SHC_PASS4SYMMKEY"] = os.environ["SPLUNK_SHC_SECRET"] = splunk_shc_secret
+else:
+    os.environ["SPLUNK_SHC_PASS4SYMMKEY"] = os.environ["SPLUNK_SHC_SECRET"] = random_generator()
 sys.argv.append("--write-to-stdout")
 import environ
 environ.main()
