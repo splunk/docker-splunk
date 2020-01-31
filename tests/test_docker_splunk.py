@@ -303,7 +303,7 @@ class TestDockerSplunk(object):
             assert log_output["all"]["vars"]["ansible_pre_tasks"] == None
             assert log_output["all"]["vars"]["ansible_post_tasks"] == None
             assert log_output["all"]["vars"]["retry_num"] == 60
-            assert log_output["all"]["vars"]["retry_delay"] == 3
+            assert log_output["all"]["vars"]["retry_delay"] == 6
             assert log_output["all"]["vars"]["wait_for_splunk_retry_num"] == 60
             assert log_output["all"]["vars"]["shc_sync_retry_num"] == 60
             assert log_output["all"]["vars"]["splunk"]["group"] == "splunk"
