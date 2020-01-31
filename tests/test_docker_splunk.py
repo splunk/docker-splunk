@@ -308,7 +308,6 @@ class TestDockerSplunk(object):
             assert log_output["all"]["vars"]["shc_sync_retry_num"] == 60
             assert log_output["all"]["vars"]["splunk"]["group"] == "splunk"
             assert log_output["all"]["vars"]["splunk"]["license_download_dest"] == "/tmp/splunk.lic"
-            assert log_output["all"]["vars"]["splunk"]["nfr_license"] == "/tmp/nfr_enterprise.lic"
             assert log_output["all"]["vars"]["splunk"]["opt"] == "/opt"
             assert log_output["all"]["vars"]["splunk"]["user"] == "splunk"
 
@@ -1889,6 +1888,13 @@ class TestDockerSplunk(object):
         exec_command = self.client.exec_create("so1", "java -version")
         std_out = self.client.exec_start(exec_command)
         assert "java version \"1.8.0" in std_out
+        # Restart the container and make sure java is still installed
+        self.client.restart("so1")
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        assert self.check_splunkd("admin", self.password)
+        exec_command = self.client.exec_create("so1", "java -version")
+        std_out = self.client.exec_start(exec_command)
+        assert "java version \"1.8.0" in std_out
 
     def test_compose_1so_java_openjdk8(self):
         # Standup deployment
@@ -1915,6 +1921,13 @@ class TestDockerSplunk(object):
         exec_command = self.client.exec_create("so1", "java -version")
         std_out = self.client.exec_start(exec_command)
         assert "openjdk version \"1.8.0" in std_out
+        # Restart the container and make sure java is still installed
+        self.client.restart("so1")
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        assert self.check_splunkd("admin", self.password)
+        exec_command = self.client.exec_create("so1", "java -version")
+        std_out = self.client.exec_start(exec_command)
+        assert "openjdk version \"1.8.0" in std_out
 
     def test_compose_1so_java_openjdk11(self):
         # Standup deployment
@@ -1938,6 +1951,13 @@ class TestDockerSplunk(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if java is installed
+        exec_command = self.client.exec_create("so1", "java -version")
+        std_out = self.client.exec_start(exec_command)
+        assert "openjdk version \"11.0.2" in std_out
+        # Restart the container and make sure java is still installed
+        self.client.restart("so1")
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        assert self.check_splunkd("admin", self.password)
         exec_command = self.client.exec_create("so1", "java -version")
         std_out = self.client.exec_start(exec_command)
         assert "openjdk version \"11.0.2" in std_out
