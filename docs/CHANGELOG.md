@@ -2,6 +2,7 @@
 
 ## Navigation
 
+* [8.0.2](#802)
 * [8.0.1](#801)
 * [8.0.0](#800)
 * [7.3.4](#734)
@@ -20,6 +21,26 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.0.2
+
+#### What's New?
+* New Splunk Enterprise release of 8.0.2
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/8.0.2/ReleaseNotes/Fixedissues
+* Bugfixes and increasing test coverage for new features
+
+#### splunk-ansible changes:
+* * Revised Splunk forwarding/receiving plays to optionally support SSL (see documentation on [securing data from forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Security/Aboutsecuringdatafromforwarders))
+* Initial support for forwarder management using [Splunk Monitoring Console](https://docs.splunk.com/Documentation/Splunk/latest/DMC/DMCoverview)
+* New environment variables exposed to control replication/search factor for clusters, key/value pairs written to `splunk-launch.conf`, and replacing default security key (pass4SymmKey)
+
+**NOTE** Changes made to support new features may break backwards-compatibility with former versions of the `default.yml` schema. This was deemed necessary for maintainability and extensibility for these additional features requested by the community. While we do test and make an effort to support previous schemas, it is strongly advised to regenerate the `default.yml` if you plan on upgrading to this version.
+
+**DEPRECATION WARNING** As mentioned in the changelog, the environment variables `SPLUNK_SHC_SECRET` and `SPLUNK_IDXC_SECRET` will now be replaced by `SPLUNK_SHC_PASS4SYMMKEY` and `SPLUNK_IDXC_PASS4SYMMKEY` respectively. Both are currently supported and will be mapped to the same setting now, but in the future we will likely remove both `SPLUNK_SHC_SECRET` and `SPLUNK_IDXC_SECRET`
 
 ---
 
