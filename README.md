@@ -2,7 +2,7 @@
 
 [![Build Status](https://circleci.com/gh/splunk/docker-splunk/tree/develop.svg?style=svg)](https://circleci.com/gh/splunk/docker-splunk/tree/develop)
 
-Welcome to Splunk's official repository containing Dockerfiles for building Splunk Enterprise and Universal Forwarder images using containerization technology. This repository supports all Splunk roles and deployment topologies, and currently works on any Linux-based platform. 
+Welcome to Splunk's official repository containing Dockerfiles for building Splunk Enterprise and Universal Forwarder images using containerization technology.
 
 The provisioning of these disjoint containers is handled by the [splunk-ansible](https://github.com/splunk/splunk-ansible) project. Please refer to [Ansible documentation](http://docs.ansible.com/) for more details about Ansible concepts and how it works. 
 
@@ -26,9 +26,7 @@ Splunk Enterprise is a platform for operational intelligence. Our software lets 
 Please refer to [Splunk products](https://www.splunk.com/en_us/software.html) for more knowledge about the features and capabilities of Splunk, and how you can bring it into your organization.
 
 ##### What is docker-splunk?
-This is the official source code repository for building Docker images of Splunk Enterprise and Splunk Universal Forwarder. By introducing containerization, we can marry the ideals of infrastructure-as-code and declarative directives to manage and run Splunk and its other product offerings.
-
-This repository should be used by people interested in running Splunk in their container orchestration environments. With this Docker image, we support running a standalone development Splunk instance as easily as running a full-fledged distributed production cluster, all while maintaining the best practices and recommended standards of operating Splunk at scale.
+This is the official source code repository for building Docker images of Splunk Enterprise and Splunk Universal Forwarder. By introducing containerization, we can marry the ideals of infrastructure-as-code and declarative directives to manage and run Splunk Enterprise.
 
 ## Quickstart
 Use the following command to start a single standalone instance of Splunk Enterprise:
