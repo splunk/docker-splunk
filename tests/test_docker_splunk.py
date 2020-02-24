@@ -396,6 +396,28 @@ class TestDockerSplunk(object):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
     
+    def test_splunk_uid_gid(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the git SHA exists in /opt/ansible
+            exec_command = self.client.exec_create(cid, "id", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "uid=41812" in std_out
+            assert "gid=41812" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+    
     def test_uf_entrypoint_help(self):
         # Run container
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="help")
@@ -445,6 +467,28 @@ class TestDockerSplunk(object):
             exec_command = self.client.exec_create(cid, "cat /opt/ansible/version.txt")
             std_out = self.client.exec_start(exec_command)
             assert len(std_out.strip()) == 40
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+    
+    def test_uf_uid_gid(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the git SHA exists in /opt/ansible
+            exec_command = self.client.exec_create(cid, "id", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "uid=41812" in std_out
+            assert "gid=41812" in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -804,6 +848,74 @@ class TestDockerSplunk(object):
             logs = self.client.logs(cid, tail=20)
             assert "==> /opt/splunkforwarder/var/log/splunk/first_install.log <==" in logs
             assert "==> /opt/splunkforwarder/var/log/splunk/splunkd_stderr.log <==" in logs
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
+    def test_adhoc_1so_password_from_file(self):
+        # Create a splunk container
+        cid = None
+        # From fixtures/pwfile
+        filePW = "changeme123"
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+                                            volumes=["/var/secrets/pwfile"], name=splunk_container_name,
+                                            environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": "/var/secrets/pwfile"
+                                                        },
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + "/pwfile:/var/secrets/pwfile"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", filePW), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+    
+    def test_adhoc_1uf_password_from_file(self):
+        # Create a splunk container
+        cid = None
+        # From fixtures/pwfile
+        filePW = "changeme123"
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089], 
+                                            volumes=["/var/secrets/pwfile"], name=splunk_container_name,
+                                            environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": "/var/secrets/pwfile"
+                                                        },
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + "/pwfile:/var/secrets/pwfile"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", filePW), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
         except Exception as e:
             self.logger.error(e)
             raise e

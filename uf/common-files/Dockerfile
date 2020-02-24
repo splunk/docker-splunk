@@ -36,6 +36,12 @@ COPY uf/common-files/apps ${SPLUNK_HOME}-etc/apps/
 FROM ${SPLUNK_BASE_IMAGE}:latest as bare
 LABEL maintainer="support@splunk.com"
 
+# Currently kubernetes only accepts UID and not USER field to
+# start a container as a particular user. So we create Splunk
+# user with pre-determined UID.
+ARG UID=41812
+ARG GID=41812
+
 ENV SPLUNK_HOME=/opt/splunkforwarder \
     SPLUNK_GROUP=splunk \
     SPLUNK_USER=splunk
@@ -44,8 +50,8 @@ ENV SPLUNK_HOME=/opt/splunkforwarder \
 COPY [ "splunk/common-files/updateetc.sh", "/sbin/"]
 
 # Setup users and groups
-RUN groupadd -r ${SPLUNK_GROUP} \
-    && useradd -r -m -g ${SPLUNK_GROUP} ${SPLUNK_USER} \
+RUN groupadd -r -g ${GID} ${SPLUNK_GROUP} \
+    && useradd -r -m -u ${UID} -g ${GID} ${SPLUNK_USER} \
     && chmod 755 /sbin/updateetc.sh
 
 # Copy files from package
