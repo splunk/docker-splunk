@@ -1,6 +1,5 @@
 #!/bin/bash
-
-# Copyright 2018 Splunk
+# Copyright 2018-2020 Splunk
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -79,7 +78,7 @@ start_and_exit() {
 	sh -c "echo 'starting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
 	setup
 	prep_ansible
-	ansible-playbook $ANSIBLE_EXTRA_FLAGS -i inventory/environ.py site.yml
+	ansible-playbook $ANSIBLE_EXTRA_FLAGS --connection=local -i inventory/environ.py site.yml
 }
 
 start() {
@@ -93,7 +92,7 @@ restart(){
 	sh -c "echo 'restarting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
 	prep_ansible
 	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
-	ansible-playbook -i inventory/environ.py start.yml
+	ansible-playbook $ANSIBLE_EXTRA_FLAGS --connection=local -i inventory/environ.py start.yml
 	watch_for_failure
 }
 
