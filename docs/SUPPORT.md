@@ -1,39 +1,44 @@
 ## Navigation
 
 * [Preface](#preface)
-* [System Requirements](#system-requirements)
+* [System requirements](#system-requirements)
 * [Contact](#contact)
-* [Support Violation](#support-violation)
+* [Support violation](#support-violation)
 
 ## Preface
 Splunk Enterprise contains many settings that allow customers to tailor their Splunk environment. However, because not all settings apply to all customers, Splunk will only support the most common subset of all configurations. Throughout this document, the term "supported" means you can contact Splunk Support for assistance with issues.
 
-## System Requirements
-At the current time, this image only supports the Docker runtime engine and requires the following system prerequisites:
-1. Linux-based operating system (Debian, CentOS, etc.)
-2. Chipset: 
+## System requirements
+In order to run this Docker image, you need the following prerequisites and dependencies installed on each node you plan on deploying the container:
+* Linux-based operating system, such as Debian, CentOS, and so on.
+* Chipset: 
     * `splunk/splunk` image supports x86-64 chipsets
     * `splunk/universalforwarder` image supports both x86-64 and s390x chipsets
-3. Kernel version > 4.0
-4. Docker engine
-    * Docker Enterprise Engine 17.06.2 or later
-    * Docker Community Engine 17.06.2 or later
-5. `overlay2` Docker daemon storage driver
-    * Create a file /etc/docker/daemon.json on Linux systems, or C:\ProgramData\docker\config\daemon.json on Windows systems. Add {"storage-driver": "overlay2"} to the daemon.json. If you already have an existing json, please only add "storage-driver": "overlay2" as a key, value pair.
+* Kernel version 4.0 or higher
+* Docker engine:
+    * Docker Enterprise Engine 17.06.2 or higher
+    * Docker Community Engine 17.06.2 or higher
+* [OverlayFS](https://docs.docker.com/storage/storagedriver/overlayfs-driver/) `overlay2` Docker daemon storage driver
+    1. Edit `/etc/docker/daemon.json`. If it does not yet exist, create it.
+    2. Assuming the file was empty, add the following contents:
+        ```
+        { "storage-driver": "overlay2" }
+        ``` 
+        **Note:** If you already have an existing JSON file, add only `"storage-driver": "overlay2"` as a key-value pair. Docker does not start if the `daemon.json` file contains badly-formed JSON.
 
-For more details, please see the official [supported architectures and platforms for containerized Splunk environments](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms) as well as [hardware and capacity recommendations](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements). 
+For more details, see the official [supported architectures and platforms for containerized Splunk software environments](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms) as well as [hardware and capacity recommendations](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements). 
 
-If you intend for this containerized Splunk Enterprise deployment to be supported in your Enterprise Support Agreement, you must verify you meet all of the above "supported" requirements. Failure to do so will render your deployment in an "unsupported" state. 
+If you intend for this containerized Splunk Enterprise deployment to be supported in your Enterprise Support Agreement, you must verify you meet all of the above supported requirements. Failure to do so will render your deployment in an unsupported state. See [Support Violation](#support-violation) below.
 
 ## Contact
-Splunk Support only provides support for the single instance Splunk Validated Architectures (S-Type), Universal Forwarders and Heavy Forwarders. For all other configurations, please contact Splunk Professional Services. Please contact them according to the instructions [here](https://www.splunk.com/en_us/support-and-services.html).
+Splunk Support only provides support for the single instance Splunk Validated Architectures (S-Type), Universal Forwarders and Heavy Forwarders. For all other configurations, [contact Splunk Professional Services](https://www.splunk.com/en_us/support-and-services.html).
 
 If you have additional questions or need more support, you can:
-* Post a question to [Splunk Answers](http://answers.splunk.com)
-* Join the [#docker](https://splunk-usergroups.slack.com/messages/C1RH09ERM/) room in the [Splunk Slack channel](http://splunk-usergroups.slack.com)
-* If you are a Splunk Enterprise customer with a valid support entitlement contract and have a Splunk-related question, you can also open a support case on the https://www.splunk.com/ support portal
+* Post a question to [Splunk Answers](http://answers.splunk.com).
+* Join the [#docker](https://splunk-usergroups.slack.com/messages/C1RH09ERM/) room in the [Splunk Slack channel](http://splunk-usergroups.slack.com).
+* If you are a Splunk Enterprise customer with a valid support entitlement contract and have a Splunk-related question, you can also open a support case on the <https://www.splunk.com/> support portal
 
-## Support Violation
+## Support violation
 In the following conditions, Splunk Support reserves the right to deem your installation unsupported and not provide assistance when issues arise: 
 * You do not have an active support contract
 * You are running Splunk Enterprise/Splunk Universal Forwarder in a container on a platform not officially supported by Splunk

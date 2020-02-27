@@ -20,8 +20,8 @@ This repository should be used by people interested in running Splunk in their c
 
 * [Introduction](INTRODUCTION.md)
 * [Getting Started](SETUP.md)
-    * [Install](SETUP.md#install)
-    * [Configure](SETUP.md#configure)
+    * [Requirements](SETUP.md#requirements)
+    * [Installation](SETUP.md#installation)
     * [Run](SETUP.md#run)
 * [Examples](EXAMPLES.md)
 * [Advanced Usage](ADVANCED.md)
