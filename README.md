@@ -2,9 +2,9 @@
 
 [![Build Status](https://circleci.com/gh/splunk/docker-splunk/tree/develop.svg?style=svg)](https://circleci.com/gh/splunk/docker-splunk/tree/develop)
 
-Welcome to Splunk's official repository containing Dockerfiles for building Splunk Enterprise and Universal Forwarder images using containerization technology.
+Welcome to Splunk's official repository of Dockerfiles for building Splunk Enterprise and Splunk Universal Forwarder images using containerization technology.
 
-The provisioning of these disjoint containers is handled by the [splunk-ansible](https://github.com/splunk/splunk-ansible) project. Please refer to [Ansible documentation](http://docs.ansible.com/) for more details about Ansible concepts and how it works. 
+Visit the [docker-splunk documentation](https://splunk.github.io/docker-splunk/) page for full usage instructions, including installation, examples, and advanced deployment scenarios.
 
 ----
 
@@ -20,13 +20,15 @@ The provisioning of these disjoint containers is handled by the [splunk-ansible]
 
 ## Purpose
 
-##### What is Splunk Enterprise?
+#### What is Splunk Enterprise?
 Splunk Enterprise is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results.
 
 Please refer to [Splunk products](https://www.splunk.com/en_us/software.html) for more knowledge about the features and capabilities of Splunk, and how you can bring it into your organization.
 
-##### What is docker-splunk?
+#### What is docker-splunk?
 This is the official source code repository for building Docker images of Splunk Enterprise and Splunk Universal Forwarder. By introducing containerization, we can marry the ideals of infrastructure-as-code and declarative directives to manage and run Splunk Enterprise.
+
+The provisioning of these containers is handled by the [splunk-ansible](https://github.com/splunk/splunk-ansible) project. See the [Ansible documentation](http://docs.ansible.com/) for more details about Ansible concepts and how it works.
 
 ## Quickstart
 Use the following command to start a single standalone instance of Splunk Enterprise:
@@ -41,8 +43,6 @@ Let's break down what this command does:
 4. Accept the license agreement with `SPLUNK_START_ARGS=--accept-license`. This must be explicitly accepted on every `splunk/splunk` container, otherwise Splunk will not start.
 
 After the container starts up successfully, you should be able to access SplunkWeb at http://localhost:8000 with `admin:<password>`.
-
-For full usage instructions (including examples, advanced deployments, scenarios), please visit the [docker-splunk documentation](https://splunk.github.io/docker-splunk/) page.
 
 ## Support
 Please use the [GitHub issue tracker](https://github.com/splunk/docker-splunk/issues) to submit bugs or request features.

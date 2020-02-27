@@ -11,14 +11,14 @@ Splunk Enterprise contains many settings that allow customers to tailor their Sp
 ## System requirements
 In order to run this Docker image, you need the following prerequisites and dependencies installed on each node you plan on deploying the container:
 * Linux-based operating system, such as Debian, CentOS, and so on.
-* Chipset: 
+* Chipset:
     * `splunk/splunk` image supports x86-64 chipsets
     * `splunk/universalforwarder` image supports both x86-64 and s390x chipsets
 * Kernel version 4.0 or higher
 * Docker engine:
     * Docker Enterprise Engine 17.06.2 or higher
     * Docker Community Engine 17.06.2 or higher
-* [OverlayFS](https://docs.docker.com/storage/storagedriver/overlayfs-driver/) `overlay2` Docker daemon storage driver
+* [OverlayFS](https://docs.docker.com/storage/storagedriver/overlayfs-driver/) `overlay2` Docker daemon storage driver:
     1. Edit `/etc/docker/daemon.json`. If it does not yet exist, create it.
     2. Assuming the file was empty, add the following contents:
         ```
@@ -33,15 +33,17 @@ If you intend for this containerized Splunk Enterprise deployment to be supporte
 ## Contact
 Splunk Support only provides support for the single instance Splunk Validated Architectures (S-Type), Universal Forwarders and Heavy Forwarders. For all other configurations, [contact Splunk Professional Services](https://www.splunk.com/en_us/support-and-services.html).
 
-If you have additional questions or need more support, you can:
+For additional support, you can:
 * Post a question to [Splunk Answers](http://answers.splunk.com).
-* Join the [#docker](https://splunk-usergroups.slack.com/messages/C1RH09ERM/) room in the [Splunk Slack channel](http://splunk-usergroups.slack.com).
-* If you are a Splunk Enterprise customer with a valid support entitlement contract and have a Splunk-related question, you can also open a support case on the <https://www.splunk.com/> support portal
+* [Join us on Slack](https://docs.splunk.com/Documentation/Community/1.0/community/Chat#Join_us_on_Slack) and post in the [#docker](https://splunk-usergroups.slack.com/messages/C1RH09ERM/) channel.
+
+If you are a Splunk Enterprise customer with a valid support entitlement contract and have a Splunk-related question, you can
+* Open a support case on the <https://www.splunk.com/> support portal.
 
 ## Support violation
-In the following conditions, Splunk Support reserves the right to deem your installation unsupported and not provide assistance when issues arise: 
-* You do not have an active support contract
-* You are running Splunk Enterprise/Splunk Universal Forwarder in a container on a platform not officially supported by Splunk
-* You are using features not officially supported by Splunk
+In the following conditions, Splunk Support reserves the right to deem your installation unsupported and not provide assistance when issues arise:
+* You do not have an active support contract.
+* You are running Splunk Enterprise and/or Splunk Universal Forwarder in a container on a platform not officially supported by Splunk.
+* You are using features not officially supported by Splunk.
 
-In the event you fall into an unsupported state, you may find support on Splunk Answers, or through the open source communities found in this [docker-splunk](https://github.com/splunk/docker-splunk) GitHub project or the related [splunk-ansible](https://www.github.com/splunk/splunk-ansible) GitHub project.
+In the event you fall into an unsupported state, you may find support on [Splunk Answers](http://answers.splunk.com) or through the open-source communities found on GitHub for this [docker-splunk](https://github.com/splunk/docker-splunk) project or the related [splunk-ansible](https://www.github.com/splunk/splunk-ansible) project.
