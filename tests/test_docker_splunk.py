@@ -2832,7 +2832,7 @@ class TestDockerSplunk(object):
             inventory_json = self.extract_json(container)
             self.check_common_keys(inventory_json, container_mapping[container])
             try:
-                assert inventory_json["all"]["vars"]["splunk"]["indexer_cluster"] == True
+                assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
                 assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
                 assert inventory_json["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
             except KeyError as e:
