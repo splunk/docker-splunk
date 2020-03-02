@@ -35,9 +35,6 @@ trap teardown SIGINT SIGTERM
 
 prep_ansible() {
 	cd ${SPLUNK_ANSIBLE_HOME}
-	if [ `whoami` == "${SPLUNK_USER}" ]; then
-		sed -i -e "s,^become\\s*=.*,become = false," ansible.cfg
-	fi
 	if [[ "$DEBUG" == "true" ]]; then
 		ansible-playbook --version
 		python inventory/environ.py --write-to-file
