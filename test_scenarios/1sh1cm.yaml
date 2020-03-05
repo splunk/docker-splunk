@@ -19,7 +19,7 @@ services:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_CLUSTER_MASTER_URL=cm1
       - SPLUNK_ROLE=splunk_search_head
-      - SPLUNK_PASSWORD=helloworld
+      - SPLUNK_PASSWORD
       - DEBUG=true
     ports:
       - 8000
@@ -37,7 +37,7 @@ services:
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_ROLE=splunk_cluster_master
-      - SPLUNK_PASSWORD=helloworld
+      - SPLUNK_PASSWORD
       - DEBUG=true
     ports:
       - 8000
