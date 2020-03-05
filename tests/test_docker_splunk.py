@@ -129,12 +129,8 @@ class TestDockerSplunk(object):
         lines = []
         err_lines = []
         for line in iter(proc.stdout.readline, ''):
-            if not line:
-                break
             lines.append(line)
         for line in iter(proc.stderr.readline, ''):
-            if not line:
-                break
             err_lines.append(line)
         proc.stdout.close()
         proc.stderr.close()
