@@ -129,8 +129,12 @@ class TestDockerSplunk(object):
         lines = []
         err_lines = []
         for line in iter(proc.stdout.readline, ''):
+            if not line:
+                break
             lines.append(line)
         for line in iter(proc.stderr.readline, ''):
+            if not line:
+                break
             err_lines.append(line)
         proc.stdout.close()
         proc.stderr.close()
@@ -2695,19 +2699,17 @@ class TestDockerSplunk(object):
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check connections
-        sh_list = ["sh1", "sh2", "cm1"]
-
         containers = self.client.containers(filters={"label": "com.docker.compose.service={}".format("cm1")})
         splunkd_port = self.client.port(containers[0]["Id"], 8089)[0]["HostPort"]
         status, content = self.handle_request_retry("GET", "https://localhost:{}/services/cluster/master/searchheads?output_mode=json".format(splunkd_port), 
                                                     {"auth": ("admin", self.password), "verify": False})
         assert status == 200
         output = json.loads(content)
-        # There's only 1 "standalone" search head connected
-        assert len(output["entry"]) == 1
-        sh = output["entry"][0]
-        assert sh["content"]["label"] == "sh1"
-        assert sh["content"]["status"] == "Connected"
+        # There's only 1 "standalone" search head connected and 1 cluster master
+        assert len(output["entry"]) == 2
+        for sh in output["entry"]:
+            assert sh["content"]["label"] == "sh1" or sh["content"]["label"] == "cm1"
+            assert sh["content"]["status"] == "Connected"
 
     def test_compose_2idx2sh(self):
         # Standup deployment

@@ -12,7 +12,6 @@ services:
         aliases:
           - sh1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
-    command: start
     hostname: sh1
     container_name: sh1
     environment:
@@ -31,7 +30,6 @@ services:
         aliases:
           - cm1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
-    command: start
     hostname: cm1
     container_name: cm1
     environment:
