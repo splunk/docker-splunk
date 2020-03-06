@@ -2561,6 +2561,67 @@ class TestDockerSplunk(object):
                 os.remove(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"))
             except OSError as e:
                 pass
+
+    def test_compose_1so1cm_connected(self):
+        # Standup deployment
+        self.compose_file_name = "1so1cm_connected.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        # Get container logs
+        container_mapping = {"so1": "so", "cm1": "cm"}
+        for container in container_mapping:
+            # Check ansible version & configs
+            ansible_logs = self.get_container_logs(container)
+            self.check_ansible(ansible_logs)
+            # Check values in log output
+            inventory_json = self.extract_json(container)
+            self.check_common_keys(inventory_json, container_mapping[container])
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check connections
+        containers = self.client.containers(filters={"label": "com.docker.compose.service={}".format("cm1")})
+        splunkd_port = self.client.port(containers[0]["Id"], 8089)[0]["HostPort"]
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/cluster/master/searchheads?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"]) == 2
+        for sh in output["entry"]:
+            assert sh["content"]["label"] in ["cm1", "so1"]
+            assert sh["content"]["status"] == "Connected"
+
+    def test_compose_1so1cm_unconnected(self):
+        # Standup deployment
+        self.compose_file_name = "1so1cm_unconnected.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        # Get container logs
+        container_mapping = {"so1": "so", "cm1": "cm"}
+        for container in container_mapping:
+            # Check ansible version & configs
+            ansible_logs = self.get_container_logs(container)
+            self.check_ansible(ansible_logs)
+            # Check values in log output
+            inventory_json = self.extract_json(container)
+            self.check_common_keys(inventory_json, container_mapping[container])
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check connections
+        containers = self.client.containers(filters={"label": "com.docker.compose.service={}".format("cm1")})
+        splunkd_port = self.client.port(containers[0]["Id"], 8089)[0]["HostPort"]
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/cluster/master/searchheads?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"]) == 1
+        assert output["entry"][0]["content"]["label"] == "cm1"
+        assert output["entry"][0]["content"]["status"] == "Connected"
     
     def test_adhoc_1cm_idxc_pass4symmkey(self):
         # Create the container
