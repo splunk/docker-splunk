@@ -1193,7 +1193,7 @@ class TestDockerSplunk(object):
                 self.client.remove_container(cid, v=True, force=True)
 
     def test_adhoc_1so_apps_location_in_default_yml(self):
-    	with tarfile.open(EXAMPLE_APP_TGZ, "w:gz") as tar:
+        with tarfile.open(EXAMPLE_APP_TGZ, "w:gz") as tar:
             tar.add(EXAMPLE_APP, arcname=os.path.basename(EXAMPLE_APP))
         # Generate default.yml
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
@@ -1245,7 +1245,7 @@ class TestDockerSplunk(object):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
             try:
-            	os.remove(EXAMPLE_APP_TGZ)
+                os.remove(EXAMPLE_APP_TGZ)
                 os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
             except OSError:
                 pass
@@ -1799,7 +1799,7 @@ class TestDockerSplunk(object):
                 container_name = container["Names"][0].strip("/")
                 splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
                 if container_name == "depserver1":
-	                # Check the app and version
+                    # Check the app and version
                     url = "https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port)
                     resp = requests.get(url, auth=("admin", self.password), verify=False)
                     # Deployment server should *not* install the app
@@ -1862,7 +1862,7 @@ class TestDockerSplunk(object):
                 container_name = container["Names"][0].strip("/")
                 splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
                 if container_name == "depserver1":
-	                # Check the app and version
+                    # Check the app and version
                     url = "https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port)
                     resp = requests.get(url, auth=("admin", self.password), verify=False)
                     # Deployment server should *not* install the app
@@ -2735,6 +2735,38 @@ class TestDockerSplunk(object):
                 os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
             except OSError:
                 pass
+
+    def test_compose_1sh1cm(self):
+        # Standup deployment
+        self.compose_file_name = "1sh1cm.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        # Get container logs
+        container_mapping = {"sh1": "sh", "cm1": "cm"}
+        for container in container_mapping:
+            # Check ansible version & configs
+            ansible_logs = self.get_container_logs(container)
+            self.check_ansible(ansible_logs)
+            # Check values in log output
+            inventory_json = self.extract_json(container)
+            self.check_common_keys(inventory_json, container_mapping[container])
+        # Check Splunkd on all the containers
+        assert self.check_splunkd("admin", self.password)
+        # Check connections
+        containers = self.client.containers(filters={"label": "com.docker.compose.service={}".format("cm1")})
+        splunkd_port = self.client.port(containers[0]["Id"], 8089)[0]["HostPort"]
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/cluster/master/searchheads?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        # There's only 1 "standalone" search head connected and 1 cluster master
+        assert len(output["entry"]) == 2
+        for sh in output["entry"]:
+            assert sh["content"]["label"] == "sh1" or sh["content"]["label"] == "cm1"
+            assert sh["content"]["status"] == "Connected"
 
     def test_compose_2idx2sh(self):
         # Standup deployment
