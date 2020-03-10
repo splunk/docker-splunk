@@ -52,9 +52,9 @@ $ docker logs -f <container_name/container_id>
 If your container is still running but in a bad state, you can try to debug by putting yourself within the context of that process. 
 
 
-To gain interactive shell access to the container's runtime, you can run:
+To gain interactive shell access to the container's runtime as the splunk user, you can run:
 ```
-$ docker exec -it <container_name/container_id> /bin/bash
+$ docker exec -it -u splunk <container_name/container_id> /bin/bash
 ```
 
 #### Debug variables
@@ -142,17 +142,17 @@ Generating a diag is only an option if:
 
 To create this diag, run the following command:
 ```
-$ docker exec -it <container_name/container_id> ${SPLUNK_HOME}/bin/splunk diag
+$ docker exec -it -u splunk <container_name/container_id> "${SPLUNK_HOME}/bin/splunk diag"
 ```
 
 Additionally, if your Docker container/hosts have access to https://www.splunk.com you can now send the file directly to Splunk Support by using the following command:
 ```
-$ docker exec -it <container_name/container_id> ${SPLUNK_HOME}/bin/splunk diag --upload --case-number=<case_num> --upload-user=<your_splunk_id> --upload-password=<passwd> --upload-description="Monday diag, as requested"
+$ docker exec -it -u splunk <container_name/container_id> "${SPLUNK_HOME}/bin/splunk diag --upload --case-number=<case_num> --upload-user=<your_splunk_id> --upload-password=<passwd> --upload-description='Monday diag, as requested'"
 ```
 
 However, if you don't have direct access, you can manually copy the diag back to your host via `docker cp`:
 ```
-$ docker cp <container_name/container_id>:/opt/splunk/var/run/diags/<filename> <location on your local machine>
+$ docker cp <container_name/container_id>:/opt/splunk/<filename> <location on your local machine>
 ```
 
 ## Contact
