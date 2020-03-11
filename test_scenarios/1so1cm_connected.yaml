@@ -1,0 +1,41 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  cm1:
+    networks:
+      splunknet:
+        aliases:
+          - cm1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: cm1
+    container_name: cm1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_ROLE=splunk_cluster_master
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+      - 8089
+
+  so1:
+    networks:
+      splunknet:
+        aliases:
+          - so1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: so1
+    container_name: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+      - 8089
