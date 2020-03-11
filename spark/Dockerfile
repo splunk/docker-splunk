@@ -19,8 +19,8 @@ FROM ${SPLUNK_BASE_IMAGE}:latest
 # Grab args from Makefile
 ARG SPARK_VERSION=2.3.3
 ARG HADOOP_VERSION=2.7
-ARG JDK_VERSION="8u212"
-ARG JDK_BUILD="b03"
+ARG JDK_VERSION="8u242"
+ARG JDK_BUILD="b08"
 ARG SPARK_URL=https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
 ARG JDK_URL=https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk${JDK_VERSION}-${JDK_BUILD}/OpenJDK8U-jre_x64_linux_hotspot_${JDK_VERSION}${JDK_BUILD}.tar.gz
 
