@@ -7,8 +7,8 @@ SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
-SPLUNK_VERSION := 8.0.2
-SPLUNK_BUILD := a7f645ddaf91
+SPLUNK_VERSION := 8.0.2.1
+SPLUNK_BUILD := f002026bad55
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else

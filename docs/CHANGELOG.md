@@ -2,9 +2,11 @@
 
 ## Navigation
 
+* [8.0.2.1](#8021)
 * [8.0.2](#802)
 * [8.0.1](#801)
 * [8.0.0](#800)
+* [7.3.4.2](#7342)
 * [7.3.4](#734)
 * [7.3.3](#733)
 * [7.3.2](#732)
@@ -24,6 +26,23 @@
 
 ---
 
+## 8.0.2.1
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise maintenance patch.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues](https://docs.splunk.com/Documentation/Splunk/8.0.2/ReleaseNotes/Fixedissues) in 8.0.2.1.
+* Bugfixes and additional tests for new features
+
+#### splunk-ansible changes:
+* Added support for reading `SPLUNK_PASSWORD` from a file
+* License master and cluster master URLs are now also configurable in the `default.yml` config, as well as with the `LICENSE_MASTER_URL` and `CLUSTER_MASTER_URL` environment variables
+* Added support for auto-detecting the `service_name` for SplunkForwarder and allowing manual configuration with `splunk.service_name`
+* All HEC related variables were revised to follow a nested dict format in `default.yml`, i.e. `splunk.hec_enableSSL` is now `splunk.hec.ssl`. See the [Provision HEC](https://github.com/splunk/splunk-ansible/blob/develop/docs/EXAMPLES.md#provision-hec) example in the docs.
+
+---
+
 ## 8.0.2
 
 #### What's New?
@@ -34,7 +53,7 @@
 * Bugfixes and increasing test coverage for new features
 
 #### splunk-ansible changes:
-* * Revised Splunk forwarding/receiving plays to optionally support SSL (see documentation on [securing data from forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Security/Aboutsecuringdatafromforwarders))
+* Revised Splunk forwarding/receiving plays to optionally support SSL (see documentation on [securing data from forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Security/Aboutsecuringdatafromforwarders))
 * Initial support for forwarder management using [Splunk Monitoring Console](https://docs.splunk.com/Documentation/Splunk/latest/DMC/DMCoverview)
 * New environment variables exposed to control replication/search factor for clusters, key/value pairs written to `splunk-launch.conf`, and replacing default security key (pass4SymmKey)
 
@@ -78,17 +97,32 @@
 
 ---
 
+## 7.3.4.2
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise maintenance patch.
+* Bundling in changes to be consistent with the release of [8.0.2.1](#8021).
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues](https://docs.splunk.com/Documentation/Splunk/7.3.4/ReleaseNotes/Fixedissues) in 7.3.4.2.
+* See [8.0.2.1](#8021) changes.
+
+#### splunk-ansible changes:
+* See [8.0.2.1](#8021) changes.
+
+---
+
 ## 7.3.4
 
 #### What's New?
 * New Splunk Enterprise release of 7.3.4
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.4/ReleaseNotes/Fixedissues
-* See [8.0.1](#801) changes
+* Bumping Splunk version. For details, see [Fixed issues](https://docs.splunk.com/Documentation/Splunk/7.3.4/ReleaseNotes/Fixedissues).
+* See [8.0.1](#801) changes.
 
 #### splunk-ansible changes:
-* See [8.0.1](#801) changes
+* See [8.0.1](#801) changes.
 
 ---
 
