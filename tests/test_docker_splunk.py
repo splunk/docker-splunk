@@ -1333,11 +1333,7 @@ class TestDockerSplunk(object):
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
-            url = "https://localhost:{}/services/server/info".format(splunkd_port)
-            kwargs = {"auth": ("admin", password), "verify": False}
-            status, content = self.handle_request_retry("GET", url, kwargs)
-            assert status == 200
+            assert self.check_splunkd("admin", password)
             # Check the app endpoint
             splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
             url = "https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port)
@@ -1358,43 +1354,183 @@ class TestDockerSplunk(object):
             except OSError:
                 pass
 
-    def test_adhoc_1so_hec_ssl_disabled(self):
-        # Generate default.yml
-        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
-        self.client.start(cid.get("Id"))
-        output = self.get_container_logs(cid.get("Id"))
-        self.client.remove_container(cid.get("Id"), v=True, force=True)
-        # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
-        # Get the HEC token
-        hec_token = re.search("  hec_token: (.*)", output).group(1).strip()
-        assert hec_token
-        # Make sure hec_enableSSL is disabled
-        output = re.sub(r'  hec_enableSSL: 1', r'  hec_enableSSL: 0', output)
-        # Write the default.yml to a file
-        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
-            f.write(output)
-        # Create the container and mount the default.yml
+    def test_adhoc_1so_hec_idempotence(self):
+        """
+        This test is intended to check how the container gets provisioned with changing splunk.hec.* parameters
+        """
+        # Create a splunk container
         cid = None
         try:
             splunk_container_name = generate_random_string()
-            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8088], 
-                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
-                                            environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
-                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
-                                                                                       port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8088, 9999], 
+                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password
+                                                        },
+                                            host_config=self.client.create_host_config(port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",), 9999: ("0.0.0.0",)})
                                             )
             cid = cid.get("Id")
             self.client.start(cid)
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", password)
+            assert self.check_splunkd("admin", self.password)
+            # Check that HEC endpoint is up - by default, the image will enable HEC
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert std_out == '''[http]
+disabled = 0
+'''
+            exec_command = self.client.exec_create(cid, "netstat -tuln", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "tcp        0      0 0.0.0.0:8088            0.0.0.0:*               LISTEN" in std_out
+            # Create a new /tmp/defaults/default.yml to change desired HEC settings
+            exec_command = self.client.exec_create(cid, "mkdir -p /tmp/defaults", user="splunk")
+            self.client.exec_start(exec_command)
+            exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
+splunk:
+  hec:
+    port: 9999
+    token: hihihi
+    ssl: False
+EOL'
+''', user="splunk")
+            self.client.exec_start(exec_command)
+            # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
+            self.client.restart(splunk_container_name)
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            assert self.check_splunkd("admin", self.password)
+            # Check the new HEC settings
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert '''[http]
+disabled = 0
+enableSSL = 0
+port = 9999''' in std_out
+            assert '''[http://splunk_hec_token]
+disabled = 0
+token = hihihi''' in std_out
+            exec_command = self.client.exec_create(cid, "netstat -tuln", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "tcp        0      0 0.0.0.0:9999            0.0.0.0:*               LISTEN" in std_out
+            # Check HEC
+            hec_port = self.client.port(cid, 9999)[0]["HostPort"]
+            url = "http://localhost:{}/services/collector/event".format(hec_port)
+            kwargs = {"json": {"event": "hello world"}, "headers": {"Authorization": "Splunk hihihi"}}
+            status, content = self.handle_request_retry("POST", url, kwargs)
+            assert status == 200
+            # Modify the HEC configuration
+            exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
+splunk:
+  hec:
+    port: 8088
+    token: byebyebye
+    ssl: True
+EOL'
+''', user="splunk")
+            self.client.exec_start(exec_command)
+            # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
+            self.client.restart(splunk_container_name)
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            assert self.check_splunkd("admin", self.password)
+            # Check the new HEC settings
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert '''[http]
+disabled = 0
+enableSSL = 1
+port = 8088''' in std_out
+            assert '''[http://splunk_hec_token]
+disabled = 0
+token = byebyebye''' in std_out
+            exec_command = self.client.exec_create(cid, "netstat -tuln", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "tcp        0      0 0.0.0.0:8088            0.0.0.0:*               LISTEN" in std_out
+            # Check HEC
+            hec_port = self.client.port(cid, 8088)[0]["HostPort"]
+            url = "https://localhost:{}/services/collector/event".format(hec_port)
+            kwargs = {"json": {"event": "hello world"}, "headers": {"Authorization": "Splunk byebyebye"}, "verify": False}
+            status, content = self.handle_request_retry("POST", url, kwargs)
+            assert status == 200
+            # Remove the token
+            exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
+splunk:
+  hec:
+    token:
+EOL'
+''', user="splunk")
+            self.client.exec_start(exec_command)
+            # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
+            self.client.restart(splunk_container_name)
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            assert self.check_splunkd("admin", self.password)
+            # Check the new HEC settings
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            # NOTE: The previous configuration still applies - we just deleted the former token
+            assert '''[http]
+disabled = 0
+enableSSL = 1
+port = 8088''' in std_out
+            assert "[http://splunk_hec_token]" not in std_out
+            exec_command = self.client.exec_create(cid, "netstat -tuln", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "tcp        0      0 0.0.0.0:8088            0.0.0.0:*               LISTEN" in std_out
+            # Disable HEC entirely
+            exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
+splunk:
+  hec:
+    enable: False
+EOL'
+''', user="splunk")
+            self.client.exec_start(exec_command)
+            # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
+            self.client.restart(splunk_container_name)
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            assert self.check_splunkd("admin", self.password)
+            # Check the new HEC settings
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert '''[http]
+disabled = 1''' in std_out
+            exec_command = self.client.exec_create(cid, "netstat -tuln", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "tcp        0      0 0.0.0.0:8088            0.0.0.0:*               LISTEN" not in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
+    def test_adhoc_1so_hec_ssl_disabled(self):
+        # Create the container
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8088], 
+                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                            environment={
+                                                "DEBUG": "true", 
+                                                "SPLUNK_START_ARGS": "--accept-license",
+                                                "SPLUNK_HEC_TOKEN": "get-schwifty",
+                                                "SPLUNK_HEC_SSL": "False",
+                                                "SPLUNK_PASSWORD": self.password
+                                            },
+                                            host_config=self.client.create_host_config(port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", self.password)
             # Check HEC
             hec_port = self.client.port(cid, 8088)[0]["HostPort"]
             url = "http://localhost:{}/services/collector/event".format(hec_port)
-            kwargs = {"json": {"event": "hello world"}, "headers": {"Authorization": "Splunk {}".format(hec_token)}}
+            kwargs = {"json": {"event": "hello world"}, "headers": {"Authorization": "Splunk get-schwifty"}}
             status, content = self.handle_request_retry("POST", url, kwargs)
             assert status == 200
         except Exception as e:
@@ -1409,42 +1545,31 @@ class TestDockerSplunk(object):
                 pass
     
     def test_adhoc_1uf_hec_ssl_disabled(self):
-        # Generate default.yml
-        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
-        self.client.start(cid.get("Id"))
-        output = self.get_container_logs(cid.get("Id"))
-        self.client.remove_container(cid.get("Id"), v=True, force=True)
-        # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
-        # Get the HEC token
-        hec_token = re.search("  hec_token: (.*)", output).group(1).strip()
-        assert hec_token
-        # Make sure hec_enableSSL is disabled
-        output = re.sub(r'  hec_enableSSL: 1', r'  hec_enableSSL: 0', output)
-        # Write the default.yml to a file
-        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
-            f.write(output)
-        # Create the container and mount the default.yml
+        # Create the container
         cid = None
         try:
             splunk_container_name = generate_random_string()
             cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089, 8088], 
                                             volumes=["/tmp/defaults/"], name=splunk_container_name,
-                                            environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
-                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
-                                                                                       port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
+                                            environment={
+                                                "DEBUG": "true", 
+                                                "SPLUNK_START_ARGS": "--accept-license",
+                                                "SPLUNK_HEC_TOKEN": "get-schwifty",
+                                                "SPLUNK_HEC_SSL": "false",
+                                                "SPLUNK_PASSWORD": self.password
+                                            },
+                                            host_config=self.client.create_host_config(port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
                                             )
             cid = cid.get("Id")
             self.client.start(cid)
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", password)
+            assert self.check_splunkd("admin", self.password)
             # Check HEC
             hec_port = self.client.port(cid, 8088)[0]["HostPort"]
             url = "http://localhost:{}/services/collector/event".format(hec_port)
-            kwargs = {"json": {"event": "hello world"}, "headers": {"Authorization": "Splunk {}".format(hec_token)}}
+            kwargs = {"json": {"event": "hello world"}, "headers": {"Authorization": "Splunk get-schwifty"}}
             status, content = self.handle_request_retry("POST", url, kwargs)
             assert status == 200
         except Exception as e:
@@ -2199,7 +2324,7 @@ class TestDockerSplunk(object):
         self.check_common_keys(log_json, "so")
         try:
             # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
-            assert log_json["all"]["vars"]["splunk"]["hec_token"] == "abcd1234"
+            assert log_json["all"]["vars"]["splunk"]["hec"]["token"] == "abcd1234"
         except KeyError as e:
             self.logger.error(e)
             raise e
@@ -2231,7 +2356,7 @@ class TestDockerSplunk(object):
         self.check_common_keys(log_json, "uf")
         try:
             # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
-            assert log_json["all"]["vars"]["splunk"]["hec_token"] == "abcd1234"
+            assert log_json["all"]["vars"]["splunk"]["hec"]["token"] == "abcd1234"
         except KeyError as e:
             self.logger.error(e)
             raise e
