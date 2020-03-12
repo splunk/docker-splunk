@@ -57,6 +57,13 @@ To gain interactive shell access to the container's runtime as the splunk user, 
 $ docker exec -it -u splunk <container_name/container_id> /bin/bash
 ```
 
+#### Installing Packages
+Once inside the container, you can install additional packages with the default package manager:
+```
+$ microdnf install <package_name>
+```
+Please note that the package installer `microdnf` is specific to the redhat-8 operating system. When building other operating systems, please research and use the recommended package manager. You can refer to `py23-image/<operating_system>/Dockerfile` to see package installation examples for different operating systems.
+
 #### Debug variables
 There are some built-in environment variables to assist with troubleshooting. Please be aware that when using these variables, it is possible for sensitive keys and information to be shown on the container's stdout/stderr. If you are using any custom logging driver or solution that persists this information, we recommend disabling it for the duration of this debug session.
 
