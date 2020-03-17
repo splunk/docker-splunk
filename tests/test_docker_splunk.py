@@ -389,6 +389,11 @@ class TestDockerSplunk(object):
             exec_command = self.client.exec_create(cid, "cat /opt/ansible/version.txt")
             std_out = self.client.exec_start(exec_command)
             assert len(std_out.strip()) == 40
+            # Check that the wrapper-example directory does not exist
+            exec_command = self.client.exec_create(cid, "ls /opt/ansible/")
+            std_out = self.client.exec_start(exec_command)
+            assert "wrapper-example" not in std_out
+            assert "docs" not in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -467,6 +472,11 @@ class TestDockerSplunk(object):
             exec_command = self.client.exec_create(cid, "cat /opt/ansible/version.txt")
             std_out = self.client.exec_start(exec_command)
             assert len(std_out.strip()) == 40
+            # Check that the wrapper-example directory does not exist
+            exec_command = self.client.exec_create(cid, "ls /opt/ansible/")
+            std_out = self.client.exec_start(exec_command)
+            assert "wrapper-example" not in std_out
+            assert "docs" not in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
