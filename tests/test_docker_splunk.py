@@ -1924,7 +1924,7 @@ disabled = 1''' in std_out
                 self.check_common_keys(inventory_json, container_mapping[container])
             # Check Splunkd on all the containers
             assert self.check_splunkd("admin", self.password)
-            # Make sure apps are installed, and shcluster is setup properly
+            # Make sure apps are installed and certain subdirectories are excluded
             containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
             assert len(containers) == 3
             for container in containers:
@@ -1939,6 +1939,14 @@ disabled = 1''' in std_out
                     resp = requests.get(url, auth=("admin", self.password), verify=False)
                     # Deployment server should *not* install the app
                     assert resp.status_code == 404
+                    # Check that the app exists in etc/apps
+                    exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/apps/splunk_app_example/local/", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "savedsearches.conf" in std_out
+                    # Check that the app exists in etc/deployment-apps
+                    exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/deployment-apps/splunk_app_example/local/", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "savedsearches.conf" not in std_out
                 if container_name == "so1":
                     RETRIES = 5
                     for i in range(RETRIES):
@@ -2002,6 +2010,14 @@ disabled = 1''' in std_out
                     resp = requests.get(url, auth=("admin", self.password), verify=False)
                     # Deployment server should *not* install the app
                     assert resp.status_code == 404
+                    # Check that the app exists in etc/apps
+                    exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/apps/splunk_app_example/local/", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "savedsearches.conf" in std_out
+                    # Check that the app exists in etc/deployment-apps
+                    exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/deployment-apps/splunk_app_example/local/", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "savedsearches.conf" not in std_out
                 if container_name == "uf1":
                     RETRIES = 5
                     for i in range(RETRIES):
