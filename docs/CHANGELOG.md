@@ -6,12 +6,14 @@
 * [8.0.2](#802)
 * [8.0.1](#801)
 * [8.0.0](#800)
+* [7.3.5](#735)
 * [7.3.4.2](#7342)
 * [7.3.4](#734)
 * [7.3.3](#733)
 * [7.3.2](#732)
 * [7.3.1](#731)
 * [7.3.0](#730)
+* [7.2.10](#7210)
 * [7.2.9](#729)
 * [7.2.8](#728)
 * [7.2.7](#727)
@@ -97,6 +99,20 @@
 
 ---
 
+## 7.3.5
+
+#### What's New?
+* New Splunk Enterprise release of 7.3.5
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.5/ReleaseNotes/Fixedissues
+* See [8.0.2.1](#8021) changes.
+
+#### splunk-ansible changes:
+* See [8.0.2.1](#8021) changes.
+
+---
+
 ## 7.3.4.2
 
 #### What's New?
@@ -104,7 +120,7 @@
 * Bundling in changes to be consistent with the release of [8.0.2.1](#8021).
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see [Fixed issues](https://docs.splunk.com/Documentation/Splunk/7.3.4/ReleaseNotes/Fixedissues) in 7.3.4.2.
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.4/ReleaseNotes/Fixedissues
 * See [8.0.2.1](#8021) changes.
 
 #### splunk-ansible changes:
@@ -118,7 +134,7 @@
 * New Splunk Enterprise release of 7.3.4
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see [Fixed issues](https://docs.splunk.com/Documentation/Splunk/7.3.4/ReleaseNotes/Fixedissues).
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.4/ReleaseNotes/Fixedissues
 * See [8.0.1](#801) changes.
 
 #### splunk-ansible changes:
@@ -202,6 +218,20 @@
 * More multi-site functionality
 * Support for Cygwin-based Windows environments
 * Minor documentation changes
+
+---
+
+## 7.2.10
+
+#### What's New?
+* New Splunk Enterprise release of 7.2.10
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.10/ReleaseNotes/Fixedissues
+* See [8.0.2.1](#8021) changes.
+
+#### splunk-ansible changes:
+* See [8.0.2.1](#8021) changes.
 
 ---
 
