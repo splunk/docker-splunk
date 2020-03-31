@@ -1,9 +1,6 @@
 # Starting a Splunk Cluster
 
-** Note: ** Splunk does not offer support for Docker or any orchestration
-platforms like Kubernetes, Docker Swarm, Mesos, etc. Support covers only the
-published Splunk Docker images. At this time, we strongly recommend that only
-very experienced and advanced customers use Docker to run Splunk clusters*
+***Note:** Splunk does not offer support for Docker or any orchestration platforms like Kubernetes, Docker Swarm, Mesos, etc. Support covers only the published Splunk Docker images. At this time, we strongly recommend that only very experienced and advanced customers use Docker to run Splunk clusters*
 
 While Splunk does not support orchestrators or the YAML templates required to
 deploy and manage clusters and other advanced configurations, we provide several
