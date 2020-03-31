@@ -1,6 +1,6 @@
 ## Examples
 
-The purpose of this section is to showcase a wide variety of examples on how the `docker-splunk` project can be used. 
+The purpose of this section is to showcase a wide variety of examples on how the `docker-splunk` project can be used.
 
 Note that for more complex scenarios, we will opt to use a [Docker compose file](https://docs.docker.com/compose/compose-file/) instead of the CLI for the sake of readability.
 
@@ -203,7 +203,7 @@ $ docker run --name so1 --hostname so1 -p 8000:8000 \
               -e "SPLUNK_HTTP_ENABLESSL_PRIVKEY_PASSWORD=abcd1234" \
               -e "SPLUNK_PASSWORD=<password>" \
               -e "SPLUNK_START_ARGS=--accept-license" \
-              -v /home:/home \ 
+              -v /home:/home \
               -it splunk/splunk:latest
 ```
 
@@ -337,7 +337,7 @@ services:
       - SPLUNK_PASSWORD
     ports:
       - 1514
-  
+
   depserver1:
     networks:
       splunknet:

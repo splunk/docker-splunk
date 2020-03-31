@@ -1,6 +1,6 @@
 ## Advanced
 
-Let's dive into the nitty-gritty on how to tweak the setup of your containerized Splunk deployment. This section goes over in detail various features and functionality that a traditional Splunk Enterprise solution is capable of.
+Let's dive into the nitty-gritty of how to tweak the setup of your containerized Splunk deployment. This section goes over in detail various features and functionality that a traditional Splunk Enterprise solution is capable of.
 
 ## Navigation
 
@@ -47,7 +47,7 @@ You can also pre-seed some settings based on environment variables during this `
 $ docker run --rm -it -e SPLUNK_PASSWORD=<password> splunk/splunk:latest create-defaults > default.yml
 ```
 #### Usage
-When starting the docker container, the `default.yml` can be mounted in `/tmp/defaults/default.yml` or fetched dynamically with `SPLUNK_DEFAULTS_URL`. Ansible provisioning will read in and honor these settings. 
+When starting the docker container, the `default.yml` can be mounted in `/tmp/defaults/default.yml` or fetched dynamically with `SPLUNK_DEFAULTS_URL`. Ansible provisioning will read in and honor these settings.
 
 Environment variables specified at runtime will take precedence over anything defined in `default.yml`.
 ```
@@ -62,7 +62,7 @@ $ docker run -d -p 8000:8000 -v -e SPLUNK_DEFAULTS_URL=http://company.net/path/t
 
 #### Global variables
 
-Variable at the root level influence the behavior of everything in the container, as they have global scope.
+Variables at the root level influence the behavior of everything in the container, as they have global scope.
 
 Example:
 ```
@@ -179,7 +179,7 @@ Sample:
 | replication_factor | Bucket replication factor used between index peers | splunk.idxc | 3 | no | no | yes |
 | replication_port | Bucket replication Port between index peers | splunk.idxc | 9887 | no | no | yes |
 
-## Install apps 
+## Install apps
 Apps can be installed by using the `SPLUNK_APPS_URL` environment variable when creating the Splunk container:
 ```
 $ docker run -it --name splunk -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD=<password> -e SPLUNK_APPS_URL=http://company.com/path/to/app.tgz splunk/splunk:latest
@@ -214,7 +214,7 @@ splunk:
   ...
 ```
 
-This generates a file `user-prefs.conf`, owned by the correct Splunk user and group and located in the given directory (in this case, `/opt/splunkforwarder/etc/users/admin/user-prefs/local`). 
+This generates a file `user-prefs.conf`, owned by the correct Splunk user and group and located in the given directory (in this case, `/opt/splunkforwarder/etc/users/admin/user-prefs/local`).
 
 Following INI format, the contents of `user-prefs.conf` will resemble the following:
 ```
