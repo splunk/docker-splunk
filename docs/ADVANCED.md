@@ -17,7 +17,7 @@ Let's dive into the nitty-gritty on how to tweak the setup of your containerized
 * [Create custom configs](#create-custom-configs)
 * [Enable SmartStore](#enable-smartstore)
     * [Configure cache manager](#configure-cache-manager)
-* [Using deployment servers](#using-deployment-servers)
+* [Use a deployment server](#use-a-deployment-server)
 * [Deploy distributed topology](#deploy-distributed-topology)
 * [Enable SSL internal communication](#enable-ssl-internal-communication)
 * [Build from source](#build-from-source)
@@ -275,7 +275,7 @@ smartstore:
       hotlist_bloom_filter_recency_hours: 1
 ```
 
-## Using deployment servers
+## Use a deployment server
 Deployment servers can be used to manage otherwise unclustered or disjoint Splunk instances. A primary use-case would be to stand up a deployment server to manage app or configuration distribution to a fleet of 100 universal forwarders.
 
 See the [full deployment server guide](advanced/DEPLOYMENT_SERVER.md) to understand how you can leverage this role in your topology.
