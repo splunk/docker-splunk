@@ -10,7 +10,7 @@
 ## Requirements
 In order to run this Docker image, you need the following prerequisites and dependencies installed on each node you plan on deploying the container:
 * Linux-based operating system, such as Debian, CentOS, and so on.
-* Chipset: 
+* Chipset:
     * `splunk/splunk` image supports x86-64 chipsets
     * `splunk/universalforwarder` image supports both x86-64 and s390x chipsets
 * Kernel version 4.0 or higher
@@ -22,10 +22,11 @@ In order to run this Docker image, you need the following prerequisites and depe
     2. Assuming the file was empty, add the following contents:
         ```
         { "storage-driver": "overlay2" }
-        ``` 
+        ```
         **Note:** If you already have an existing JSON file, add only `"storage-driver": "overlay2"` as a key-value pair. Docker does not start if the `daemon.json` file contains badly-formed JSON.
 
-For more details, see the official [supported architectures and platforms for containerized Splunk software environments](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms) as well as [hardware and capacity recommendations](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements). 
+For more details, see the official [supported architectures and platforms for containerized Splunk software environments](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms) as well as [hardware and capacity recommendations](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements).
+Basic instructions to [deploy and run Splunk Enterprise inside containers](https://docs.splunk.com/Documentation/Splunk/latest/Installation/DeployandrunSplunkEnterpriseinsideDockercontainers) are also available.
 
 ## Installation
 Run the following commands to pull the latest images down from Docker Hub and into your local environment:
@@ -68,11 +69,11 @@ $ docker run -it --network skynet --name so1 --hostname so1 -p 8000:8000 -e "SPL
 
 This command does the following:
 1. Starts a Docker container using the `splunk/splunk:latest` image.
-2. Launches the container in the formerly-created bridge network `skynet`.
-3. Names the container and the host as `so1`.
-4. Exposes a port mapping from the host's `8000` port to the container's `8000` port
-5. Specifies a custom `SPLUNK_PASSWORD`.
-6. Accepts the license agreement with `SPLUNK_START_ARGS=--accept-license`. This agreement must be explicitly accepted on every container, or Splunk Enterprise doesn't start.
+1. Launches the container in the formerly-created bridge network `skynet`.
+1. Names the container and the host as `so1`.
+1. Exposes a port mapping from the host's `8000` port to the container's `8000` port
+1. Specifies a custom `SPLUNK_PASSWORD`.
+1. Accepts the license agreement with `SPLUNK_START_ARGS=--accept-license`. This agreement must be explicitly accepted on every container, or Splunk Enterprise doesn't start.
 
 After the container starts up successfully, you can access Splunk Web at <http://localhost:8000> with `admin:<password>`.
 
@@ -84,13 +85,13 @@ $ docker run -it --network skynet --name uf1 --hostname uf1 -e "SPLUNK_PASSWORD=
 
 This command does the following:
 1. Starts a Docker container using the `splunk/universalforwarder:latest` image.
-2. Launches the container in the formerly-created bridge network `skynet`.
-3. Names the container and the host as `uf1`.
-4. Specifies a custom `SPLUNK_PASSWORD`.
-5. Accepts the license agreement with `SPLUNK_START_ARGS=--accept-license`. This agreement must be explicitly accepted on every container, otherwise Splunk Enterprise doesn't start.
-6. Connects it to the standalone instance created earlier to automatically send logs to `so1`.
+1. Launches the container in the formerly-created bridge network `skynet`.
+1. Names the container and the host as `uf1`.
+1. Specifies a custom `SPLUNK_PASSWORD`.
+1. Accepts the license agreement with `SPLUNK_START_ARGS=--accept-license`. This agreement must be explicitly accepted on every container, otherwise Splunk Enterprise doesn't start.
+1. Connects it to the standalone instance created earlier to automatically send logs to `so1`.
 
-**NOTE:** The Splunk Universal Forwarder product does not have a web interface. If you require access to the Splunk installation in this particular container, please refer to the [REST API](https://docs.splunk.com/Documentation/Splunk/latest/RESTREF/RESTprolog) documentation or use `docker exec` to access the [Splunk CLI](https://docs.splunk.com/Documentation/Splunk/latest/Admin/CLIadmincommands).
+**NOTE:** The Splunk Universal Forwarder does not have a web interface. If you require access to the Splunk installation in this particular container, refer to the [REST API](https://docs.splunk.com/Documentation/Splunk/latest/RESTREF/RESTprolog) documentation or use `docker exec` to access the [Splunk CLI](https://docs.splunk.com/Documentation/Splunk/latest/Admin/CLIadmincommands).
 
 **You successfully created a distributed deployment with `docker-splunk`!**
 
