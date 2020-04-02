@@ -1,4 +1,4 @@
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: indexer
@@ -9,6 +9,11 @@ metadata:
 spec:
   replicas: 3
   serviceName: indexer
+  selector:
+    matchLabels:
+      app: splunk
+      role: splunk_indexer
+      tier: indexer
   template:
     metadata:
       labels:
