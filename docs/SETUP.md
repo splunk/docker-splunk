@@ -1,8 +1,8 @@
 ## Navigation
 
 * [Requirements](#requirements)
-* [Installation](#installation)
-* [Run](#run)
+* [Install](#install)
+* [Deploy](#deploy)
     * [Standalone deployment](#standalone-deployment)
     * [Distributed deployment](#distributed-deployment)
 * [See also](#see-also)
@@ -10,14 +10,14 @@
 ## Requirements
 In order to run this Docker image, you must meet the official [System requirements](SUPPORT.md#system-requirements). Failure to do so will render your deployment in an unsupported state. See [Support violation](SUPPORT.md##support-violation) for details.
 
-## Installation
+## Install
 Run the following commands to pull the latest images down from Docker Hub and into your local environment:
 ```
 $ docker pull splunk/splunk:latest
 $ docker pull splunk/universalforwarder:latest
 ```
 
-## Run
+## Deploy
 
 This section explains how to start basic standalone and distributed deployments. See the [Examples](EXAMPLES.md) page for instructions on creating additional types of deployments.
 
@@ -28,6 +28,12 @@ Start a single containerized instance of Splunk Enterprise with the command belo
 ```
 $ docker run -it -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" splunk/splunk:latest
 ```
+
+This command does the following:
+1. Starts a Docker container using the `splunk/splunk:latest` image.
+1. Exposes a port mapping from the host's `8000` port to the container's `8000` port
+1. Specifies a custom `SPLUNK_PASSWORD`.
+1. Accepts the license agreement with `SPLUNK_START_ARGS=--accept-license`. This agreement must be explicitly accepted on every container, or Splunk Enterprise doesn't start.
 
 **You successfully created a standalone deployment with `docker-splunk`!**
 
@@ -81,8 +87,6 @@ If everything went smoothly, you can log in to your Splunk Enterprise instance a
 
 ## See also
 
-[More examples of standalone and distributed deployments](EXAMPLES.md)
-
-[Design and architecture of docker-splunk](ARCHITECTURE.md)
-
-[Adding advanced complexity to your containerized Splunk deployments](ADVANCED.md)
+* [More examples of standalone and distributed deployments](EXAMPLES.md)
+* [Design and architecture of docker-splunk](ARCHITECTURE.md)
+* [Adding advanced complexity to your containerized Splunk deployments](ADVANCED.md)
