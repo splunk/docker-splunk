@@ -1,4 +1,4 @@
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: search
@@ -7,6 +7,11 @@ metadata:
     role: splunk_search_head
     tier: search
 spec:
+  selector:
+    matchLabels:
+      app: splunk
+      role: splunk_search_head
+      tier: search
   replicas: 2 
   serviceName: search 
   template:
