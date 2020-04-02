@@ -9,7 +9,10 @@
 Splunk Enterprise contains many settings that allow customers to tailor their Splunk environment. However, because not all settings apply to all customers, Splunk will only support the most common subset of all configurations. Throughout this document, the term "supported" means you can contact Splunk Support for assistance with issues.
 
 ## System requirements
-In order to run this Docker image, you need the following prerequisites and dependencies installed on each node you plan on deploying the container:
+
+If you intend for this containerized Splunk Enterprise deployment to be supported in your Enterprise Support Agreement, you must verify you meet all of the requirements below. **Failure to do so will render your deployment in an unsupported state.** See [Support violation](#support-violation) below.
+
+The following prerequisites and dependencies must be installed on each node you plan on deploying the container.
 * Linux-based operating system, such as Debian, CentOS, and so on.
 * Chipset:
     * `splunk/splunk` image supports x86-64 chipsets
@@ -26,10 +29,11 @@ In order to run this Docker image, you need the following prerequisites and depe
         ```
         **Note:** If you already have an existing JSON file, add only `"storage-driver": "overlay2"` as a key-value pair. Docker does not start if the `daemon.json` file contains badly-formed JSON.
 
-For more details, see the official [supported architectures and platforms for containerized Splunk software environments](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms) as well as [hardware and capacity recommendations](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements).
-Basic instructions to [deploy and run Splunk Enterprise inside containers](https://docs.splunk.com/Documentation/Splunk/latest/Installation/DeployandrunSplunkEnterpriseinsideDockercontainers) are also available.
+### See also
 
-If you intend for this containerized Splunk Enterprise deployment to be supported in your Enterprise Support Agreement, you must verify you meet all of the above supported requirements. Failure to do so will render your deployment in an unsupported state. See [Support Violation](#support-violation) below.
+* [Supported platforms for containerized Splunk software environments](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms)
+* [Recommended hardware and capacity](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Recommended_hardware)
+* Basic instructions to [deploy and run Splunk Enterprise inside containers](https://docs.splunk.com/Documentation/Splunk/latest/Installation/DeployandrunSplunkEnterpriseinsideDockercontainers)
 
 ## Contact
 Splunk Support only provides support for the single instance Splunk Validated Architectures (S-Type), Universal Forwarders and Heavy Forwarders. For all other configurations, [contact Splunk Professional Services](https://www.splunk.com/en_us/support-and-services.html).

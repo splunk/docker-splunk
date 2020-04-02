@@ -8,25 +8,7 @@
 * [See also](#see-also)
 
 ## Requirements
-In order to run this Docker image, you need the following prerequisites and dependencies installed on each node you plan on deploying the container:
-* Linux-based operating system, such as Debian, CentOS, and so on.
-* Chipset:
-    * `splunk/splunk` image supports x86-64 chipsets
-    * `splunk/universalforwarder` image supports both x86-64 and s390x chipsets
-* Kernel version 4.0 or higher
-* Docker engine:
-    * Docker Enterprise Engine 17.06.2 or higher
-    * Docker Community Engine 17.06.2 or higher
-* [OverlayFS](https://docs.docker.com/storage/storagedriver/overlayfs-driver/) `overlay2` Docker daemon storage driver
-    1. Edit `/etc/docker/daemon.json`. If it does not yet exist, create it.
-    2. Assuming the file was empty, add the following contents:
-        ```
-        { "storage-driver": "overlay2" }
-        ```
-        **Note:** If you already have an existing JSON file, add only `"storage-driver": "overlay2"` as a key-value pair. Docker does not start if the `daemon.json` file contains badly-formed JSON.
-
-For more details, see the official [supported architectures and platforms for containerized Splunk software environments](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements#Containerized_computing_platforms) as well as [hardware and capacity recommendations](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements).
-Basic instructions to [deploy and run Splunk Enterprise inside containers](https://docs.splunk.com/Documentation/Splunk/latest/Installation/DeployandrunSplunkEnterpriseinsideDockercontainers) are also available.
+In order to run this Docker image, you must meet the official [System requirements](SUPPORT.md#system-requirements). Failure to do so will render your deployment in an unsupported state. See [Support violation](SUPPORT.md##support-violation) for details.
 
 ## Installation
 Run the following commands to pull the latest images down from Docker Hub and into your local environment:
