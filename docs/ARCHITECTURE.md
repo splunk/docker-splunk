@@ -1,5 +1,5 @@
 ## Architecture
-From a design perspective, the containers brought up with the `docker-splunk` images are meant to provision themselves locally and asynchronously. The execution flow of the provisioning process is meant to gracefully handle interoperability in this manner, while also maintaining idempotency and reliability. 
+From a design perspective, the containers brought up with the `docker-splunk` images are meant to provision themselves locally and asynchronously. The execution flow of the provisioning process is meant to gracefully handle interoperability in this manner, while also maintaining idempotency and reliability.
 
 ## Navigation
 
@@ -9,7 +9,7 @@ From a design perspective, the containers brought up with the `docker-splunk` im
 * [Supported platforms](#supported-platforms)
 
 ## Networking
-By default, the Docker image exposes a variety of ports for both external interaction as well as internal use. 
+By default, the Docker image exposes a variety of ports for both external interaction as well as internal use.
 ```
 EXPOSE 8000 8065 8088 8089 8191 9887 9997
 ```
@@ -28,8 +28,8 @@ Below is a table detailing the purpose of each port, which can be used as a refe
 
 ## Design
 
-##### Remote networking 
-Particularly when bringing up distributed Splunk topologies, there is a need for one Splunk instances to make a request against another Splunk instance in order to construct the cluster. These networking requests are often prone to failure, as when Ansible is executed asyncronously there are no guarantees that the requestee is online/ready to receive the message.
+#### Remote networking
+Particularly when bringing up distributed Splunk topologies, there is a need for one Splunk instances to make a request against another Splunk instance in order to construct the cluster. These networking requests are often prone to failure, as when Ansible is executed asynchronously there are no guarantees that the requestee is online/ready to receive the message.
 
 While developing new playbooks that require remote Splunk-to-Splunk connectivity, we employ the use of `retry` and `delay` options for tasks. For instance, in this example below, we add indexers as search peers of individual search head. To overcome error-prone networking, we have retry counts with delays embedded in the task. There are also break-early conditions that maintain idempotency so we can progress if successful:
 ```

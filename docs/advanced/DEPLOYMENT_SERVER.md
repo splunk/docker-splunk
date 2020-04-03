@@ -1,5 +1,5 @@
 ## Using a Deployment Server
-One of the roles Splunk's Docker image can assume is the `splunk_deployment_server`. This is generally a standalone instance that manages configurations and applications across unclustered/unsyncronized members of your deployment. For more detailed information, please see the [architectural overview on the deployment server](https://docs.splunk.com/Documentation/Splunk/latest/Updating/Deploymentserverarchitecture).
+One role the Splunk Docker image can assume is the `splunk_deployment_server`. This is generally a standalone instance that manages configurations and applications across unclustered/unsynchronized members of your deployment. For more detailed information, please see the [architectural overview on the deployment server](https://docs.splunk.com/Documentation/Splunk/latest/Updating/Deploymentserverarchitecture).
 
 This is particularly helpful and useful in the case of running multiple standalones or forwarders (both universal and heavy forwarders). When running a fleet of isolated Splunk containers, it can be a chore to wrangle configurations and maintain consensus so that each instance is provisioned identically. This can be solved with the addition of the deployment server - when added to your environment, all non-clustered Splunk roles can register with it to periodically fetch content and maintain a stateful setup.
 
@@ -43,7 +43,7 @@ services:
       - SPLUNK_PASSWORD
     ports:
       - 8000
-  
+
   depserver1:
     networks:
       splunknet:
@@ -96,7 +96,7 @@ services:
       - SPLUNK_PASSWORD
     ports:
       - 1514
-  
+
   depserver1:
     networks:
       splunknet:
@@ -148,7 +148,7 @@ services:
       - SPLUNK_PASSWORD
     ports:
       - 1514
-  
+
   depserver1:
     networks:
       splunknet:
@@ -220,7 +220,7 @@ services:
       - SPLUNK_PASSWORD
     ports:
       - 1514
-  
+
   ds-1:
     networks:
       splunknet:
@@ -234,7 +234,7 @@ services:
       - SPLUNK_ROLE=splunk_deployment_server
       - SPLUNK_APPS_URL=https://artifact.company.internal/splunk_app_for_standalone.tgz
       - SPLUNK_PASSWORD
-  
+
   ds-2:
     networks:
       splunknet:

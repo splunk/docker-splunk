@@ -1,7 +1,7 @@
 ## Installing Splunk Apps and Add-ons
-Splunk's Docker image supports the ability to dynamically install any Splunk-compliant app or add-on. These can be certified apps that are hosted through [SplunkBase](https://splunkbase.splunk.com/) or they might be local apps you have developed yourself.
+The Splunk Docker image supports the ability to dynamically install any Splunk-compliant app or add-on. These can be certified apps that are hosted through [SplunkBase](https://splunkbase.splunk.com/) or they might be local apps you have developed yourself.
 
-App installation can be done a variety of ways: either through a file/directory volume-mounted inside the container, or through an external URL for dynamic downloads. Nothing is required for the former, and the enviroment variable `SPLUNK_APPS_URL` supports the latter.
+App installation can be done a variety of ways: either through a file/directory volume-mounted inside the container, or through an external URL for dynamic downloads. Nothing is required for the former, and the environment variable `SPLUNK_APPS_URL` supports the latter.
 
 **NOTE:** Installation of Splunk Enterprise Security (ES) and Splunk IT Service Intelligence (ITSI) is currently not supported with this image. Please contact Splunk Services for more information on using these applications with Splunk Enterprise in a container.
 
@@ -71,7 +71,7 @@ services:
 ```
 
 #### Apps on filesystem
-If you build your own image on top of the `splunk/splunk` or `splunk/universalforwarder` image, it's possible you may embedd a tar file of an app inside. Or, you can go with the bind-mount volume approach and inject a tar file on container run time. In either case, it's still possible to install an app from this file on the container's filesystem with the following.
+If you build your own image on top of the `splunk/splunk` or `splunk/universalforwarder` image, it's possible you may embed a tar file of an app inside. Or, you can go with the bind-mount volume approach and inject a tar file on container run time. In either case, it's still possible to install an app from this file on the container's filesystem with the following.
 
 Please refer to this docker-compose.yml file for how to install an app in the container's filesystem:
 
@@ -93,7 +93,7 @@ services:
 ## Multiple apps
 As one would expect, Splunk can and should support downloading any combination or series of apps. This can be incredibly useful when cross-referencing data from various sources.
 
-The `SPLUNK_APPS_URL` supports multiple apps, as long as they are comma-separated. Plase refer to this docker-compose.yml file for how to install multiple apps:
+The `SPLUNK_APPS_URL` supports multiple apps, as long as they are comma-separated. Refer to this `docker-compose.yml` file for how to install multiple apps:
 
 ```
 version: "3.6"
@@ -171,7 +171,7 @@ services:
           - idx1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
-    hostname: idx1 
+    hostname: idx1
     container_name: idx1
     environment:
       - SPLUNK_START_ARGS=--accept-license
@@ -328,7 +328,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_indexer
     ports:
-      - 8000    
+      - 8000
 ```
 
 In the case of indexer clusters, you will explicitly need to tell the `splunk_cluster_master` what apps to install by defining a `SPLUNK_APPS_URL` for that particular role. The cluster master will manage the distribution of apps to each of the indexer cluster members (indexers). See the example below and note the different apps used for search heads and indexers:

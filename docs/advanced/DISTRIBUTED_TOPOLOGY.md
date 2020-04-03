@@ -1,6 +1,6 @@
 # Starting a Splunk Cluster
 
-***Note:** Splunk does not offer support for Docker or any orchestration platforms like Kubernetes, Docker Swarm, Mesos, etc. Support covers only the published Splunk Docker images. At this time, we strongly recommend that only very experienced and advanced customers use Docker to run Splunk clusters.*
+***Note:** Splunk does not offer support for Docker or any orchestration platforms like Kubernetes, Docker Swarm, Apache Mesos, etc. Support covers only the published Splunk Docker images. At this time, we strongly recommend that only very experienced and advanced customers use Docker to run Splunk clusters.*
 
 While Splunk does not support orchestrators or the YAML templates required to deploy and manage clusters and other advanced configurations, we provide several examples of these different configurations in the "test_scenarios" folder. These are for prototyping purposes only.
 
@@ -81,7 +81,7 @@ services:
     environment:
       - SPLUNK_START_ARGS=--accept-license <required in order to start container>
       - SPLUNK_INDEXER_URL=<list of each indexer's hostname>
-      - SPLUNK_SEARCH_HEAD_URL= <list of each search head's hostnames>
+      - SPLUNK_SEARCH_HEAD_URL= <list of each search head's hostname>
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=<hostname of which container to make the captain>
       - SPLUNK_CLUSTER_MASTER_URL=<hostname of the cluster master>
       - SPLUNK_ROLE=<what role to use for this container>
@@ -104,7 +104,7 @@ Acceptable roles for SPLUNK_ROLE are as follows:
 * splunk_cluster_master
 * splunk_heavy_forwarder
 
-For more information about these roles, refer to [Splunk Splexicon](https://docs.splunk.com/splexicon).
+For more information about these roles, refer to the [Splunk Splexicon](https://docs.splunk.com/splexicon).
 
 After creating a Compose file, you can start an entire cluster with `docker-compose`:
 ```
@@ -137,7 +137,7 @@ In the above example, the container id is `bbbe650dd544`. So, the `docker logs` 
 ```
 docker logs -f bbbe650dd544
 ```
-As Ansible runs, the results from each play can be seen on the screen as well as writen to an ansible.log file stored inside the container.
+As Ansible runs, the results from each play can be seen on the screen, as well as written to an `ansible.log` file stored inside the container.
 ```
 PLAY [localhost] ***************************************************************
 
@@ -196,7 +196,8 @@ Stopping Splunk helpers...
 
 Done.
 ```
-It's important to call out the `RECAP` line, as it's the biggest indicator if Splunk Enterprise was configured correctly. In this example, there was a failure during the container creation. The offending play is:
+
+It's important to call out the `RECAP` line, as it's the biggest indicator of whether Splunk Enterprise was configured correctly. In this example, there was a failure during container creation. The offending play is:
 
 ```
 TASK [Splunk_cluster_master : Set indexer discovery] ***************************
