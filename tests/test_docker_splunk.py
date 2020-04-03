@@ -423,6 +423,28 @@ class TestDockerSplunk(object):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
     
+    def test_splunk_uid_gid(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the git SHA exists in /opt/ansible
+            exec_command = self.client.exec_create(cid, "id", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "uid=41812" in std_out
+            assert "gid=41812" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+    
     def test_uf_entrypoint_help(self):
         # Run container
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="help")
@@ -477,6 +499,28 @@ class TestDockerSplunk(object):
             std_out = self.client.exec_start(exec_command)
             assert "wrapper-example" not in std_out
             assert "docs" not in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+    
+    def test_uf_uid_gid(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the git SHA exists in /opt/ansible
+            exec_command = self.client.exec_create(cid, "id", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "uid=41812" in std_out
+            assert "gid=41812" in std_out
         except Exception as e:
             self.logger.error(e)
             raise e

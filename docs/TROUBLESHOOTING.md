@@ -6,6 +6,7 @@
 * [Container Debugging](#container-debugging)
     * [Getting logs](#getting-logs)
     * [Interactive shell](#interactive-shell)
+    * [Installing packages](#installing-packages)
     * [Debug variables](#debug-variables)
     * [No-provision](#no-provision)
     * [Generate Splunk diag](#generate-splunk-diag)
@@ -56,7 +57,7 @@ To gain interactive shell access to the container's runtime as the splunk user, 
 $ docker exec -it -u splunk <container_name/container_id> /bin/bash
 ```
 
-#### Installing Packages
+#### Installing packages
 Once inside the container, you can install additional packages with the default package manager:
 ```
 $ microdnf install <package_name>
