@@ -14,7 +14,7 @@ Note that for more complex scenarios, we will opt to use a [Docker compose file]
     * [...with any app](#create-standalone-with-app)
     * [...with a SplunkBase app](#create-standalone-with-splunkbase-app)
     * [...with SSL enabled](#create-standalone-with-ssl-enabled)
-    * [...with a Free license](#create-standalone-with-free-license)
+    * [...with a Splunk Free license](#create-standalone-with-splunk-free-license)
 * [Create standalone and universal forwarder](#create-standalone-and-universal-forwarder)
 * [Create heavy forwarder](#create-heavy-forwarder)
 * [Create heavy forwarder and deployment server](#create-heavy-forwarder-and-deployment-server)
@@ -27,8 +27,11 @@ Note that for more complex scenarios, we will opt to use a [Docker compose file]
 
 ## Create standalone from CLI
 Execute the following to bring up your deployment:
-```
-$ docker run --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
+```bash
+$ docker run --name so1 --hostname so1 -p 8000:8000 \
+              -e "SPLUNK_PASSWORD=<password>" \
+              -e "SPLUNK_START_ARGS=--accept-license" \
+              -it splunk/splunk:latest
 ```
 
 ## Create standalone from compose
@@ -128,7 +131,7 @@ $ SPLUNK_PASSWORD=<password> docker-compose up -d
 ```
 
 To validate HEC is provisioned properly and functional:
-```
+```bash
 $ curl -k https://localhost:8088/services/collector/event -H "Authorization: Splunk abcd1234" -d '{"event": "hello world"}'
 {"text": "Success", "code": 0}
 ```
@@ -189,12 +192,12 @@ $ SPLUNKBASE_PASSWORD=<splunkbase_password> SPLUNK_PASSWORD=<password> docker-co
 
 ## Create standalone with SSL enabled
 To enable SSL over SplunkWeb, you'll first need to generate your self-signed certificates. Please see the [Splunk docs](https://docs.splunk.com/Documentation/Splunk/latest/Security/Self-signcertificatesforSplunkWeb) on how to go about doing this. For the purposes of local development, you can use:
-```
+```bash
 openssl req -x509 -newkey rsa:4096 -passout pass:abcd1234 -keyout /home/key.pem -out /home/cert.pem -days 365 -subj /CN=localhost
 ```
 
 Once you have your certificates available, you can execute the following to bring up your deployment with SSL enabled on the Splunk Web UI:
-```
+```bash
 $ docker run --name so1 --hostname so1 -p 8000:8000 \
               -e "SPLUNK_HTTP_ENABLESSL=true" \
               -e "SPLUNK_HTTP_ENABLESSL_CERT=/home/cert.pem" \
@@ -206,12 +209,16 @@ $ docker run --name so1 --hostname so1 -p 8000:8000 \
               -it splunk/splunk:latest
 ```
 
-## Create Standalone with Free license
+## Create standalone with Splunk Free license
 [Splunk Free](https://docs.splunk.com/Documentation/Splunk/latest/Admin/MoreaboutSplunkFree) is the totally free version of Splunk software. The Free license lets you index up to 500 MB per day and will never expire.
 
 Execute the following to bring up a Splunk Free standalone environment:
-```
-$ docker run --name so1 --hostname so1 -p 8000:8000 -e SPLUNK_PASSWORD=<password> -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_LICENSE_URI=Free -it splunk/splunk:latest
+```bash
+$ docker run --name so1 --hostname so1 -p 8000:8000 \
+              -e "SPLUNK_PASSWORD=<password>" \
+              -e "SPLUNK_START_ARGS=--accept-license" \
+              -e "SPLUNK_LICENSE_URI=Free" \
+              -it splunk/splunk:latest
 ```
 
 ## Create standalone and universal forwarder

@@ -25,8 +25,10 @@ This section explains how to start basic standalone and distributed deployments.
 
 Start a single containerized instance of Splunk Enterprise with the command below, replacing `<password>` with a password string that conforms to the [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile).
 
-```
-$ docker run -it -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" splunk/splunk:latest
+```bash
+$ docker run -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
+             -e "SPLUNK_START_ARGS=--accept-license" \
+             -it splunk/splunk:latest
 ```
 
 This command does the following:
@@ -51,8 +53,11 @@ $ docker network create --driver bridge --attachable skynet
 
 #### Splunk Enterprise
 Start a single, standalone instance of Splunk Enterprise in the network created above, replacing `<password>` with a password string that conforms to the [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile).
-```
-$ docker run -it --network skynet --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" splunk/splunk:latest
+```bash
+$ docker run --network skynet --name so1 --hostname so1 -p 8000:8000 \
+              -e "SPLUNK_PASSWORD=<password>" \
+              -e "SPLUNK_START_ARGS=--accept-license" \
+              -it splunk/splunk:latest
 ```
 
 This command does the following:
@@ -67,8 +72,12 @@ After the container starts up successfully, you can access Splunk Web at <http:/
 
 #### Splunk Universal Forwarder
 Start a single, standalone instance of Splunk Universal Forwarder in the network created above, replacing `<password>` with a password string that conforms to the [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile).
-```
-$ docker run -it --network skynet --name uf1 --hostname uf1 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -e "SPLUNK_STANDALONE_URL=so1" splunk/universalforwarder:latest
+```bash
+$ docker run --network skynet --name uf1 --hostname uf1 \
+              -e "SPLUNK_PASSWORD=<password>" \
+              -e "SPLUNK_START_ARGS=--accept-license" \
+              -e "SPLUNK_STANDALONE_URL=so1" \
+              -it splunk/universalforwarder:latest
 ```
 
 This command does the following:

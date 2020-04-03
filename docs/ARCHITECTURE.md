@@ -34,7 +34,7 @@ Particularly when bringing up distributed Splunk topologies, there is a need for
 While developing new playbooks that require remote Splunk-to-Splunk connectivity, we employ the use of `retry` and `delay` options for tasks. For instance, in this example below, we add indexers as search peers of individual search head. To overcome error-prone networking, we have retry counts with delays embedded in the task. There are also break-early conditions that maintain idempotency so we can progress if successful:
 
 <!-- {% raw %} -->
-```
+```yaml
 - name: Set all indexers as search peers
   command: "{{ splunk.exec }} add search-server https://{{ item }}:{{ splunk.svc_port }} -auth {{ splunk.admin_user }}:{{ splunk.password }} -remoteUsername {{ splunk.admin_user }} -remotePassword {{ splunk.password }}"
   become: yes
@@ -56,7 +56,7 @@ While developing new playbooks that require remote Splunk-to-Splunk connectivity
 Another utility you can add when creating new plays is an implicit wait. For more information on this, see the `roles/splunk_common/tasks/wait_for_splunk_instance.yml` play which will wait for another Splunk instance to be online before making any connections against it.
 
 <!-- {% raw %} -->
-```
+```yaml
 - name: Check Splunk instance is running
   uri:
     url: https://{{ splunk_instance_address }}:{{ splunk.svc_port }}/services/server/info?output_mode=json
