@@ -1,10 +1,10 @@
 # docker-splunk: Containerizing Splunk Enterprise
 
-[![Build Status](https://circleci.com/gh/splunk/docker-splunk/tree/develop.svg?style=svg)](https://circleci.com/gh/splunk/docker-splunk/tree/develop)
+[![Build Status](https://circleci.com/gh/splunk/docker-splunk/tree/develop.svg?style=svg)](https://circleci.com/gh/splunk/docker-splunk/tree/develop)&nbsp;
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)&nbsp;
+[![GitHub release](https://img.shields.io/github/v/tag/splunk/docker-splunk?sort=semver&label=Version)](https://github.com/splunk/docker-splunk/releases)
 
-Welcome to Splunk's official repository containing Dockerfiles for building Splunk Enterprise and Universal Forwarder images using containerization technology.
-
-The provisioning of these disjoint containers is handled by the [splunk-ansible](https://github.com/splunk/splunk-ansible) project. Please refer to [Ansible documentation](http://docs.ansible.com/) for more details about Ansible concepts and how it works. 
+Welcome to Splunk's official repository of Dockerfiles for building Splunk Enterprise and Splunk Universal Forwarder images using containerization technology.
 
 ----
 
@@ -21,15 +21,17 @@ The provisioning of these disjoint containers is handled by the [splunk-ansible]
 
 ## Purpose
 
-##### What is Splunk Enterprise?
+#### What is Splunk Enterprise?
 Splunk Enterprise is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results.
 
-Please refer to [Splunk products](https://www.splunk.com/en_us/software.html) for more knowledge about the features and capabilities of Splunk, and how you can bring it into your organization.
+Refer to [Splunk products](https://www.splunk.com/en_us/software.html) for more knowledge about the features and capabilities of Splunk, and how you can bring it into your organization.
 
-##### What is docker-splunk?
+#### What is docker-splunk?
 This is the official source code repository for building Docker images of Splunk Enterprise and Splunk Universal Forwarder. By introducing containerization, we can marry the ideals of infrastructure-as-code and declarative directives to manage and run Splunk Enterprise.
 
----
+The provisioning of these containers is handled by the [splunk-ansible](https://github.com/splunk/splunk-ansible) project. See the [Ansible documentation](http://docs.ansible.com/) for more details about Ansible concepts and how it works.
+
+----
 
 ## Quickstart
 Use the following command to start a single standalone instance of Splunk Enterprise:
@@ -78,26 +80,26 @@ Additional information on Docker support for Splunk Enterprise can be found [her
 ---
 
 ## Documentation
-For full usage instructions (including examples, advanced deployments, scenarios), please visit the [docker-splunk documentation](https://splunk.github.io/docker-splunk/) page.
+Visit the [docker-splunk documentation](https://splunk.github.io/docker-splunk/) page for full usage instructions, including installation, examples, and advanced deployment scenarios.
 
 ---
 
 ## Support
-Please use the [GitHub issue tracker](https://github.com/splunk/docker-splunk/issues) to submit bugs or request features.
+Use the [GitHub issue tracker](https://github.com/splunk/docker-splunk/issues) to submit bugs or request features.
 
 If you have additional questions or need more support, you can:
 * Post a question to [Splunk Answers](http://answers.splunk.com)
 * Join the [#docker](https://splunk-usergroups.slack.com/messages/C1RH09ERM/) room in the [Splunk Slack channel](http://splunk-usergroups.slack.com)
 * If you are a Splunk Enterprise customer with a valid support entitlement contract and have a Splunk-related question, you can also open a support case on the https://www.splunk.com/ support portal
 
-For more detailed informations on support, please see the official [support guidelines](docs/SUPPORT.md).
+See the official [support guidelines](docs/SUPPORT.md) for more detailed information.
 
 ---
 
 ## Contributing
-We welcome feedback and contributions from the community! Please see our [contribution guidelines](docs/CONTRIBUTING.md) for more information on how to get involved. 
+We welcome feedback and contributions from the community! See our [contribution guidelines](docs/CONTRIBUTING.md) for more information on how to get involved.
 
---- 
+---
 
 ## License
 Copyright 2018-2020 Splunk.
