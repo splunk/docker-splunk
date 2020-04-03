@@ -1,13 +1,9 @@
 # Starting a Splunk Cluster
 
-** Note: ** Splunk does not offer support for Docker or any orchestration
-platforms like Kubernetes, Docker Swarm, Mesos, etc. Support covers only the
-published Splunk Docker images. At this time, we strongly recommend that only
-very experienced and advanced customers use Docker to run Splunk clusters*
+***Note:** Splunk does not offer support for Docker or any orchestration platforms like Kubernetes, Docker Swarm, Mesos, etc. Support covers only the published Splunk Docker images. At this time, we strongly recommend that only very experienced and advanced customers use Docker to run Splunk clusters.*
 
-While Splunk does not support orchestrators or the YAML templates required to
-deploy and manage clusters and other advanced configurations, we provide several
-examples of these different configurations in the "test_scenarios" folder. These are for prototyping purposes only.
+While Splunk does not support orchestrators or the YAML templates required to deploy and manage clusters and other advanced configurations, we provide several examples of these different configurations in the "test_scenarios" folder. These are for prototyping purposes only.
+
 One of the most common configurations of Splunk Enterprise is the C3 configuration
 (see [Splunk Validated Architectures](https://www.splunk.com/pdfs/white-papers/splunk-validated-architectures.pdf) for more info).
 This architecture contains a search head cluster, an index cluster, with a deployer and cluster master.
@@ -16,16 +12,13 @@ You can create a simple cluster with Docker Swarm using the following command:
 ```
  $> SPLUNK_COMPOSE=cluster_absolute_unit.yaml make sample-compose-up
 ```
-Please note that the provisioning process will run for a few minutes after this command completes
-while the Ansible plays run. Also, be warned that this configuration requires a lot of resources
-so running this on your laptop may make it hot and slow.
+The provisioning process will run for a few minutes after this command completes, while the Ansible plays run. This configuration is resource-intensive, so running this on your laptop may cause it to overheat and slow down.
 
 To view port mappings run:
 ```
  $> docker ps
 ```
-After several minutes, you should be able to log into one of the search heads `sh#`
-using the default username `admin` and the password you input at installation, or set through the Splunk UI.
+After several minutes, you should be able to log into one of the search heads `sh#` using the default username `admin` and the password you input at installation, or set through the Splunk UI.
 
 Once finished, you can remove the cluster by running:
 ```
@@ -44,8 +37,7 @@ networks:
     attachable: true
 ```
 
-`version 3.6` is a reference to the Docker Compose version, while `networks` is a reference to the type of adapter that will be created for
-the Splunk deployment to communicate across. For more information on the different types of network drivers, please consult your Docker installation manual.
+`version 3.6` is a reference to the Docker Compose version, while `networks` is a reference to the type of adapter that will be created for the Splunk deployment to communicate across. For more information on the different types of network drivers, consult your Docker installation manual.
 
 In `cluster_absolute_unit.yaml`, all instances of Splunk Enterprise are created under one major service object.
 
@@ -119,8 +111,7 @@ After creating a Compose file, you can start an entire cluster with `docker-comp
 docker-compose -f cluster_absolute_unit.yaml up -d
 ```
 
-To support Splunk Enterprise's complex configurations, the Docker container utilizes Ansible which performs the required provisioning
-commands. You can use the `docker log` command to follow these logs.
+To support Splunk Enterprise's complex configurations, the Docker container utilizes Ansible which performs the required provisioning commands. You can use the `docker log` command to follow these logs.
 
 `docker ps` will show a list of all the current running instances on this node. The cluster master gives the best indication of cluster health without needing to check every container.
 ```
@@ -205,8 +196,7 @@ Stopping Splunk helpers...
 
 Done.
 ```
-It's important to call out the `RECAP` line, as it's the biggest indicator if Splunk Enterprise was configured correctly. In this
-example, there was a failure during the container creation. The offending play is:
+It's important to call out the `RECAP` line, as it's the biggest indicator if Splunk Enterprise was configured correctly. In this example, there was a failure during the container creation. The offending play is:
 
 ```
 TASK [Splunk_cluster_master : Set indexer discovery] ***************************
@@ -217,4 +207,4 @@ fatal: [localhost]: FAILED! => {"cache_control": "private", "changed": false, "c
 
 In the above example, the `default.yml` file didn't contain a password, nor was an environment variable set.
 
-Please see the [troubleshooting](TROUBLESHOOTING.md) section for more common issues that can occur. There you will also find instructions for producing Splunk diagnostics for support such as `splunk diag`, as well as instructions for downloading the full Splunk `ansible.log` file.
+See the [troubleshooting](TROUBLESHOOTING.md) section for more common issues that can occur. There you will also find instructions for producing Splunk diagnostics for support such as `splunk diag`, as well as instructions for downloading the full Splunk `ansible.log` file.
