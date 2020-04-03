@@ -5,8 +5,8 @@ Let's dive into the nitty-gritty of how to tweak the setup of your containerized
 ## Navigation
 
 * [Runtime configuration](#runtime-configuration)
-    * [Using default.yml](#using-defaultyml)
-    * [Configuration specs for default.yml](#configuration-specs-for-defaultyml)
+    * [Using `default.yml`](#using-defaultyml)
+    * [Configuration specs for `default.yml`](#configuration-specs-for-defaultyml)
         * [Global variables](#global-variables)
         * [Configure Splunk](#configure-splunk)
         * [Configured app installation paths](#configure-app-installation-paths)
@@ -38,24 +38,30 @@ The purpose of the `default.yml` is to define a standard set of variables that c
 
 #### Generation
 The image contains a script to enable dynamic generation of this file automatically. Run the following command to generate a `default.yml`:
-```
+```bash
 $ docker run --rm -it splunk/splunk:latest create-defaults > default.yml
 ```
 
 You can also pre-seed some settings based on environment variables during this `default.yml` generation process. For example, you can define `SPLUNK_PASSWORD` with the following command:
-```
+```bash
 $ docker run --rm -it -e SPLUNK_PASSWORD=<password> splunk/splunk:latest create-defaults > default.yml
 ```
 #### Usage
 When starting the docker container, the `default.yml` can be mounted in `/tmp/defaults/default.yml` or fetched dynamically with `SPLUNK_DEFAULTS_URL`. Ansible provisioning will read in and honor these settings.
 
 Environment variables specified at runtime will take precedence over anything defined in `default.yml`.
-```
+```bash
 # Volume-mounting option
-$ docker run -d -p 8000:8000 -v default.yml:/tmp/defaults/default.yml -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD=<password> splunk/splunk:latest
+$ docker run -d -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
+             -e "SPLUNK_START_ARGS=--accept-license" \
+             -v default.yml:/tmp/defaults/default.yml \
+             splunk/splunk:latest
 
 # URL option
-$ docker run -d -p 8000:8000 -v -e SPLUNK_DEFAULTS_URL=http://company.net/path/to/default.yml -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD=<password> splunk/splunk:latest
+$ docker run -d -p 8000:8000 -v -e "SPLUNK_PASSWORD=<password>" \
+             -e "SPLUNK_START_ARGS=--accept-license" \
+             -e "SPLUNK_DEFAULTS_URL=http://company.net/path/to/default.yml" \
+             splunk/splunk:latest
 ```
 
 ### Configuration specs for default.yml
@@ -65,7 +71,7 @@ $ docker run -d -p 8000:8000 -v -e SPLUNK_DEFAULTS_URL=http://company.net/path/t
 Variables at the root level influence the behavior of everything in the container, as they have global scope.
 
 Example:
-```
+```yaml
 ---
 retry_num: 100
 ```
@@ -79,7 +85,9 @@ retry_num: 100
 The major object `splunk` in the YAML file contains variables that control how Splunk operates.
 
 Sample:
-```
+<!-- {% raw %} -->
+```yaml
+---
 splunk:
   opt: /opt
   home: /opt/splunk
@@ -98,7 +106,9 @@ splunk:
     # hec.token is used only for ingestion (receiving Splunk events)
     token: <default_hec_token>
   smartstore: null
+  ...
 ```
+<!-- {% endraw %} -->
 
 | Variable Name | Description | Parent Object | Default Value | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -124,12 +134,15 @@ splunk:
 The `app_paths` section under `splunk` controls how apps are installed inside the container.
 
 Sample:
-```
+```yaml
+---
+splunk:
   app_paths:
     default: /opt/splunk/etc/apps
     shc: /opt/splunk/etc/shcluster/apps
     idxc: /opt/splunk/etc/master-apps
     httpinput: /opt/splunk/etc/apps/splunk_httpinput
+  ...
 ```
 
 | Variable Name | Description | Parent Object | Default Value | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
@@ -144,12 +157,15 @@ Sample:
 Search Head Clustering is configured using the `shc` section under `splunk`.
 
 Sample:
-```
+```yaml
+---
+splunk:
   shc:
     enable: false
     secret: <secret_key>
     replication_factor: 3
     replication_port: 9887
+  ...
 ```
 
 | Variable Name | Description | Parent Object | Default Value | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
@@ -164,12 +180,15 @@ Sample:
 Indexer Clustering is configured using the `idxc` section under `splunk`.
 
 Sample:
-```
+```yaml
+---
+splunk:
   idxc:
     secret: <secret_key>
     search_factor: 2
     replication_factor: 3
     replication_port: 9887
+  ...
 ```
 
 | Variable Name | Description | Parent Object | Default Value | Required for Standalone| Required for Search Head Clustering | Required for Index Clustering |
@@ -181,16 +200,22 @@ Sample:
 
 ## Install apps
 Apps can be installed by using the `SPLUNK_APPS_URL` environment variable when creating the Splunk container:
-```
-$ docker run -it --name splunk -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD=<password> -e SPLUNK_APPS_URL=http://company.com/path/to/app.tgz splunk/splunk:latest
+```bash
+$ docker run --name splunk -e "SPLUNK_PASSWORD=<password>" \
+              -e "SPLUNK_START_ARGS=--accept-license" \
+              -e "SPLUNK_APPS_URL=http://company.com/path/to/app.tgz" \
+              -it splunk/splunk:latest
 ```
 
 See the [full app installation guide](advanced/APP_INSTALL.md) to learn how to specify multiple apps and how to install apps in a distributed environment.
 
 ## Apply Splunk license
 Licenses can be added with the `SPLUNK_LICENSE_URI` environment variable when creating the Splunk container:
-```
-$ docker run -it --name splunk -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD=<password> -e SPLUNK_LICENSE_URI=http://company.com/path/to/splunk.lic splunk/splunk:latest
+```bash
+$ docker run --name splunk -e "SPLUNK_PASSWORD=<password>" \
+              -e "SPLUNK_START_ARGS=--accept-license" \
+              -e "SPLUNK_LICENSE_URI=http://company.com/path/to/splunk.lic" \
+              -it splunk/splunk:latest
 ```
 
 See the [full license installation guide](advanced/LICENSE_INSTALL.md) to learn how to specify multiple licenses and how to use a central, containerized license manager.
@@ -200,8 +225,8 @@ When Splunk boots, it registers all the config files in various locations on the
 
 Using the Splunk Docker image, users can also create their own config files, following the same INI file format that drives Splunk. This is a power-user/admin-level feature, as invalid config files can break or prevent start-up of your Splunk installation.
 
-User-specified config files are set in `default.yml` by creating a `conf` key under  `splunk`, in the format below:
-```
+User-specified config files are set in `default.yml` by creating a `conf` key under `splunk`, in the format below:
+```yaml
 ---
 splunk:
   conf:
@@ -217,7 +242,7 @@ splunk:
 This generates a file `user-prefs.conf`, owned by the correct Splunk user and group and located in the given directory (in this case, `/opt/splunkforwarder/etc/users/admin/user-prefs/local`).
 
 Following INI format, the contents of `user-prefs.conf` will resemble the following:
-```
+```ini
 [general]
 search_syntax_highlighting = dark
 default_namespace = appboilerplate
@@ -235,7 +260,7 @@ This is a capability only available for indexer clusters (cluster_master + index
 The Splunk Docker image supports SmartStore in a bring-your-own backend storage provider format. Due to the complexity of this option, SmartStore is only enabled if you specify all the parameters in your `default.yml` file.
 
 Sample configuration that persists *all* indexes (default) with a SmartStore backend:
-```
+```yaml
 ---
 splunk:
   smartstore:
@@ -259,20 +284,22 @@ The SmartStore cache manager controls data movement between the indexer and the 
 * The `index` stanza corresponds to [indexes.conf options](https://docs.splunk.com/Documentation/Splunk/latest/admin/Indexesconf).
 
 This example defines cache settings and retention policy:
-```
-smartstore:
-  cachemanager:
-    max_cache_size: 500
-    max_concurrent_uploads: 7
-  index:
-    - indexName: custom_index
-      remoteName: my_storage
-      scheme: http
-      remoteLocation: my_storage.net
-      maxGlobalDataSizeMB: 500
-      maxGlobalRawDataSizeMB: 200
-      hotlist_recency_secs: 30
-      hotlist_bloom_filter_recency_hours: 1
+```yaml
+splunk:
+  smartstore:
+    cachemanager:
+      max_cache_size: 500
+      max_concurrent_uploads: 7
+    index:
+      - indexName: custom_index
+        remoteName: my_storage
+        scheme: http
+        remoteLocation: my_storage.net
+        maxGlobalDataSizeMB: 500
+        maxGlobalRawDataSizeMB: 200
+        hotlist_recency_secs: 30
+        hotlist_bloom_filter_recency_hours: 1
+  ...
 ```
 
 ## Use a deployment server
@@ -291,7 +318,7 @@ To secure network traffic from one Splunk instance to another (e.g. forwarders t
 If you are enabling SSL on one tier of your Splunk topology, it's likely all instances will need it. To achieve this, generate your server and CA certificates and add them to the `default.yml`, which gets shared across all Splunk docker containers.
 
 Sample `default.yml` snippet to configure Splunk TCP with SSL:
-```
+```yaml
 splunk:
   ...
   s2s:
@@ -312,7 +339,7 @@ Building your own images from source is possible, but neither supported nor reco
 The supplied `Makefile` in the root of this project contains commands to control the build:
 1. Fork the [docker-splunk GitHub repository](https://github.com/splunk/docker-splunk/)
 1. Clone your fork using git and create a branch off develop
-    ```
+    ```bash
     $ git clone git@github.com:YOUR_GITHUB_USERNAME/docker-splunk.git
     $ cd docker-splunk
     ```
@@ -351,14 +378,12 @@ The `splunk/common-files` directory contains a Dockerfile that extends the base 
     ```
     $ make minimal-redhat-8
     ```
-
   * **Bare image**
 
     Build a full Splunk base image *without* Ansible.
     ```
     $ make bare-redhat-8
     ```
-
   * **Full image**
 
     Build a full Splunk base image *with* Ansible.

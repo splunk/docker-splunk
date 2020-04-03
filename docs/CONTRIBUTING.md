@@ -116,7 +116,7 @@ There are multiple types of tests. The location of the test code varies with typ
     $ make medium-tests
     ```
 
-3. **Large:** Exercises the entire system, end-to-end; used to identify crucial performance and basic functionality that will be run for every code check-in and commit; may launch or interact with services in a datacenter, preferably with a staging environment to avoid affecting production
+3. **Large:** Exercises the entire system, end-to-end; used to identify crucial performance and basic functionality that will be run for every code check-in and commit; may launch or interact with services in a data center, preferably with a staging environment to avoid affecting production
     ```
     $ make large-tests
     ```

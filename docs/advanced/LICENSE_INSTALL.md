@@ -1,7 +1,7 @@
 ## Installing a Splunk Enterprise License
-Splunk's Docker image supports the ability to bring your own Enterprise license. By default, the image includes the ability to use up to the trial license. Please see the documentation for more information on what [additional features and capabilities are unlocked with a full Enterprise license](https://docs.splunk.com/Documentation/Splunk/latest/Admin/HowSplunklicensingworks)
+The Splunk Docker image supports the ability to bring your own Enterprise license. By default, the image includes the ability to use up to the trial license. Please see the documentation for more information on what [additional features and capabilities are unlocked with a full Enterprise license](https://docs.splunk.com/Documentation/Splunk/latest/Admin/HowSplunklicensingworks)
 
-There are primarily two different ways to apply a license when starting your container: either through a file/directory volume-mounted inside the container, or through an external URL for dynamic downloads. The enviroment variable `SPLUNK_LICENSE_URI` supports both of these methods.
+There are primarily two different ways to apply a license when starting your container: either through a file/directory volume-mounted inside the container, or through an external URL for dynamic downloads. The environment variable `SPLUNK_LICENSE_URI` supports both of these methods.
 
 
 ## Navigation
@@ -96,7 +96,7 @@ $ SPLUNK_PASSWORD=<password> docker stack deploy --compose-file=docker-compose.y
 ```
 
 ## Splunk Free license
-Not to be confused with an actual free Splunk enterprise license, but [Splunk Free](https://docs.splunk.com/Documentation/Splunk/latest/Admin/MoreaboutSplunkFree) is a product offering that enables the power of Splunk with a never-expiring but ingest-limited license. By default, when you create a Splunk environment using this Docker container, it will enable a Splunk Trial license which is good for 30 days from the start of your instance. With Splunk Free, you can create a full developer environment of Splunk for any personal, sustained usage. 
+Not to be confused with an actual free Splunk enterprise license, but [Splunk Free](https://docs.splunk.com/Documentation/Splunk/latest/Admin/MoreaboutSplunkFree) is a product offering that enables the power of Splunk with a never-expiring but ingest-limited license. By default, when you create a Splunk environment using this Docker container, it will enable a Splunk Trial license which is good for 30 days from the start of your instance. With Splunk Free, you can create a full developer environment of Splunk for any personal, sustained usage.
 
 To bring up a single instance using Splunk Free, you can run the following command:
 ```
