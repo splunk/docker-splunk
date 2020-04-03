@@ -79,6 +79,7 @@ retry_num: 100
 The major object `splunk` in the YAML file contains variables that control how Splunk operates.
 
 Sample:
+<!-- {% raw %} -->
 ```
 splunk:
   opt: /opt
@@ -99,6 +100,7 @@ splunk:
     token: <default_hec_token>
   smartstore: null
 ```
+<!-- {% endraw %} -->
 
 | Variable Name | Description | Parent Object | Default Value | Required for Standalone | Required for Search Head Clustering | Required for Index Clustering |
 | --- | --- | --- | --- | --- | --- | --- |

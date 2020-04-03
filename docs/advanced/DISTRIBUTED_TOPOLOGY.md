@@ -138,6 +138,8 @@ In the above example, the container id is `bbbe650dd544`. So, the `docker logs` 
 docker logs -f bbbe650dd544
 ```
 As Ansible runs, the results from each play can be seen on the screen, as well as written to an `ansible.log` file stored inside the container.
+
+<!-- {% raw %} -->
 ```
 PLAY [localhost] ***************************************************************
 
@@ -163,8 +165,11 @@ Wednesday 29 August 2018  09:28:29 +0000 (0:00:00.123)       0:01:23.447 ******
 changed: [localhost] => (item=USERNAME)
 changed: [localhost] => (item=PASSWORD)
 ```
+<!-- {% endraw %} -->
+
 Once Ansible has finished running, a summary screen will be displayed.
 
+<!-- {% raw %} -->
 ```
 PLAY RECAP *********************************************************************
 localhost                  : ok=12   changed=6    unreachable=0    failed=1
@@ -196,6 +201,7 @@ Stopping Splunk helpers...
 
 Done.
 ```
+<!-- {% endraw %} -->
 
 It's important to call out the `RECAP` line, as it's the biggest indicator of whether Splunk Enterprise was configured correctly. In this example, there was a failure during container creation. The offending play is:
 
