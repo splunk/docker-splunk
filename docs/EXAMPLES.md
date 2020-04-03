@@ -33,7 +33,7 @@ $ docker run --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<passwor
 
 ## Create standalone from compose
 
-<details><summary markdown="span">docker-compose.yml</summary>
+<details><summary markdown='span'><code>docker-compose.yml</code></summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -48,7 +48,7 @@ services:
     ports:
       - 8000
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -56,9 +56,9 @@ $ SPLUNK_PASSWORD=<password> docker-compose up -d
 ```
 
 ## Create standalone with license
-Adding a Splunk Enterprise license can be done in multiple ways. Please review the following compose files below to see how it can be achieved, either with a license hosted on a webserver or with a license file as a direct mount.
+Adding a Splunk Enterprise license can be done in multiple ways. Review the following compose files below to see how it can be achieved, either with a license hosted on a webserver or with a license file as a direct mount.
 
-<details><summary>docker-compose.yml - license from URL</summary>
+<details><summary markdown='span'><code>docker-compose.yml</code> - license from URL</summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -74,9 +74,9 @@ services:
     ports:
       - 8000
 ```
-</details>
+</details><p></p>
 
-<details><summary>docker-compose.yml - license from file</summary>
+<details><summary markdown='span'><code>docker-compose.yml</code> - license from file</summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -94,8 +94,7 @@ services:
     volumes:
       - ./splunk.lic:/tmp/license/splunk.lic
 ```
-</details>
-
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -103,9 +102,9 @@ $ SPLUNK_PASSWORD=<password> docker-compose up -d
 ```
 
 ## Create standalone with HEC
-To learn more about what the HTTP event collector (HEC) is and how to use it, please review the documentation [here](https://docs.splunk.com/Documentation/Splunk/latest/Data/UsetheHTTPEventCollector).
+To learn more about the HTTP Event Collector (HEC) and how to use it, see [Set up and use HTTP Event Collector](https://docs.splunk.com/Documentation/Splunk/latest/Data/UsetheHTTPEventCollector).
 
-<details><summary>docker-compose.yml</summary>
+<details><summary markdown='span'><code>docker-compose.yml</code></summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -121,7 +120,7 @@ services:
     ports:
       - 8000
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -137,7 +136,7 @@ $ curl -k https://localhost:8088/services/collector/event -H "Authorization: Spl
 ## Create standalone with app
 Splunk apps can also be installed using this Docker image.
 
-<details><summary>docker-compose.yml</summary>
+<details><summary markdown='span'><code>docker-compose.yml</code></summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -153,7 +152,7 @@ services:
     ports:
       - 8000
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -163,7 +162,7 @@ $ SPLUNK_PASSWORD=<password> docker-compose up -d
 ## Create standalone with SplunkBase app
 Apps showcased on SplunkBase can also be installed using this Docker image.
 
-<details><summary>docker-compose.yml</summary>
+<details><summary markdown='span'><code>docker-compose.yml</code></summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -175,13 +174,13 @@ services:
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_APPS_URL=https://splunkbase.splunk.com/app/2890/release/4.1.0/download
-      - SPLUNKBASE_USERNAME=<username>
+      - SPLUNKBASE_USERNAME=&lt;username&gt;
       - SPLUNKBASE_PASSWORD
       - SPLUNK_PASSWORD
     ports:
       - 8000
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -218,7 +217,7 @@ $ docker run --name so1 --hostname so1 -p 8000:8000 -e SPLUNK_PASSWORD=<password
 ## Create standalone and universal forwarder
 You can also enable distributed deployments. In this case, we can create a Splunk universal forwarder running in a container to stream logs to a Splunk standalone, also running in a container.
 
-<details><summary>docker-compose.yml</summary>
+<details><summary markdown='span'><code>docker-compose.yml</code></summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -261,7 +260,7 @@ services:
       - 8000
       - 8089
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -271,7 +270,7 @@ $ SPLUNK_PASSWORD=<password> docker-compose up -d
 ## Create heavy forwarder
 The following will allow you spin up a forwarder, and stream its logs to an independent, external indexer located at `idx1-splunk.company.internal`, as long as that hostname is reachable on your network.
 
-<details><summary>docker-compose.yml</summary>
+<details><summary markdown='span'><code>docker-compose.yml</code></summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -299,7 +298,7 @@ services:
     ports:
       - 1514
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -309,7 +308,7 @@ $ SPLUNK_PASSWORD=<password> docker-compose up -d
 ## Create heavy forwarder and deployment server
 The following will allow you spin up a forwarder, and stream its logs to an independent, external indexer located at `idx1-splunk.company.internal`, as long as that hostname is reachable on your network. Additionally, it brings up a deployment server, which will download an app and distribute it to the heavy forwarder.
 
-<details><summary>docker-compose.yml</summary>
+<details><summary markdown='span'><code>docker-compose.yml</code></summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -352,7 +351,7 @@ services:
       - SPLUNK_APPS_URL=https://artifact.company.internal/splunk_app.tgz
       - SPLUNK_PASSWORD
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -366,7 +365,8 @@ $ docker run -it -e SPLUNK_PASSWORD=<password> splunk/splunk:latest create-defau
 ```
 
 Additionally, review the `docker-compose.yml` below to understand how linking Splunk instances together through roles and environment variables is accomplished:
-<details><summary>docker-compose.yml</summary>
+
+<details><summary markdown='span'><code>docker-compose.yml</code></summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -481,7 +481,7 @@ services:
     volumes:
       - ./default.yml:/tmp/defaults/default.yml
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -495,7 +495,8 @@ $ docker run -it -e SPLUNK_PASSWORD=<password> splunk/splunk:latest create-defau
 ```
 
 Additionally, review the `docker-compose.yml` below to understand how linking Splunk instances together through roles and environment variables is accomplished:
-<details><summary>docker-compose.yml</summary>
+
+<details><summary markdown='span'><code>docker-compose.yml</code></summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -611,7 +612,7 @@ services:
     volumes:
       - ./default.yml:/tmp/defaults/default.yml
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -625,7 +626,8 @@ $ docker run -it -e SPLUNK_PASSWORD=<password> splunk/splunk:latest create-defau
 ```
 
 Additionally, review the `docker-compose.yml` below to understand how linking Splunk instances together through roles and environment variables is accomplished:
-<details><summary>docker-compose.yml</summary>
+
+<details><summary markdown='span'><code>docker-compose.yml</code></summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -812,7 +814,7 @@ services:
     volumes:
       - ./default.yml:/tmp/defaults/default.yml
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -820,7 +822,8 @@ $ docker-compose up -d
 ```
 
 ## Enable root endpoint on SplunkWeb
-<details><summary>docker-compose.yml</summary>
+
+<details><summary markdown='span'><code>docker-compose.yml</code></summary><p></p>
 
 ```yaml
 version: "3.6"
@@ -836,7 +839,7 @@ services:
     ports:
       - 8000
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -846,7 +849,8 @@ $ SPLUNK_PASSWORD=<password> docker-compose up -d
 Then, visit SplunkWeb on your browser with the root endpoint in the URL, such as `http://localhost:8000/splunkweb`.
 
 ## Create sidecar forwarder
-<details><summary>k8s-sidecar.yml</summary>
+
+<details><summary markdown='span'><code>k8s-sidecar.yml</code></summary><p></p>
 
 ```yaml
 apiVersion: v1
@@ -878,7 +882,7 @@ spec:
   - name: shared-data
     emptyDir: {}
 ```
-</details>
+</details><p></p>
 
 Execute the following to bring up your deployment:
 ```
@@ -888,4 +892,4 @@ $ kubectl apply -f k8s-sidecar.yml
 After your pod is ready, the universal forwarder will be reading the logs generated by your app via the shared volume mount. In the ideal case, your app is generating the logs while the forwarder is reading them and streaming the output to a separate Splunk instance located at splunk.company.internal.
 
 ## More
-There are a variety of Docker compose scenarios in the `docker-splunk` repo [here](https://github.com/splunk/docker-splunk/tree/develop/test_scenarios). Please feel free to use any of those for reference in terms of different topologies!
+There are a variety of Docker compose scenarios in the `docker-splunk` repo [here](https://github.com/splunk/docker-splunk/tree/develop/test_scenarios). Feel free to use any of those for reference in deploying different topologies!
