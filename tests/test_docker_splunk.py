@@ -389,6 +389,33 @@ class TestDockerSplunk(object):
             exec_command = self.client.exec_create(cid, "cat /opt/ansible/version.txt")
             std_out = self.client.exec_start(exec_command)
             assert len(std_out.strip()) == 40
+            # Check that the wrapper-example directory does not exist
+            exec_command = self.client.exec_create(cid, "ls /opt/ansible/")
+            std_out = self.client.exec_start(exec_command)
+            assert "wrapper-example" not in std_out
+            assert "docs" not in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+    
+    def test_splunk_uid_gid(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the git SHA exists in /opt/ansible
+            exec_command = self.client.exec_create(cid, "id", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "uid=41812" in std_out
+            assert "gid=41812" in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -467,6 +494,33 @@ class TestDockerSplunk(object):
             exec_command = self.client.exec_create(cid, "cat /opt/ansible/version.txt")
             std_out = self.client.exec_start(exec_command)
             assert len(std_out.strip()) == 40
+            # Check that the wrapper-example directory does not exist
+            exec_command = self.client.exec_create(cid, "ls /opt/ansible/")
+            std_out = self.client.exec_start(exec_command)
+            assert "wrapper-example" not in std_out
+            assert "docs" not in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+    
+    def test_uf_uid_gid(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the git SHA exists in /opt/ansible
+            exec_command = self.client.exec_create(cid, "id", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "uid=41812" in std_out
+            assert "gid=41812" in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -916,6 +970,42 @@ class TestDockerSplunk(object):
             kwargs = {"auth": ("admin", filePW), "verify": False}
             status, content = self.handle_request_retry("GET", url, kwargs)
             assert status == 200
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
+    def test_adhoc_1so_reflexive_forwarding(self):
+        # Create a splunk container
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            # When adding SPLUNK_STANDALONE_URL to the standalone, we shouldn't have any situation where it starts forwarding/disables indexing
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], name=splunk_container_name,
+                                               environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_STANDALONE_URL": splunk_container_name
+                                                        },
+                                               host_config=self.client.create_host_config(port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check the decrypted pass4SymmKey
+            exec_command = self.client.exec_create(cid, "ls /opt/splunk/etc/system/local/", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "outputs.conf" not in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -1914,7 +2004,7 @@ disabled = 1''' in std_out
                 self.check_common_keys(inventory_json, container_mapping[container])
             # Check Splunkd on all the containers
             assert self.check_splunkd("admin", self.password)
-            # Make sure apps are installed, and shcluster is setup properly
+            # Make sure apps are installed and certain subdirectories are excluded
             containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
             assert len(containers) == 3
             for container in containers:
@@ -1929,6 +2019,14 @@ disabled = 1''' in std_out
                     resp = requests.get(url, auth=("admin", self.password), verify=False)
                     # Deployment server should *not* install the app
                     assert resp.status_code == 404
+                    # Check that the app exists in etc/apps
+                    exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/apps/splunk_app_example/local/", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "savedsearches.conf" in std_out
+                    # Check that the app exists in etc/deployment-apps
+                    exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/deployment-apps/splunk_app_example/local/", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "savedsearches.conf" not in std_out
                 if container_name == "so1":
                     RETRIES = 5
                     for i in range(RETRIES):
@@ -1992,6 +2090,14 @@ disabled = 1''' in std_out
                     resp = requests.get(url, auth=("admin", self.password), verify=False)
                     # Deployment server should *not* install the app
                     assert resp.status_code == 404
+                    # Check that the app exists in etc/apps
+                    exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/apps/splunk_app_example/local/", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "savedsearches.conf" in std_out
+                    # Check that the app exists in etc/deployment-apps
+                    exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/deployment-apps/splunk_app_example/local/", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "savedsearches.conf" not in std_out
                 if container_name == "uf1":
                     RETRIES = 5
                     for i in range(RETRIES):

@@ -6,6 +6,7 @@
 * [Container Debugging](#container-debugging)
     * [Getting logs](#getting-logs)
     * [Interactive shell](#interactive-shell)
+    * [Installing packages](#installing-packages)
     * [Debug variables](#debug-variables)
     * [No-provision](#no-provision)
     * [Generate Splunk diag](#generate-splunk-diag)
@@ -49,13 +50,19 @@ $ docker logs -f <container_name/container_id>
 ```
 
 #### Interactive shell
-If your container is still running but in a bad state, you can try to debug by putting yourself within the context of that process. 
-
+If your container is still running but in a bad state, you can try to debug by putting yourself within the context of that process.
 
 To gain interactive shell access to the container's runtime as the splunk user, you can run:
 ```
 $ docker exec -it -u splunk <container_name/container_id> /bin/bash
 ```
+
+#### Installing packages
+Once inside the container, you can install additional packages with the default package manager:
+```
+$ microdnf install <package_name>
+```
+Please note that the package installer `microdnf` is specific to the redhat-8 operating system. When building other operating systems, please research and use the recommended package manager. You can refer to `base/<operating_system>/install.sh` to see package installation examples for different operating systems.
 
 #### Debug variables
 There are some built-in environment variables to assist with troubleshooting. Please be aware that when using these variables, it is possible for sensitive keys and information to be shown on the container's stdout/stderr. If you are using any custom logging driver or solution that persists this information, we recommend disabling it for the duration of this debug session.
@@ -108,10 +115,10 @@ ok: [localhost]
 META: ran handlers
 Thursday 21 February 2019  00:50:56 +0000 (0:00:01.148)       0:00:01.185 *****
 ```
-With the above, you'll notice how much more rich and verbose the Ansible output becomes, simply by adding more verbosity to the actual Ansible execution. 
+With the above, you'll notice how much more rich and verbose the Ansible output becomes, simply by adding more verbosity to the actual Ansible execution.
 
 #### No-provision
-The `no-provision` is a fairly useless supported command - after launching the container, it won't run Ansible so Splunk will not get installed or even setup. Instead, it tails a file to keep the instance up and running. 
+The `no-provision` is a fairly useless supported command - after launching the container, it won't run Ansible so Splunk will not get installed or even setup. Instead, it tails a file to keep the instance up and running.
 
 This `no-provision` keyword is an argument that gets passed into the container's entrypoint script, so you can use it in the following manner:
 ```
@@ -156,4 +163,4 @@ $ docker cp <container_name/container_id>:/opt/splunk/<filename> <location on yo
 ```
 
 ## Contact
-If you require additional assistance, please see the [support guidelines](SUPPORT.md#contact) on how to reach out to Splunk Support with issues or questions.  
+If you require additional assistance, please see the [support guidelines](SUPPORT.md#contact) on how to reach out to Splunk Support with issues or questions.

@@ -1,0 +1,13 @@
+# Code owners are automatically requested for review when someone opens a
+# pull request modifying code that they own.
+# See: https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+
+# Note: Each line is a file pattern followed by one or more owners.
+#       Order matters: The last matching pattern has the most precedence.
+
+# Default owners for everything in docker-splunk:
+# *       @splunk/if-01
+*       @nwang92 @alishamayor @arctan5x @lephino @jrigassio-splunk @jmeixensperger @hendolim @jonathan-vega-splunk
+
+# Docs-only pull requests:
+/docs/  @alishamayor @nwang92

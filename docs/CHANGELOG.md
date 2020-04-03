@@ -2,6 +2,7 @@
 
 ## Navigation
 
+* [8.0.3](#803)
 * [8.0.2.1](#8021)
 * [8.0.2](#802)
 * [8.0.1](#801)
@@ -25,6 +26,24 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.0.3
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise maintenance patch.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues](https://docs.splunk.com/Documentation/Splunk/8.0.3/ReleaseNotes/Fixedissues) in 8.0.3.
+* Limited `ansible-playbook` to `localhost` only
+* Updated tests and documentation
+
+#### splunk-ansible changes:
+* Added support for Java installations on Red Hat and CentOS
+* Updated defaults for `service_name`
+* In S2S configuration, revised Splunk restart trigger to occur only when splunktcp has changed and Splunk is running
+* Refactored how apps are copied and disabled
 
 ---
 

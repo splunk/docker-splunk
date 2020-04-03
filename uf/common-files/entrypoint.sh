@@ -79,7 +79,7 @@ start_and_exit() {
 	sh -c "echo 'starting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
 	setup
 	prep_ansible
-	ansible-playbook $ANSIBLE_EXTRA_FLAGS -i inventory/environ.py site.yml
+	ansible-playbook $ANSIBLE_EXTRA_FLAGS -i inventory/environ.py -l localhost site.yml
 }
 
 start() {
@@ -93,7 +93,7 @@ restart(){
 	sh -c "echo 'restarting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
 	prep_ansible
 	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
-	ansible-playbook -i inventory/environ.py start.yml
+	ansible-playbook -i inventory/environ.py -l localhost start.yml
 	watch_for_failure
 }
 
