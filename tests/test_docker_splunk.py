@@ -843,7 +843,7 @@ class TestDockerSplunk(object):
         try:
             splunk_container_name = generate_random_string()
             cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
-                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
@@ -879,7 +879,7 @@ class TestDockerSplunk(object):
         try:
             splunk_container_name = generate_random_string()
             cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089], 
-                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
@@ -1453,7 +1453,7 @@ class TestDockerSplunk(object):
         try:
             splunk_container_name = generate_random_string()
             cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8088, 9999], 
-                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
@@ -1595,13 +1595,175 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
+    def test_adhoc_1so_hec_custom_cert(self):
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Commands to generate self-signed certificates for Splunk here: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
+        passphrase = "glootie"
+        cmds = [    
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/ca.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -key {path}/ca.key -passin pass:{pw} -out {path}/ca.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -in {path}/ca.csr -sha512 -passin pass:{pw} -signkey {path}/ca.key -CAcreateserial -out {path}/ca.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/server.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -passin pass:{pw} -key {path}/server.key -out {path}/server.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -passin pass:{pw} -in {path}/server.csr -SHA256 -CA {path}/ca.pem -CAkey {path}/ca.key -CAcreateserial -out {path}/server.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/server.key {path}/ca.pem > {path}/cert.pem".format(path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/ca.pem > {path}/cacert.pem".format(path=FIXTURES_DIR)
+            ]
+        for cmd in cmds:
+            execute_cmd = subprocess.check_output(["/bin/sh", "-c", cmd])
+        # Update s2s ssl settings
+        output = re.sub(r'''  hec:.*?    token: .*?\n''', r'''  hec:
+    enable: True
+    port: 8088
+    ssl: True
+    token: doyouwannadevelopanapp
+    cert: /tmp/defaults/cert.pem
+    password: {}\n'''.format(passphrase), output, flags=re.DOTALL)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            password = "helloworld"
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8088, 8089], 
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                               environment={"DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": password},
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", password)
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "[http://splunk_hec_token]" in std_out
+            assert "serverCert = /tmp/defaults/cert.pem" in std_out
+            assert "sslPassword = " in std_out
+            # Check HEC using the custom certs
+            hec_port = self.client.port(cid, 8088)[0]["HostPort"]
+            url = "https://localhost:{}/services/collector/event".format(hec_port)
+            kwargs = {"json": {"event": "hello world"}, "headers": {"Authorization": "Splunk doyouwannadevelopanapp"}, "verify": "{}/cacert.pem".format(FIXTURES_DIR)}
+            status, content = self.handle_request_retry("POST", url, kwargs)
+            assert status == 200
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            files = [
+                        os.path.join(FIXTURES_DIR, "ca.key"),
+                        os.path.join(FIXTURES_DIR, "ca.csr"),
+                        os.path.join(FIXTURES_DIR, "ca.pem"),
+                        os.path.join(FIXTURES_DIR, "cacert.pem"),
+                        os.path.join(FIXTURES_DIR, "server.key"),
+                        os.path.join(FIXTURES_DIR, "server.csr"),
+                        os.path.join(FIXTURES_DIR, "server.pem"),
+                        os.path.join(FIXTURES_DIR, "cert.pem"),
+                        os.path.join(FIXTURES_DIR, "default.yml")
+                    ]
+            self.cleanup_files(files)
+
+    def test_adhoc_1uf_hec_custom_cert(self):
+        # Generate default.yml
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Commands to generate self-signed certificates for Splunk here: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
+        passphrase = "glootie"
+        cmds = [    
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/ca.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -key {path}/ca.key -passin pass:{pw} -out {path}/ca.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -in {path}/ca.csr -sha512 -passin pass:{pw} -signkey {path}/ca.key -CAcreateserial -out {path}/ca.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/server.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -passin pass:{pw} -key {path}/server.key -out {path}/server.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -passin pass:{pw} -in {path}/server.csr -SHA256 -CA {path}/ca.pem -CAkey {path}/ca.key -CAcreateserial -out {path}/server.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/server.key {path}/ca.pem > {path}/cert.pem".format(path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/ca.pem > {path}/cacert.pem".format(path=FIXTURES_DIR)
+            ]
+        for cmd in cmds:
+            execute_cmd = subprocess.check_output(["/bin/sh", "-c", cmd])
+        # Update s2s ssl settings
+        output = re.sub(r'''  hec:.*?    token: .*?\n''', r'''  hec:
+    enable: True
+    port: 8088
+    ssl: True
+    token: doyouwannadevelopanapp
+    cert: /tmp/defaults/cert.pem
+    password: {}\n'''.format(passphrase), output, flags=re.DOTALL)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            password = "helloworld"
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8088, 8089], 
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                               environment={"DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": password},
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", password)
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "[http://splunk_hec_token]" in std_out
+            assert "serverCert = /tmp/defaults/cert.pem" in std_out
+            assert "sslPassword = " in std_out
+            # Check HEC using the custom certs
+            hec_port = self.client.port(cid, 8088)[0]["HostPort"]
+            url = "https://localhost:{}/services/collector/event".format(hec_port)
+            kwargs = {"json": {"event": "hello world"}, "headers": {"Authorization": "Splunk doyouwannadevelopanapp"}, "verify": "{}/cacert.pem".format(FIXTURES_DIR)}
+            status, content = self.handle_request_retry("POST", url, kwargs)
+            assert status == 200
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            files = [
+                        os.path.join(FIXTURES_DIR, "ca.key"),
+                        os.path.join(FIXTURES_DIR, "ca.csr"),
+                        os.path.join(FIXTURES_DIR, "ca.pem"),
+                        os.path.join(FIXTURES_DIR, "cacert.pem"),
+                        os.path.join(FIXTURES_DIR, "server.key"),
+                        os.path.join(FIXTURES_DIR, "server.csr"),
+                        os.path.join(FIXTURES_DIR, "server.pem"),
+                        os.path.join(FIXTURES_DIR, "cert.pem"),
+                        os.path.join(FIXTURES_DIR, "default.yml")
+                    ]
+            self.cleanup_files(files)
+
     def test_adhoc_1so_hec_ssl_disabled(self):
         # Create the container
         cid = None
         try:
             splunk_container_name = generate_random_string()
             cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8088], 
-                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                            name=splunk_container_name,
                                             environment={
                                                 "DEBUG": "true", 
                                                 "SPLUNK_START_ARGS": "--accept-license",
@@ -1640,7 +1802,7 @@ disabled = 1''' in std_out
         try:
             splunk_container_name = generate_random_string()
             cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089, 8088], 
-                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                            name=splunk_container_name,
                                             environment={
                                                 "DEBUG": "true", 
                                                 "SPLUNK_START_ARGS": "--accept-license",
