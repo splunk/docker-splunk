@@ -1981,6 +1981,106 @@ disabled = 1''' in std_out
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
 
+    def test_compose_1deployment1cm(self):
+        # Tar the app before spinning up the scenario
+        with tarfile.open(EXAMPLE_APP_TGZ, "w:gz") as tar:
+            tar.add(EXAMPLE_APP, arcname=os.path.basename(EXAMPLE_APP))
+
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Add a custom conf file
+        output = re.sub(r'  group: splunk', r'''  group: splunk
+  conf:
+    - key: user-prefs
+      value:
+        directory: /opt/splunk/etc/users/admin/user-prefs/local
+        content:
+          general:
+            default_namespace: appboilerplate
+            search_syntax_highlighting: dark
+            search_assistant:
+          "serverClass:secrets:app:test": {}''', output)
+        # Write the default.yml to a file
+        with open(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
+            f.write(output)
+        # Standup deployment
+        try:
+            self.compose_file_name = "1deployment1cm.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+            # Get container logs
+            container_mapping = {"cm1": "cm", "depserver1": "deployment_server"}
+            for container in container_mapping:
+                # Check ansible version & configs
+                ansible_logs = self.get_container_logs(container)
+                self.check_ansible(ansible_logs)
+                # Check values in log output
+                inventory_json = self.extract_json(container)
+                self.check_common_keys(inventory_json, container_mapping[container])
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Make sure apps are installed and certain subdirectories are excluded
+            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+            assert len(containers) == 3
+            for container in containers:
+                # Skip the nginx container
+                if "nginx" in container["Image"]:
+                    continue
+                container_name = container["Names"][0].strip("/")
+                splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
+                if container_name == "depserver1":
+                    # Check the app and version
+                    url = "https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port)
+                    resp = requests.get(url, auth=("admin", self.password), verify=False)
+                    # Deployment server should *not* install the app
+                    assert resp.status_code == 404
+                    # Check that the app exists in etc/apps
+                    exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/apps/splunk_app_example/local/", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "savedsearches.conf" in std_out
+                    # Check that the app exists in etc/deployment-apps
+                    exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/deployment-apps/splunk_app_example/local/", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "savedsearches.conf" not in std_out
+                if container_name == "cm1":
+                    # Check if the created file exists
+                    exec_command = self.client.exec_create(container["Id"], "cat /opt/splunk/etc/users/admin/user-prefs/local/user-prefs.conf", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "[serverClass:secrets:app:test]" in std_out
+                    assert "[general]" in std_out
+                    assert "default_namespace = appboilerplate" in std_out
+                    assert "search_syntax_highlighting = dark" in std_out
+                    assert "search_assistant" in std_out
+                    RETRIES = 5
+                    for i in range(RETRIES):
+                        try:
+                            # Check the app and version
+                            url = "https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port)
+                            kwargs = {"auth": ("admin", self.password), "verify": False}
+                            status, content = self.handle_request_retry("GET", url, kwargs)
+                            assert status == 200
+                            assert json.loads(content)["entry"][0]["content"]["version"] == "0.0.1"
+                        except Exception as e:
+                            self.logger.error(e)
+                            if i < RETRIES-1:
+                                time.sleep(30)
+                                continue
+                            raise e
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            try:
+                os.remove(EXAMPLE_APP_TGZ)
+            except OSError as e:
+                pass
+
     def test_compose_1deployment1so(self):
         # Tar the app before spinning up the scenario
         with tarfile.open(EXAMPLE_APP_TGZ, "w:gz") as tar:
