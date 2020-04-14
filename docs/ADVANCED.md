@@ -230,14 +230,17 @@ User-specified config files are set in `default.yml` by creating a `conf` key un
 ---
 splunk:
   conf:
-    user-prefs:
-      directory: /opt/splunkforwarder/etc/users/admin/user-prefs/local
-      content:
-        general:
-          default_namespace: appboilerplate
-          search_syntax_highlighting: dark
+    - key: user-prefs
+      value:
+        directory: /opt/splunkforwarder/etc/users/admin/user-prefs/local
+        content:
+          general:
+            default_namespace: appboilerplate
+            search_syntax_highlighting: dark
   ...
 ```
+
+**NOTE:** Previously, the `splunk.conf` entry supported a dictionary mapping. Both will continue to work, although it is highly recommend you move to the new array-based type as this will become the standard.
 
 This generates a file `user-prefs.conf`, owned by the correct Splunk user and group and located in the given directory (in this case, `/opt/splunkforwarder/etc/users/admin/user-prefs/local`).
 
