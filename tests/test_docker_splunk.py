@@ -557,8 +557,8 @@ class TestDockerSplunk(object):
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Change the admin user
         output = re.sub(r'  admin_user: admin', r'  admin_user: chewbacca', output)
         # Write the default.yml to a file
@@ -602,8 +602,8 @@ class TestDockerSplunk(object):
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Change the admin user
         output = re.sub(r'  admin_user: admin', r'  admin_user: hansolo', output)
         # Write the default.yml to a file
@@ -647,8 +647,8 @@ class TestDockerSplunk(object):
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Add a custom conf file
         output = re.sub(r'  group: splunk', r'''  group: splunk
   conf:
@@ -705,8 +705,8 @@ class TestDockerSplunk(object):
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Add a custom conf file
         output = re.sub(r'  group: splunk', r'''  group: splunk
   conf:
@@ -1291,8 +1291,8 @@ class TestDockerSplunk(object):
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Change repl factor & search factor
         output = re.sub(r'  user: splunk', r'  user: splunk\n  apps_location: /tmp/defaults/splunk_app_example.tgz', output)
         # Write the default.yml to a file
@@ -1347,8 +1347,8 @@ class TestDockerSplunk(object):
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Write the default.yml to a file
         with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
             f.write(output)
@@ -1401,8 +1401,8 @@ class TestDockerSplunk(object):
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Write the default.yml to a file
         with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
             f.write(output)
@@ -1842,8 +1842,8 @@ disabled = 1''' in std_out
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Commands to generate self-signed certificates for Splunk here: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
         passphrase = "abcd1234"
         cmds = [    
@@ -1916,8 +1916,8 @@ disabled = 1''' in std_out
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Commands to generate self-signed certificates for Splunk here: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
         passphrase = "abcd1234"
         cmds = [    
@@ -2939,8 +2939,8 @@ disabled = 1''' in std_out
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Write the default.yml to a file
         with open(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
             f.write(output)
@@ -2999,8 +2999,8 @@ disabled = 1''' in std_out
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Change repl factor & search factor
         output = re.sub(r'    replication_factor: 3', r'''    replication_factor: 2''', output)
         output = re.sub(r'    search_factor: 3', r'''    search_factor: 1''', output)
@@ -3165,8 +3165,8 @@ disabled = 1''' in std_out
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Add a custom conf file
         output = re.sub(r'  smartstore: null', r'''  smartstore:
     index:
@@ -3314,8 +3314,8 @@ disabled = 1''' in std_out
         output = self.get_container_logs(cid.get("Id"))
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         # Get the password
-        password = re.search("  password: (.*)", output).group(1).strip()
-        assert password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
         # Write the default.yml to a file
         with open(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
             f.write(output)
