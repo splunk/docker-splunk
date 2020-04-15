@@ -40,10 +40,13 @@
 * Updated tests and documentation
 
 #### splunk-ansible changes:
+* Added support for custom SSL certificates for the HEC endpoint
 * Added support for Java installations on Red Hat and CentOS
 * Updated defaults for `service_name`
-* In S2S configuration, revised Splunk restart trigger to occur only when splunktcp has changed and Splunk is running
+* Switched `splunk.conf` in `default.yml` from a dictionary mapping to an array-based scheme. The change is backwards compatible but moving to the new array-based type is highly recommended as the new standard.
+* In S2S configuration, revised Splunk restart trigger to occur only when `splunktcp` has changed and Splunk is running
 * Refactored how apps are copied and disabled
+* Bugfix for supporting empty stanzas in config files
 
 ---
 

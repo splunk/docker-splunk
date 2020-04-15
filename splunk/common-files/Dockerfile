@@ -95,8 +95,7 @@ COPY [ "splunk/common-files/entrypoint.sh", "splunk/common-files/createdefaults.
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
 
 # Set sudo rights
-RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL/g' /etc/sudoers \
-    && sudo echo -e '\nansible ALL=(splunk)NOPASSWD:ALL' >> /etc/sudoers \
+RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL\nansible ALL=(splunk)NOPASSWD:ALL/g' /etc/sudoers \
     && echo 'Create the ansible user/group' \
     && groupadd -r ${ANSIBLE_GROUP} \
     && useradd -r -m -g ${ANSIBLE_GROUP} ${ANSIBLE_USER} \

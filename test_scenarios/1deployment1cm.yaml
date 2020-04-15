@@ -1,0 +1,60 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  appserver:
+    networks:
+      splunknet:
+        aliases:
+          - appserver
+    image: nwang92/nginx-mitm
+    hostname: appserver
+    container_name: appserver
+    ports:
+      - 80
+    volumes:
+      - ../tests/fixtures:/www/data
+
+  depserver1:
+    networks:
+      splunknet:
+        aliases:
+          - depserver1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: depserver1
+    container_name: depserver1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_ROLE=splunk_deployment_server
+      - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+    ports:
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  cm1:
+    networks:
+      splunknet:
+        aliases:
+          - cm1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: cm1
+    container_name: cm1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_DEPLOYMENT_SERVER=depserver1
+      - SPLUNK_ROLE=splunk_cluster_master
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
