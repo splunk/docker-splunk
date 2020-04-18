@@ -21,6 +21,8 @@ The following prerequisites and dependencies must be installed on each node you 
 * Docker engine:
     * Docker Enterprise Engine 17.06.2 or higher
     * Docker Community Engine 17.06.2 or higher
+
+        **Note:** If you are using [podman](https://github.com/containers/libpod), [CRI-O](https://github.com/cri-o/cri-o), [containerd](https://github.com/containerd/containerd) or other container runtimes, please be aware that these are currently outside of our support/testing matrix. It's possible that this Docker image still works, although you may need to manually add the environment variable `KUBERNETES_SERVICE_HOST=kubernetes` to configure the provisioning hooks properly.
 * [OverlayFS](https://docs.docker.com/storage/storagedriver/overlayfs-driver/) `overlay2` Docker daemon storage driver
     1. Edit `/etc/docker/daemon.json`. If it does not yet exist, create it.
     2. Assuming the file was empty, add the following contents:
