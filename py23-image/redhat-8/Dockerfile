@@ -17,6 +17,7 @@ RUN wget https://www.python.org/ftp/python/3.7.4/Python-3.7.4.tgz \
     && python3.7 get-pip.py \
     && rm -f get-pip.py \
     #pip version is not automatically "fixed", unlike debian-based
+    && ln -sf /usr/bin/python2 /usr/bin/python \
     && ln -sf /usr/bin/pip2 /usr/bin/pip \
     && ln -sf /usr/bin/pip3.7 /usr/bin/pip3
 #microdnf persists metadata which is a problem for removing packages. So have to clean first before removing. 
