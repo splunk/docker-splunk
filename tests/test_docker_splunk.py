@@ -29,6 +29,7 @@ FILE_DIR = os.path.dirname(os.path.realpath(__file__))
 FIXTURES_DIR = os.path.join(FILE_DIR, "fixtures")
 REPO_DIR = os.path.join(FILE_DIR, "..")
 SCENARIOS_DIR = os.path.join(FILE_DIR, "..", "test_scenarios")
+DEFAULTS_DIR = os.path.join(SCENARIOS_DIR, "defaults")
 EXAMPLE_APP = os.path.join(FIXTURES_DIR, "splunk_app_example")
 EXAMPLE_APP_TGZ = os.path.join(FIXTURES_DIR, "splunk_app_example.tgz")
 # Setup logging
@@ -207,7 +208,7 @@ class TestDockerSplunk(object):
                     continue
                 raise e
 
-    def check_splunkd(self, username, password, name=None):
+    def check_splunkd(self, username, password, name=None, scheme="https"):
         '''
         NOTE: This helper method can only be used for `compose up` scenarios where self.project_name is defined
         '''
@@ -222,7 +223,7 @@ class TestDockerSplunk(object):
             if "maintainer" not in container["Labels"] or container["Labels"]["maintainer"] != "support@splunk.com":
                 continue
             splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
-            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            url = "{}://localhost:{}/services/server/info".format(scheme, splunkd_port)
             kwargs = {"auth": (username, password), "verify": False}
             status, content = self.handle_request_retry("GET", url, kwargs)
             assert status == 200
@@ -843,7 +844,7 @@ class TestDockerSplunk(object):
         try:
             splunk_container_name = generate_random_string()
             cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
-                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
@@ -879,7 +880,7 @@ class TestDockerSplunk(object):
         try:
             splunk_container_name = generate_random_string()
             cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089], 
-                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
@@ -1453,7 +1454,7 @@ class TestDockerSplunk(object):
         try:
             splunk_container_name = generate_random_string()
             cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8088, 9999], 
-                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            name=splunk_container_name,
                                             environment={
                                                             "DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
@@ -1595,13 +1596,175 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
+    def test_adhoc_1so_hec_custom_cert(self):
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Commands to generate self-signed certificates for Splunk here: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
+        passphrase = "glootie"
+        cmds = [    
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/ca.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -key {path}/ca.key -passin pass:{pw} -out {path}/ca.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -in {path}/ca.csr -sha512 -passin pass:{pw} -signkey {path}/ca.key -CAcreateserial -out {path}/ca.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/server.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -passin pass:{pw} -key {path}/server.key -out {path}/server.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -passin pass:{pw} -in {path}/server.csr -SHA256 -CA {path}/ca.pem -CAkey {path}/ca.key -CAcreateserial -out {path}/server.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/server.key {path}/ca.pem > {path}/cert.pem".format(path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/ca.pem > {path}/cacert.pem".format(path=FIXTURES_DIR)
+            ]
+        for cmd in cmds:
+            execute_cmd = subprocess.check_output(["/bin/sh", "-c", cmd])
+        # Update s2s ssl settings
+        output = re.sub(r'''  hec:.*?    token: .*?\n''', r'''  hec:
+    enable: True
+    port: 8088
+    ssl: True
+    token: doyouwannadevelopanapp
+    cert: /tmp/defaults/cert.pem
+    password: {}\n'''.format(passphrase), output, flags=re.DOTALL)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            password = "helloworld"
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8088, 8089], 
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                               environment={"DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": password},
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", password)
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "[http://splunk_hec_token]" in std_out
+            assert "serverCert = /tmp/defaults/cert.pem" in std_out
+            assert "sslPassword = " in std_out
+            # Check HEC using the custom certs
+            hec_port = self.client.port(cid, 8088)[0]["HostPort"]
+            url = "https://localhost:{}/services/collector/event".format(hec_port)
+            kwargs = {"json": {"event": "hello world"}, "headers": {"Authorization": "Splunk doyouwannadevelopanapp"}, "verify": "{}/cacert.pem".format(FIXTURES_DIR)}
+            status, content = self.handle_request_retry("POST", url, kwargs)
+            assert status == 200
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            files = [
+                        os.path.join(FIXTURES_DIR, "ca.key"),
+                        os.path.join(FIXTURES_DIR, "ca.csr"),
+                        os.path.join(FIXTURES_DIR, "ca.pem"),
+                        os.path.join(FIXTURES_DIR, "cacert.pem"),
+                        os.path.join(FIXTURES_DIR, "server.key"),
+                        os.path.join(FIXTURES_DIR, "server.csr"),
+                        os.path.join(FIXTURES_DIR, "server.pem"),
+                        os.path.join(FIXTURES_DIR, "cert.pem"),
+                        os.path.join(FIXTURES_DIR, "default.yml")
+                    ]
+            self.cleanup_files(files)
+
+    def test_adhoc_1uf_hec_custom_cert(self):
+        # Generate default.yml
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Commands to generate self-signed certificates for Splunk here: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
+        passphrase = "glootie"
+        cmds = [    
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/ca.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -key {path}/ca.key -passin pass:{pw} -out {path}/ca.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -in {path}/ca.csr -sha512 -passin pass:{pw} -signkey {path}/ca.key -CAcreateserial -out {path}/ca.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/server.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -passin pass:{pw} -key {path}/server.key -out {path}/server.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -passin pass:{pw} -in {path}/server.csr -SHA256 -CA {path}/ca.pem -CAkey {path}/ca.key -CAcreateserial -out {path}/server.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/server.key {path}/ca.pem > {path}/cert.pem".format(path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/ca.pem > {path}/cacert.pem".format(path=FIXTURES_DIR)
+            ]
+        for cmd in cmds:
+            execute_cmd = subprocess.check_output(["/bin/sh", "-c", cmd])
+        # Update s2s ssl settings
+        output = re.sub(r'''  hec:.*?    token: .*?\n''', r'''  hec:
+    enable: True
+    port: 8088
+    ssl: True
+    token: doyouwannadevelopanapp
+    cert: /tmp/defaults/cert.pem
+    password: {}\n'''.format(passphrase), output, flags=re.DOTALL)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            password = "helloworld"
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8088, 8089], 
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                               environment={"DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": password},
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", password)
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "[http://splunk_hec_token]" in std_out
+            assert "serverCert = /tmp/defaults/cert.pem" in std_out
+            assert "sslPassword = " in std_out
+            # Check HEC using the custom certs
+            hec_port = self.client.port(cid, 8088)[0]["HostPort"]
+            url = "https://localhost:{}/services/collector/event".format(hec_port)
+            kwargs = {"json": {"event": "hello world"}, "headers": {"Authorization": "Splunk doyouwannadevelopanapp"}, "verify": "{}/cacert.pem".format(FIXTURES_DIR)}
+            status, content = self.handle_request_retry("POST", url, kwargs)
+            assert status == 200
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            files = [
+                        os.path.join(FIXTURES_DIR, "ca.key"),
+                        os.path.join(FIXTURES_DIR, "ca.csr"),
+                        os.path.join(FIXTURES_DIR, "ca.pem"),
+                        os.path.join(FIXTURES_DIR, "cacert.pem"),
+                        os.path.join(FIXTURES_DIR, "server.key"),
+                        os.path.join(FIXTURES_DIR, "server.csr"),
+                        os.path.join(FIXTURES_DIR, "server.pem"),
+                        os.path.join(FIXTURES_DIR, "cert.pem"),
+                        os.path.join(FIXTURES_DIR, "default.yml")
+                    ]
+            self.cleanup_files(files)
+
     def test_adhoc_1so_hec_ssl_disabled(self):
         # Create the container
         cid = None
         try:
             splunk_container_name = generate_random_string()
             cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8088], 
-                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                            name=splunk_container_name,
                                             environment={
                                                 "DEBUG": "true", 
                                                 "SPLUNK_START_ARGS": "--accept-license",
@@ -1640,7 +1803,7 @@ disabled = 1''' in std_out
         try:
             splunk_container_name = generate_random_string()
             cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089, 8088], 
-                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                            name=splunk_container_name,
                                             environment={
                                                 "DEBUG": "true", 
                                                 "SPLUNK_START_ARGS": "--accept-license",
@@ -1817,8 +1980,280 @@ disabled = 1''' in std_out
                         os.path.join(FIXTURES_DIR, "server.csr"),
                         os.path.join(FIXTURES_DIR, "server.pem"),
                         os.path.join(FIXTURES_DIR, "cert.pem"),
+                        os.path.join(FIXTURES_DIR, "cacert.pem"),
                         os.path.join(FIXTURES_DIR, "default.yml")
                     ]
+            self.cleanup_files(files)
+
+    def test_adhoc_1so_splunkd_custom_ssl(self):
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
+        # Commands to generate self-signed certificates for Splunk here: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
+        passphrase = "heyallyoucoolcatsandkittens"
+        cmds = [    
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/ca.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -key {path}/ca.key -passin pass:{pw} -out {path}/ca.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -in {path}/ca.csr -sha512 -passin pass:{pw} -signkey {path}/ca.key -CAcreateserial -out {path}/ca.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/server.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -passin pass:{pw} -key {path}/server.key -out {path}/server.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -passin pass:{pw} -in {path}/server.csr -SHA256 -CA {path}/ca.pem -CAkey {path}/ca.key -CAcreateserial -out {path}/server.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/server.key {path}/ca.pem > {path}/cert.pem".format(path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/ca.pem > {path}/cacert.pem".format(path=FIXTURES_DIR)
+            ]
+        for cmd in cmds:
+            execute_cmd = subprocess.check_output(["/bin/sh", "-c", cmd])
+        # Update server ssl settings
+        output = re.sub(r'''^  ssl:.*?password: null''', r'''  ssl:
+    ca: /tmp/defaults/ca.pem
+    cert: /tmp/defaults/cert.pem
+    enable: true
+    password: {}'''.format(passphrase), output, flags=re.MULTILINE|re.DOTALL)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8000, 8089], 
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                               environment={"DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": password},
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8000: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", password)
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/server.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "sslRootCAPath = /tmp/defaults/ca.pem" in std_out
+            assert "serverCert = /tmp/defaults/cert.pem" in std_out
+            # Check splunkd using the custom certs
+            mgmt_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(mgmt_port)
+            kwargs = {"auth": ("admin", password), "verify": "{}/cacert.pem".format(FIXTURES_DIR)}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            files = [
+                        os.path.join(FIXTURES_DIR, "ca.key"),
+                        os.path.join(FIXTURES_DIR, "ca.csr"),
+                        os.path.join(FIXTURES_DIR, "ca.pem"),
+                        os.path.join(FIXTURES_DIR, "server.key"),
+                        os.path.join(FIXTURES_DIR, "server.csr"),
+                        os.path.join(FIXTURES_DIR, "server.pem"),
+                        os.path.join(FIXTURES_DIR, "cert.pem"),
+                        os.path.join(FIXTURES_DIR, "cacert.pem"),
+                        os.path.join(FIXTURES_DIR, "default.yml")
+                    ]
+            self.cleanup_files(files)
+
+    def test_adhoc_1uf_splunkd_custom_ssl(self):
+        # Generate default.yml
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
+        # Commands to generate self-signed certificates for Splunk here: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
+        passphrase = "heyallyoucoolcatsandkittens"
+        cmds = [    
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/ca.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -key {path}/ca.key -passin pass:{pw} -out {path}/ca.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -in {path}/ca.csr -sha512 -passin pass:{pw} -signkey {path}/ca.key -CAcreateserial -out {path}/ca.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/server.key 2048".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl req -new -passin pass:{pw} -key {path}/server.key -out {path}/server.csr -subj /CN=localhost".format(pw=passphrase, path=FIXTURES_DIR),
+                    "openssl x509 -req -passin pass:{pw} -in {path}/server.csr -SHA256 -CA {path}/ca.pem -CAkey {path}/ca.key -CAcreateserial -out {path}/server.pem -days 3".format(pw=passphrase, path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/server.key {path}/ca.pem > {path}/cert.pem".format(path=FIXTURES_DIR),
+                    "cat {path}/server.pem {path}/ca.pem > {path}/cacert.pem".format(path=FIXTURES_DIR)
+            ]
+        for cmd in cmds:
+            execute_cmd = subprocess.check_output(["/bin/sh", "-c", cmd])
+        # Update server ssl settings
+        output = re.sub(r'''^  ssl:.*?password: null''', r'''  ssl:
+    ca: /tmp/defaults/ca.pem
+    cert: /tmp/defaults/cert.pem
+    enable: true
+    password: {}'''.format(passphrase), output, flags=re.MULTILINE|re.DOTALL)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8000, 8089], 
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                               environment={"DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": password},
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8000: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", password)
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/system/local/server.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "sslRootCAPath = /tmp/defaults/ca.pem" in std_out
+            assert "serverCert = /tmp/defaults/cert.pem" in std_out
+            # Check splunkd using the custom certs
+            mgmt_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(mgmt_port)
+            kwargs = {"auth": ("admin", password), "verify": "{}/cacert.pem".format(FIXTURES_DIR)}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            files = [
+                        os.path.join(FIXTURES_DIR, "ca.key"),
+                        os.path.join(FIXTURES_DIR, "ca.csr"),
+                        os.path.join(FIXTURES_DIR, "ca.pem"),
+                        os.path.join(FIXTURES_DIR, "server.key"),
+                        os.path.join(FIXTURES_DIR, "server.csr"),
+                        os.path.join(FIXTURES_DIR, "server.pem"),
+                        os.path.join(FIXTURES_DIR, "cert.pem"),
+                        os.path.join(FIXTURES_DIR, "default.yml")
+                    ]
+            self.cleanup_files(files)
+
+    def test_adhoc_1so_splunkd_no_ssl(self):
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
+        # Update server ssl settings
+        output = re.sub(r'''^  ssl:.*?password: null''', r'''  ssl:
+    ca: null
+    cert: null
+    enable: false
+    password: null''', output, flags=re.MULTILINE|re.DOTALL)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8000, 8089], 
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                               environment={"DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_CERT_PREFIX": "http",
+                                                            "SPLUNK_PASSWORD": password},
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8000: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", password, scheme="http")
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/server.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "enableSplunkdSSL = false" in std_out
+            # Check splunkd using the custom certs
+            mgmt_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "http://localhost:{}/services/server/info".format(mgmt_port)
+            kwargs = {"auth": ("admin", password)}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            files = [os.path.join(FIXTURES_DIR, "default.yml")]
+            self.cleanup_files(files)
+
+    def test_adhoc_1uf_splunkd_no_ssl(self):
+        # Generate default.yml
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
+        # Update server ssl settings
+        output = re.sub(r'''^  ssl:.*?password: null''', r'''  ssl:
+    ca: null
+    cert: null
+    enable: false
+    password: null''', output, flags=re.MULTILINE|re.DOTALL)
+        # Write the default.yml to a file
+        with open(os.path.join(FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8000, 8089], 
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                               environment={"DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_CERT_PREFIX": "http",
+                                                            "SPLUNK_PASSWORD": password},
+                                            host_config=self.client.create_host_config(binds=[FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8000: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            assert self.check_splunkd("admin", password, scheme="http")
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/system/local/server.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "enableSplunkdSSL = false" in std_out
+            # Check splunkd using the custom certs
+            mgmt_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "http://localhost:{}/services/server/info".format(mgmt_port)
+            kwargs = {"auth": ("admin", password)}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            files = [os.path.join(FIXTURES_DIR, "default.yml")]
             self.cleanup_files(files)
 
     def test_adhoc_1so_web_ssl(self):
@@ -2769,6 +3204,108 @@ disabled = 1''' in std_out
         assert len(search_providers) == 1
         assert search_providers[0] == "so1"
         assert distinct_hosts == 2
+
+    def test_compose_3idx1cm_splunktcp_ssl(self):
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
+        # Commands to generate self-signed certificates for Splunk here: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
+        passphrase = "carolebaskindidit"
+        cmds = [    
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/ca.key 2048".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "openssl req -new -key {path}/ca.key -passin pass:{pw} -out {path}/ca.csr -subj /CN=localhost".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "openssl x509 -req -in {path}/ca.csr -sha512 -passin pass:{pw} -signkey {path}/ca.key -CAcreateserial -out {path}/ca.pem -days 3".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/server.key 2048".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "openssl req -new -passin pass:{pw} -key {path}/server.key -out {path}/server.csr -subj /CN=localhost".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "openssl x509 -req -passin pass:{pw} -in {path}/server.csr -SHA256 -CA {path}/ca.pem -CAkey {path}/ca.key -CAcreateserial -out {path}/server.pem -days 3".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "cat {path}/server.pem {path}/server.key {path}/ca.pem > {path}/cert.pem".format(path=DEFAULTS_DIR)
+            ]
+        for cmd in cmds:
+            execute_cmd = subprocess.check_output(["/bin/sh", "-c", cmd])
+        # Update s2s ssl settings
+        output = re.sub(r'''  s2s:.*?ssl: false''', r'''  s2s:
+    ca: /tmp/defaults/ca.pem
+    cert: /tmp/defaults/cert.pem
+    enable: true
+    password: {}
+    port: 9997
+    ssl: true'''.format(passphrase), output, flags=re.DOTALL)
+        # Write the default.yml to a file
+        with open(os.path.join(DEFAULTS_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Standup deployment
+        try:
+            self.compose_file_name = "3idx1cm.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
+            # Get container logs
+            container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
+            for container in container_mapping:
+                # Check ansible version & configs
+                ansible_logs = self.get_container_logs(container)
+                self.check_ansible(ansible_logs)
+                # Check values in log output
+                inventory_json = self.extract_json(container)
+                self.check_common_keys(inventory_json, container_mapping[container])
+                try:
+                    assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
+                    assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
+                except KeyError as e:
+                    self.logger.error(e)
+                    raise e
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Make sure apps are installed, and shcluster is setup properly
+            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+            assert len(containers) == 4
+            for container in containers:
+                container_name = container["Names"][0].strip("/")
+                cid = container["Id"]
+                exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/inputs.conf", user="splunk")
+                std_out = self.client.exec_start(exec_command)
+                assert "[splunktcp-ssl:9997]" in std_out
+                assert "disabled = 0" in std_out
+                assert "[SSL]" in std_out
+                assert "serverCert = /tmp/defaults/cert.pem" in std_out
+                assert "[sslConfig]" in std_out
+                assert "rootCA = /tmp/defaults/ca.pem" in std_out
+                if container_name == "cm1":
+                    exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/outputs.conf", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "clientCert = /tmp/defaults/cert.pem" in std_out
+                    assert "sslPassword" in std_out
+                    assert "useClientSSLCompression = true" in std_out
+                    # Check that data is being forwarded properly
+                    time.sleep(15)
+                    search_providers, distinct_hosts = self.search_internal_distinct_hosts("cm1", password=self.password)
+                    assert len(search_providers) == 4
+                    assert "idx1" in search_providers
+                    assert "idx2" in search_providers
+                    assert "idx3" in search_providers
+                    assert distinct_hosts == 4
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            files = [
+                        os.path.join(DEFAULTS_DIR, "ca.key"),
+                        os.path.join(DEFAULTS_DIR, "ca.csr"),
+                        os.path.join(DEFAULTS_DIR, "ca.pem"),
+                        os.path.join(DEFAULTS_DIR, "server.key"),
+                        os.path.join(DEFAULTS_DIR, "server.csr"),
+                        os.path.join(DEFAULTS_DIR, "server.pem"),
+                        os.path.join(DEFAULTS_DIR, "cert.pem"),
+                        os.path.join(DEFAULTS_DIR, "default.yml")
+                    ]
+            self.cleanup_files(files)
 
     def test_compose_3idx1cm_default_repl_factor(self):
         # Generate default.yml

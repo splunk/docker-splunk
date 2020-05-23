@@ -2,6 +2,7 @@
 
 ## Navigation
 
+* [8.0.4](#804)
 * [8.0.3](#803)
 * [8.0.2.1](#8021)
 * [8.0.2](#802)
@@ -27,6 +28,28 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.0.4
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise maintenance patch.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues](https://docs.splunk.com/Documentation/Splunk/8.0.4/ReleaseNotes/Fixedissues) in 8.0.4.
+* Additional tests for new features
+
+#### splunk-ansible changes:
+* Support for custom SSL certificates for the Splunkd management endpoint
+* Support for custom ports for [Splunk Application Server](https://docs.splunk.com/Documentation/ITSI/latest/IModules/AboutApplicationServerModule) and [App KV Store](https://docs.splunk.com/Documentation/Splunk/latest/Admin/AboutKVstore) using:
+    * `splunk.appserver.port`, `splunk.kvstore.port` in `default.yml`
+    * `SPLUNK_APPSERVER_PORT`, `SPLUNK_KVSTORE_PORT` environment variables
+* Java installation through `default.yml` with `java_download_url`, `java_update_version`, and `java_version`
+* Support for Windows+AWS deployments for Splunk v7.2 and v7.3
+* Set pass4SymmKey for indexer discovery separately from pass4SymmKey for indexer clustering with:
+    * `splunk.idxc.discoveryPass4SymmKey` in `default.yml`
+    * `SPLUNK_IDXC_DISCOVERYPASS4SYMMKEY` environment variable
 
 ---
 
