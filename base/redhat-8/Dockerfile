@@ -1,4 +1,4 @@
-# Copyright 2018 Splunk
+# Copyright 2018-2020 Splunk
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 # the container catalog moved from registry.access.redhat.com to registry.redhat.io
 # So at some point before they deprecate the old registry we have to make sure that
 # we have access to the new registry and change where we pull the ubi image from.
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.1-409
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.2-267
 LABEL name="splunk" \
       maintainer="support@splunk.com" \
       vendor="splunk" \
