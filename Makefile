@@ -61,6 +61,9 @@ base: base-debian-9 base-debian-10 base-centos-7 base-redhat-8 base-windows-2016
 base-debian-10:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
 
+base-debian-10-systemd:
+	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-10-systemd:${IMAGE_VERSION} ./base/debian-10-systemd
+
 base-debian-9:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-9:${IMAGE_VERSION} ./base/debian-9
 
@@ -151,6 +154,14 @@ splunk-debian-10: base-debian-10 ansible
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-10 \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		-t splunk-debian-10:${IMAGE_VERSION} .
+
+splunk-debian-10-systemd: base-debian-10-systemd ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-debian-10-systemd \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		--build-arg START_USER=root \
+		-t splunk-debian-10-systemd:${IMAGE_VERSION} .
 
 splunk-centos-7: base-centos-7 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \

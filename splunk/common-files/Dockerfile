@@ -13,6 +13,7 @@
 # limitations under the License.
 
 ARG SPLUNK_BASE_IMAGE=base-debian-10
+ARG START_USER=ansible
 
 #
 # Download and unpack Splunk Enterprise
@@ -111,7 +112,7 @@ RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL\nans
     && chmod 664 ${SPLUNK_ANSIBLE_HOME}/ansible.cfg \
     && chmod 755 /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh
 
-USER ${ANSIBLE_USER}
+USER ${START_USER}
 HEALTHCHECK --interval=30s --timeout=30s --start-period=3m --retries=5 CMD /sbin/checkstate.sh || exit 1
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]
 CMD [ "start-service" ]

@@ -1,0 +1,13 @@
+[Unit]
+Description=Run splunk-ansible
+Requires=network-online.target
+
+[Service]
+User=ansible
+EnvironmentFile=/etc/splunk/environment
+ExecStart=/sbin/entrypoint.sh start-and-exit
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
+
