@@ -3397,7 +3397,7 @@ disabled = 1''' in std_out
                 assert "disabled = 0" in std_out
                 assert "[SSL]" in std_out
                 assert "serverCert = /tmp/defaults/cert.pem" in std_out
-                assert "[sslConfig]" in std_out
+                assert "[sslConfig]" not in std_out
                 assert "rootCA = /tmp/defaults/ca.pem" in std_out
                 if container_name == "cm1":
                     exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/outputs.conf", user="splunk")
