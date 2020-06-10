@@ -11,3 +11,6 @@
 
 # Docs-only pull requests:
 /docs/  @alishamayor @nwang92 @bb03
+
+# Release changelog
+docs/CHANGELOG.md  @nwang92 @alishamayor @arctan5x @lephino @jrigassio-splunk @jmeixensperger @hendolim @jonathan-vega-splunk @bb03
