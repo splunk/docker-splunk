@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2018 Splunk
+# Copyright 2018-2020 Splunk
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,10 +32,17 @@ microdnf -y --nodocs install wget sudo shadow-utils procps tar tzdata
 #install busybox direct from the multiarch since epel isn't availible yet for redhat8
 wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
 chmod +x /bin/busybox
+microdnf -y --nodocs update gnutls kernel-headers
 microdnf -y --nodocs install python2-pip python2-devel redhat-rpm-config gcc libffi-devel openssl-devel
 pip2 --no-cache-dir install requests ansible
-microdnf -y remove gcc libffi-devel openssl-devel redhat-rpm-config python2-devel device-mapper-libs device-mapper cryptsetup-libs systemd systemd-pam dbus dbus-common dbus-daemon dbus-tools dbus-libs go-srpm-macros iptables-libs ocaml-srpm-macros openblas-srpm-macros qt5-srpm-macros perl-srpm-macros rust-srpm-macros ghc-srpm-macros platform-python python3-rpm-generators platform-python-setuptools python3-libs platform-python-pip python3-rpm-generators python3-rpm-macros elfutils-libs efi-srpm-macros zip unzip xkeyboard-config libxkbcommon redhat-rpm-config util-linux dwz file file-libs findutils iptables-libs diffutils annobin python-rpm-macros python-srpm-macros python2-devel python2-rpm-macros kmod-libs libfdisk libffi-devel libpcap libseccomp libutempter
-
+microdnf -y remove gcc openssl-devel redhat-rpm-config python2-devel device-mapper-libs device-mapper trousers systemd systemd-pam \
+                   dwz dbus dbus-common dbus-daemon dbus-tools dbus-libs go-srpm-macros iptables-libs annobin cryptsetup-libs \
+                   ocaml-srpm-macros openblas-srpm-macros qt5-srpm-macros perl-srpm-macros rust-srpm-macros ghc-srpm-macros \
+                   efi-srpm-macros python-srpm-macros python-rpm-macros python3-rpm-macros python2-rpm-macros python3-rpm-generators \
+                   zip unzip xkeyboard-config file file-libs findutils diffutils kmod-libs util-linux libxkbcommon libffi-devel \
+                   elfutils-libs elfutils-debuginfod-client elfutils-default-yama-scope pcre2-devel pcre2-utf16 pcre2-utf32 \
+                   libfdisk libpcap libseccomp libselinux-devel libutempter binutils libxcrypt-devel cpp glibc-devel glibc-headers \
+                   krb5-devel libkadm5 platform-python-pip
 
 cd /bin
 ln -s python2 python || true
