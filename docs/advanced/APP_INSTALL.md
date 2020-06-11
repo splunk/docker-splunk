@@ -16,15 +16,19 @@ App installation can be done a variety of ways: either through a file/directory 
 If you have a local directory that follows the proper Splunk apps model, you can mount this entire path to the container at runtime.
 
 For instance, take the following app `splunk_app_example`:
-```
+```bash
 $ find . -type f
 ./splunk_app_example/default/app.conf
 ./splunk_app_example/metadata/default.meta
 ```
 
 We can bind-mount this upon container start and use it as a regular Splunk app:
-```
-$ docker run -it -v ./splunk_app_example:/opt/splunk/etc/apps/splunk_app_example/ --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
+```bash
+# Volume-mounting option using --volumes/-v flag
+$ docker run -it -v "$(pwd)/splunk_app_example:/opt/splunk/etc/apps/splunk_app_example/" --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
+
+# Volume-mounting option using --mount flag
+$ docker run -it --mount type=bind,source="$(pwd)"/splunk_app_example,target=/opt/splunk/etc/apps/splunk_app_example/ --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
 ```
 
 You should be able to view the `splunk_app_example` in SplunkWeb after the container successfully finished provisioning.
