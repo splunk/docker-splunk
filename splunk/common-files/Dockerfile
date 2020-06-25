@@ -109,7 +109,10 @@ RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL\nans
     && chgrp ${ANSIBLE_GROUP} ${SPLUNK_ANSIBLE_HOME} ${SPLUNK_ANSIBLE_HOME}/ansible.cfg \
     && chmod 775 ${SPLUNK_ANSIBLE_HOME} \
     && chmod 664 ${SPLUNK_ANSIBLE_HOME}/ansible.cfg \
-    && chmod 755 /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh
+    && chmod 755 /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh \
+    # Install scloud
+    && wget -P /usr/local/bin/ https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.6.0/scloud_v3.0.0_linux_amd64.tar.gz \
+    && tar -xf scloud_v3.0.0_linux_amd64.tar.gz
 
 USER ${ANSIBLE_USER}
 HEALTHCHECK --interval=30s --timeout=30s --start-period=3m --retries=5 CMD /sbin/checkstate.sh || exit 1
