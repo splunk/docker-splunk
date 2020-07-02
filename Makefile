@@ -297,12 +297,6 @@ test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_tests_deb
 
 test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_tests_debian10
 
-test_dmc: clean ansible splunk-debian-9 uf-debian-9 test_setup run_dmc_test
-
-run_dmc_test:
-	@echo 'Running DMC test'
-	pytest -sv tests/test_docker_splunk.py::TestDockerSplunk::test_compose_1sh1cm1dmc --platform debian-9 --junitxml test-results/debian9-result/testresults_debian9.xml
-
 run_tests_centos7:
 	@echo 'Running the super awesome tests; CentOS 7'
 	pytest -sv tests/test_docker_splunk.py --platform centos-7 --junitxml test-results/centos7-result/testresults_centos7.xml
