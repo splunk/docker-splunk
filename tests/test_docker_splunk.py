@@ -3828,31 +3828,9 @@ disabled = 1''' in std_out
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         self.check_dmc(containers)
 
-    def test_compose_3idx3sh1cm1dmc(self):
-        # Standup deployment
-        self.compose_file_name = "3idx3sh1cm1dmc.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers)
-
     def test_compose_1uf1so1dmc(self):
         # Standup deployment
         self.compose_file_name = "1uf1so1dmc.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers)
-
-    def test_compose_3idx3sh1cm1dmc(self):
-        # Standup deployment
-        self.compose_file_name = "3idx3sh1cm1dmc.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         assert rc == 0
