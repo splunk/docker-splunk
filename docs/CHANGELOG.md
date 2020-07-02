@@ -2,12 +2,14 @@
 
 ## Navigation
 
+* [8.0.4.1](#8041)
 * [8.0.4](#804)
 * [8.0.3](#803)
 * [8.0.2.1](#8021)
 * [8.0.2](#802)
 * [8.0.1](#801)
 * [8.0.0](#800)
+* [7.3.6](#736)
 * [7.3.5](#735)
 * [7.3.4.2](#7342)
 * [7.3.4](#734)
@@ -31,13 +33,34 @@
 
 ---
 
+## 8.0.4.1
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise maintenance patch.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.0.4.1](https://docs.splunk.com/Documentation/Splunk/8.0.4/ReleaseNotes/Fixedissues)
+* Additional tests and documentation for new features
+* Updated RH8 packages per GCR image vulnerability scan
+
+#### splunk-ansible changes:
+* Support for setting the [deployer push mode](https://docs.splunk.com/Documentation/Splunk/latest/DistSearch/PropagateSHCconfigurationchanges#Choose_a_deployer_push_mode) to control how apps are bundled and distributed to cluster members:
+    * `shc.deployer_push_mode` in `default.yml`
+* Added the config variable `auxiliary_cluster_masters` to support enabling a search head to search across multiple indexer clusters. See [Multi-Cluster Search](advanced/MULTICLUSTERSEARCH.md) for details on configuration.
+* Documentation on executing `splunk-ansible` remotely, through a controller node such as Ansible Tower/AWX
+* Set custom Splunkd connection timeout using either:
+    * `splunk.connection_timeout` in `default.yml`
+    * `SPLUNK_CONNECTION_TIMEOUT` environment variable
+
+---
+
 ## 8.0.4
 
 #### What's New?
 * Releasing new images to support Splunk Enterprise maintenance patch.
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see [Fixed issues](https://docs.splunk.com/Documentation/Splunk/8.0.4/ReleaseNotes/Fixedissues) in 8.0.4.
+* Bumping Splunk version. For details, see [Fixed issues for 8.0.4](https://docs.splunk.com/Documentation/Splunk/8.0.4/ReleaseNotes/Fixedissues)
 * Additional tests for new features
 
 #### splunk-ansible changes:
@@ -59,7 +82,7 @@
 * Releasing new images to support Splunk Enterprise maintenance patch.
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see [Fixed issues](https://docs.splunk.com/Documentation/Splunk/8.0.3/ReleaseNotes/Fixedissues) in 8.0.3.
+* Bumping Splunk version. For details, see [Fixed issues for 8.0.3](https://docs.splunk.com/Documentation/Splunk/8.0.3/ReleaseNotes/Fixedissues)
 * Limited `ansible-playbook` to `localhost` only
 * Updated tests and documentation
 
@@ -80,7 +103,7 @@
 * Releasing new images to support Splunk Enterprise maintenance patch.
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see [Fixed issues](https://docs.splunk.com/Documentation/Splunk/8.0.2/ReleaseNotes/Fixedissues) in 8.0.2.1.
+* Bumping Splunk version. For details, see [Fixed issues for 8.0.2.1](https://docs.splunk.com/Documentation/Splunk/8.0.2/ReleaseNotes/Fixedissues)
 * Bugfixes and additional tests for new features
 
 #### splunk-ansible changes:
@@ -97,7 +120,7 @@
 * New Splunk Enterprise release of 8.0.2
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/8.0.2/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 8.0.2](https://docs.splunk.com/Documentation/Splunk/8.0.2/ReleaseNotes/Fixedissues)
 * Bugfixes and increasing test coverage for new features
 
 #### splunk-ansible changes:
@@ -117,14 +140,15 @@
 * New Splunk Enterprise release of 8.0.1
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/8.0.1/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 8.0.1](https://docs.splunk.com/Documentation/Splunk/8.0.1/ReleaseNotes/Fixedissues)
 * Bugfixes and increasing test coverage for new features
 
 #### splunk-ansible changes:
 * Service name fixes for AWS
 * Bugfixes around forwarding and SHC-readiness
 * Additional options to control SmartStore configuration
-**NOTE** If you are currently using SmartStore, this change does break backwards-compatibility with former versions of the `default.yml` schema. This was necessary to expose the additional features asked for by the community. Please regenerate the `default.yml` if you plan on upgrading to this version.
+
+    **NOTE** If you are currently using SmartStore, this change does break backwards-compatibility with former versions of the `default.yml` schema. This was necessary to expose the additional features asked for by the community. Please regenerate the `default.yml` if you plan on upgrading to this version.
 
 ---
 
@@ -134,7 +158,7 @@
 * New Splunk Enterprise release of 8.0.0
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/8.0.0/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 8.0.0](https://docs.splunk.com/Documentation/Splunk/8.0.0/ReleaseNotes/Fixedissues)
 * Reduced base image size due to package management inflation
 * Additional Python 2/Python 3 compatibility changes
 
@@ -145,46 +169,47 @@
 
 ---
 
+## 7.3.6
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 7.3.6](https://docs.splunk.com/Documentation/Splunk/7.3.6/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.0.4.1](#8041)
+
+#### Changes
+* See [8.0.4.1](#8041) changes
+
+---
+
 ## 7.3.5
 
 #### What's New?
-* New Splunk Enterprise release of 7.3.5
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 7.3.5](https://docs.splunk.com/Documentation/Splunk/7.3.5/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.0.2.1](#8021)
 
-#### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.5/ReleaseNotes/Fixedissues
-* See [8.0.2.1](#8021) changes.
-
-#### splunk-ansible changes:
-* See [8.0.2.1](#8021) changes.
+#### Changes
+* See [8.0.2.1](#8021) changes
 
 ---
 
 ## 7.3.4.2
 
 #### What's New?
-* Releasing new images to support Splunk Enterprise maintenance patch.
-* Bundling in changes to be consistent with the release of [8.0.2.1](#8021).
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 7.3.4.2](https://docs.splunk.com/Documentation/Splunk/7.3.4/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.0.2.1](#8021)
 
-#### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.4/ReleaseNotes/Fixedissues
-* See [8.0.2.1](#8021) changes.
-
-#### splunk-ansible changes:
-* See [8.0.2.1](#8021) changes.
+#### Changes
+* See [8.0.2.1](#8021) changes
 
 ---
 
 ## 7.3.4
 
 #### What's New?
-* New Splunk Enterprise release of 7.3.4
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 7.3.4](https://docs.splunk.com/Documentation/Splunk/7.3.4/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.0.1](#801)
 
-#### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.4/ReleaseNotes/Fixedissues
-* See [8.0.1](#801) changes.
-
-#### splunk-ansible changes:
-* See [8.0.1](#801) changes.
+#### Changes
+* See [8.0.1](#801) changes
 
 ---
 
@@ -194,14 +219,14 @@
 * New Splunk Enterprise release of 7.3.3
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.3/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.3.3](https://docs.splunk.com/Documentation/Splunk/7.3.3/ReleaseNotes/Fixedissues)
 * Better management of deployment server apps
 * Support for variety of Splunk package types
 * Bugfixes around app installation
 
 #### splunk-ansible changes:
 * Removing unnecessary apps in distributed ITSI installations
-* Partioning apps in serverclass.conf when using the deployment server
+* Partitioning apps in serverclass.conf when using the deployment server
 * Adding support for activating Splunk Free license on boot
 * Support for cluster labels via environment variables
 * Bugfixes around app installation (through default.yml and pathing)
@@ -214,7 +239,7 @@
 * New Splunk Enterprise release of 7.3.2
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.2/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.3.2](https://docs.splunk.com/Documentation/Splunk/7.3.2/ReleaseNotes/Fixedissues)
 * Support for Redhat 8 UF on s390x
 * Various bugfixes
 
@@ -232,7 +257,7 @@
 * New Splunk Enterprise release of 7.3.1
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.1/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.3.1](https://docs.splunk.com/Documentation/Splunk/7.3.1/ReleaseNotes/Fixedissues)
 * Documentation update
 * Minor bug fixes
 
@@ -252,7 +277,7 @@
 * Overarching changes to build structure to support multi-stage builds for various consumers
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.3.0/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.3.0](https://docs.splunk.com/Documentation/Splunk/7.3.0/ReleaseNotes/Fixedissues)
 * Changing default `splunk/splunk` from `debian-9` to `debian-10` for enhanced security
 * Overarching changes to build structure to support multi-stage builds for various consumers
 * Minor documentation changes
@@ -270,42 +295,32 @@
 ## 7.2.10.1
 
 #### What's New?
-* New Splunk Enterprise maintenance patch of 7.2.10.1
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 7.2.10.1](https://docs.splunk.com/Documentation/Splunk/7.2.10/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.0.3](#803)
 
-#### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.10/ReleaseNotes/Fixedissues#Splunk_Enterprise_7.2.10.1
-* See [8.0.3](#803) changes.
-
-#### splunk-ansible changes:
-* See [8.0.3](#803) changes.
+#### Changes
+* See [8.0.3](#803) changes
 
 ---
 
 ## 7.2.10
 
 #### What's New?
-* New Splunk Enterprise release of 7.2.10
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 7.2.10](https://docs.splunk.com/Documentation/Splunk/7.2.10/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.0.2.1](#8021)
 
-#### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.10/ReleaseNotes/Fixedissues
-* See [8.0.2.1](#8021) changes.
-
-#### splunk-ansible changes:
-* See [8.0.2.1](#8021) changes.
+#### Changes
+* See [8.0.2.1](#8021) changes
 
 ---
 
 ## 7.2.9
 
 #### What's New?
-* Releasing new images to support Splunk Enterprise maintenance patch.
+* Releasing new images to support Splunk Enterprise maintenance patch. For details, see [Fixed issues for 7.2.9](https://docs.splunk.com/Documentation/Splunk/7.2.9/ReleaseNotes/Fixedissues)
 * Bundling in changes to be consistent with the release of [8.0.0](#800)
 
-#### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.9/ReleaseNotes/Fixedissues
-* See [8.0.0](#800) changes
-
-#### splunk-ansible changes:
+#### Changes
 * See [8.0.0](#800) changes
 
 ---
@@ -316,7 +331,7 @@
 Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.8/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.2.8](https://docs.splunk.com/Documentation/Splunk/7.2.8/ReleaseNotes/Fixedissues)
 
 #### splunk-ansible changes:
 * Nothing - releasing new images to support Splunk Enterprise maintenance patch
@@ -331,7 +346,7 @@ Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 * Overarching changes to build structure to support multi-stage builds for various consumers
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.7/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.2.7](https://docs.splunk.com/Documentation/Splunk/7.2.7/ReleaseNotes/Fixedissues)
 * Changing default `splunk/splunk` from `debian-9` to `debian-10` for enhanced security
 * Overarching changes to build structure to support multi-stage builds for various consumers
 * Minor documentation changes
@@ -352,7 +367,7 @@ Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.6/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.2.6](https://docs.splunk.com/Documentation/Splunk/7.2.6/ReleaseNotes/Fixedissues)
 
 #### splunk-ansible changes:
 * Nothing - releasing new images to support Splunk Enterprise maintenance patch
@@ -365,7 +380,7 @@ Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.5/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.2.5.1](https://docs.splunk.com/Documentation/Splunk/7.2.5/ReleaseNotes/Fixedissues)
 
 #### splunk-ansible changes:
 * Nothing - releasing new images to support Splunk Enterprise maintenance patch
@@ -380,7 +395,7 @@ Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 * Minor bugfixes
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.5/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.2.5](https://docs.splunk.com/Documentation/Splunk/7.2.5/ReleaseNotes/Fixedissues)
 * Documentation overhaul
 * Adding initial framework to support multi-site deployments
 * Removing built-in Docker stats app for Splunk Universal Forwarder due to lack of use and violation of permission model
@@ -399,13 +414,13 @@ Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 
 #### What's New?
 * Support for Java installation in standalones and search heads
-* Hardening of asyncronous SHC bootstrapping procedures
+* Hardening of asynchronous SHC bootstrapping procedures
 * App installation across all topologies
 * Adding CircleCI to support automated regression testing
 * Minor bugfixes
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.4/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.2.4](https://docs.splunk.com/Documentation/Splunk/7.2.4/ReleaseNotes/Fixedissues)
 * Adding Clair scanner for automated security scanning
 * Adding CircleCI to support automated regression testing
 * Minor documentation changes
@@ -414,7 +429,7 @@ Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 * Changing replication port from 4001 to 9887 for PS and field best practices
 * Adding support for multiple licenses via URL and filepath globs
 * Adding support for java installation
-* Hardening SHC-readiness during provisioning due to large-scale deployment syncronization issues
+* Hardening SHC-readiness during provisioning due to large-scale deployment synchronization issues
 * Extracting out `admin` username to be dynamic and flexible and enabling it to be user-defined
 * App installation support for distributed topologies (SHC, IDXC, etc.) and some primitive premium app support
 * Supporting Splunk restart only when required (via Splunk internal restart_required check)
@@ -428,7 +443,7 @@ Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.3/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.2.3](https://docs.splunk.com/Documentation/Splunk/7.2.3/ReleaseNotes/Fixedissues)
 
 #### splunk-ansible changes:
 * Nothing - releasing new images to support Splunk Enterprise maintenance patch
@@ -442,7 +457,7 @@ Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 * Minor bugfixes
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.2/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.2.2](https://docs.splunk.com/Documentation/Splunk/7.2.2/ReleaseNotes/Fixedissues)
 * Adding base `centos-7` platform
 * Packages added to all base platforms: `acl` and `ping`
 * Minor documentation changes
@@ -468,7 +483,7 @@ Nothing - releasing new images to support Splunk Enterprise maintenance patch.
 * App installation for direct URL link, local tarball, and from SplunkBase for standalone and forwarder
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see: https://docs.splunk.com/Documentation/Splunk/7.2.1/ReleaseNotes/Fixedissues
+* Bumping Splunk version. For details, see [Fixed issues for 7.2.1](https://docs.splunk.com/Documentation/Splunk/7.2.1/ReleaseNotes/Fixedissues)
 * Adding `python-requests` to base Docker image
 * Adding app installation features (direct link, local tarball, and SplunkBase)
 * Minor documentation changes
