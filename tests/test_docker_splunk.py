@@ -229,7 +229,7 @@ class TestDockerSplunk(object):
             assert status == 200
         return True
 
-    def check_dmc(self, containers, container_count):
+    def check_dmc(self, containers):
         for container in containers:
             container_name = container["Names"][0].strip("/")
             splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
@@ -252,7 +252,6 @@ class TestDockerSplunk(object):
                                                             {"auth": ("admin", self.password), "verify": False})
                 assert status == 200
                 output = json.loads(content)
-                assert len(output["entry"]) == (container_count - 1)
                 for sh in output["entry"]:
                     assert sh["content"]["status"] == "Up"
 
@@ -3787,18 +3786,14 @@ disabled = 1''' in std_out
 
     def test_compose_1sh1cm1dmc(self):
         # Standup deployment
-        print("Starting")
         self.compose_file_name = "1sh1cm1dmc.yaml"
         self.project_name = generate_random_string()
-        print(self.project_name)
         container_count, rc = self.compose_up()
-        print(container_count, rc)
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        print("Containers up")
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers, self.compose_file_name)
+        self.check_dmc(containers)
 
     def test_compose_1sh2idx2hf1dmc(self):
         # Standup deployment
@@ -3809,7 +3804,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers, self.compose_file_name)
+        self.check_dmc(containers)
 
     def test_compose_1dep3sh2idx1dmc(self):
         # Standup deployment
@@ -3820,7 +3815,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers, container_count)
+        self.check_dmc(containers)
 
     def test_compose_3idx1cm1dmc(self):
         # Standup deployment
@@ -3831,7 +3826,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers, container_count)
+        self.check_dmc(containers)
 
     def test_compose_3idx3sh1cm1dmc(self):
         # Standup deployment
@@ -3842,7 +3837,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers, container_count)
+        self.check_dmc(containers)
 
     def test_compose_1uf1so1dmc(self):
         # Standup deployment
@@ -3853,7 +3848,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers, container_count)
+        self.check_dmc(containers)
 
     def test_compose_3idx3sh1cm1dmc(self):
         # Standup deployment
@@ -3864,7 +3859,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers, container_count)
+        self.check_dmc(containers)
 
     def test_compose_2idx2sh(self):
         # Standup deployment
@@ -3957,7 +3952,7 @@ disabled = 1''' in std_out
         assert len(search_providers) == 3
         assert "idx1" in search_providers and "idx2" in search_providers and "sh1" in search_providers
         assert distinct_hosts == 4
-        self.check_dmc(containers, container_count)
+        self.check_dmc(containers)
 
     def test_compose_1idx3sh1cm1dep(self):
         # Generate default.yml -- for SHC, we need a common default.yml otherwise things won't work
@@ -4148,4 +4143,4 @@ disabled = 1''' in std_out
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers, container_count)
+        self.check_dmc(containers)
