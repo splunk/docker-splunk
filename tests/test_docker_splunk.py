@@ -2719,6 +2719,17 @@ disabled = 1''' in std_out
             except OSError as e:
                 pass
 
+    def test_compose_1so1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "1so1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers)
+
     def test_compose_1deployment1uf(self):
         # Tar the app before spinning up the scenario
         with tarfile.open(EXAMPLE_APP_TGZ, "w:gz") as tar:
@@ -3798,17 +3809,6 @@ disabled = 1''' in std_out
     def test_compose_1sh2idx2hf1dmc(self):
         # Standup deployment
         self.compose_file_name = "1sh2idx2hf1dmc.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers)
-
-    def test_compose_1dep3sh2idx1dmc(self):
-        # Standup deployment
-        self.compose_file_name = "1dep3sh2idx1dmc.yaml"
         self.project_name = generate_random_string()
         container_count, rc = self.compose_up()
         assert rc == 0
