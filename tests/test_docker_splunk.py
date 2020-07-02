@@ -2719,17 +2719,6 @@ disabled = 1''' in std_out
             except OSError as e:
                 pass
 
-    def test_compose_1so1dmc(self):
-        # Standup deployment
-        self.compose_file_name = "1so1dmc.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers)
-
     def test_compose_1deployment1uf(self):
         # Tar the app before spinning up the scenario
         with tarfile.open(EXAMPLE_APP_TGZ, "w:gz") as tar:
@@ -3839,6 +3828,17 @@ disabled = 1''' in std_out
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         self.check_dmc(containers)
 
+    def test_compose_1so1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "1so1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers)
+
     def test_compose_2idx2sh(self):
         # Standup deployment
         self.compose_file_name = "2idx2sh.yaml"
@@ -4101,23 +4101,5 @@ disabled = 1''' in std_out
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        # Get container logs
-        container_mapping = {"sh1": "sh", "sh2": "sh", "idx1": "idx", "idx2": "idx", "cm1": "cm"}
-        for container in container_mapping:
-            # Check ansible version & configs
-            ansible_logs = self.get_container_logs(container)
-            self.check_ansible(ansible_logs)
-            # Check values in log output
-            inventory_json = self.extract_json(container)
-            self.check_common_keys(inventory_json, container_mapping[container])
-            try:
-                assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
-                assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
-                assert inventory_json["splunk_search_head"]["hosts"] == ["sh1", "sh2"] # need to check this, check if dmc is included
-            except KeyError as e:
-                self.logger.error(e)
-                raise e
-        # Check Splunkd on all the containers
-        assert self.check_splunkd("admin", self.password)
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         self.check_dmc(containers)
