@@ -3951,7 +3951,6 @@ disabled = 1''' in std_out
         search_providers, distinct_hosts = self.search_internal_distinct_hosts("sh1", password=self.password)
         assert len(search_providers) == 3
         assert "idx1" in search_providers and "idx2" in search_providers and "sh1" in search_providers
-        assert distinct_hosts == 4
         self.check_dmc(containers)
 
     def test_compose_1idx3sh1cm1dep(self):
