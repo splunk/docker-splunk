@@ -235,24 +235,24 @@ class TestDockerSplunk(object):
             splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
             if container_name == "dmc":
                 # check 1: curl -k https://localhost:8089/servicesNS/nobody/splunk_monitoring_console/configs/conf-splunk_monitoring_console_assets/settings?output_mode=json -u admin:helloworld
-                status1, content1 = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/splunk_monitoring_console/configs/conf-splunk_monitoring_console_assets/settings?output_mode=json".format(splunkd_port), 
+                status, content = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/splunk_monitoring_console/configs/conf-splunk_monitoring_console_assets/settings?output_mode=json".format(splunkd_port), 
                                                             {"auth": ("admin", self.password), "verify": False})
-                assert status1 == 200
-                output1 = json.loads(content1)
-                assert output1["entry"][0]["content"]["disabled"] == False
+                assert status == 200
+                output = json.loads(content)
+                assert output["entry"][0]["content"]["disabled"] == False
                 # check 2: curl -k https://localhost:8089/servicesNS/nobody/system/apps/local/splunk_monitoring_console?output_mode=json -u admin:helloworld
-                status2, content2 = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/system/apps/local/splunk_monitoring_console?output_mode=json".format(splunkd_port), 
+                status, content = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/system/apps/local/splunk_monitoring_console?output_mode=json".format(splunkd_port), 
                                                             {"auth": ("admin", self.password), "verify": False})
-                assert status2 == 200
-                output2 = json.loads(content2)
-                assert output2["entry"][0]["content"]["disabled"] == False
-                assert output2["entry"][0]["content"]["configured"] == True
+                assert status == 200
+                output = json.loads(content)
+                assert output["entry"][0]["content"]["disabled"] == False
+                assert output["entry"][0]["content"]["configured"] == True
                 # check 3: curl -k https://localhost:8089/services/search/distributed/peers?output_mode=json -u admin:helloworld
-                status3, content3 = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/peers?output_mode=json".format(splunkd_port),
+                status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/peers?output_mode=json".format(splunkd_port),
                                                             {"auth": ("admin", self.password), "verify": False})
-                assert status3 == 200
-                output3 = json.loads(content3)
-                for sh in output3["entry"]:
+                assert status == 200
+                output = json.loads(content)
+                for sh in output["entry"]:
                     assert sh["content"]["status"] == "Up"
 
     def get_container_logs(self, container_id):
@@ -4057,14 +4057,3 @@ disabled = 1''' in std_out
                 if n < retries-1:
                     continue
                 assert False
-
-    def test_compose_2idx2sh1cm1dmc(self):
-        # Standup deployment
-        self.compose_file_name = "2idx2sh1cm1dmc.yaml"
-        self.project_name = generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers)
