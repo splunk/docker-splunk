@@ -235,24 +235,24 @@ class TestDockerSplunk(object):
             splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
             if container_name == "dmc":
                 # check 1: curl -k https://localhost:8089/servicesNS/nobody/splunk_monitoring_console/configs/conf-splunk_monitoring_console_assets/settings?output_mode=json -u admin:helloworld
-                status, content = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/splunk_monitoring_console/configs/conf-splunk_monitoring_console_assets/settings?output_mode=json".format(splunkd_port), 
+                status1, content1 = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/splunk_monitoring_console/configs/conf-splunk_monitoring_console_assets/settings?output_mode=json".format(splunkd_port), 
                                                             {"auth": ("admin", self.password), "verify": False})
-                assert status == 200
-                output = json.loads(content)
-                assert output["entry"][0]["content"]["disabled"] == False
+                assert status1 == 200
+                output1 = json.loads(content1)
+                assert output1["entry"][0]["content"]["disabled"] == False
                 # check 2: curl -k https://localhost:8089/servicesNS/nobody/system/apps/local/splunk_monitoring_console?output_mode=json -u admin:helloworld
-                status, content = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/system/apps/local/splunk_monitoring_console?output_mode=json".format(splunkd_port), 
+                status2, content2 = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/system/apps/local/splunk_monitoring_console?output_mode=json".format(splunkd_port), 
                                                             {"auth": ("admin", self.password), "verify": False})
-                assert status == 200
-                output = json.loads(content)
-                assert output["entry"][0]["content"]["disabled"] == False
-                assert output["entry"][0]["content"]["configured"] == True
+                assert status2 == 200
+                output2 = json.loads(content2)
+                assert output2["entry"][0]["content"]["disabled"] == False
+                assert output2["entry"][0]["content"]["configured"] == True
                 # check 3: curl -k https://localhost:8089/services/search/distributed/peers?output_mode=json -u admin:helloworld
-                status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/peers?output_mode=json".format(splunkd_port),
+                status3, content3 = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/peers?output_mode=json".format(splunkd_port),
                                                             {"auth": ("admin", self.password), "verify": False})
-                assert status == 200
-                output = json.loads(content)
-                for sh in output["entry"]:
+                assert status3 == 200
+                output3 = json.loads(content3)
+                for sh in output3["entry"]:
                     assert sh["content"]["status"] == "Up"
 
     def get_container_logs(self, container_id):
