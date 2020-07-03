@@ -3893,42 +3893,7 @@ disabled = 1''' in std_out
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        # Get container logs
-        container_mapping = {"sh1": "sh", "sh2": "sh", "idx1": "idx", "idx2": "idx"}
-        for container in container_mapping:
-            # Check ansible version & configs
-            ansible_logs = self.get_container_logs(container)
-            self.check_ansible(ansible_logs)
-            # Check values in log output
-            inventory_json = self.extract_json(container)
-            self.check_common_keys(inventory_json, container_mapping[container])
-            try:
-                assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
-                assert inventory_json["splunk_search_head"]["hosts"] == ["sh1", "sh2"]
-            except KeyError as e:
-                self.logger.error(e)
-                raise e
-        # Check Splunkd on all the containers
-        assert self.check_splunkd("admin", self.password)
-        # Check connections
-        idx_list = ["idx1", "idx2"]
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        for container in containers:
-            c_name = container["Labels"]["com.docker.compose.service"]
-            if c_name == "sh1" or c_name == "sh2":
-                splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
-                url = "https://localhost:{}/services/search/distributed/peers?output_mode=json".format(splunkd_port)
-                kwargs = {"auth": ("admin", self.password), "verify": False}
-                status, content = self.handle_request_retry("GET", url, kwargs)
-                assert status == 200
-                output = json.loads(content)
-                peers = [x["content"]["peerName"] for x in output["entry"]]
-                assert len(peers) == 2 and set(peers) == set(idx_list)
-        # Search results won't return the correct results immediately :(
-        time.sleep(15)
-        search_providers, distinct_hosts = self.search_internal_distinct_hosts("sh1", password=self.password)
-        assert len(search_providers) == 3
-        assert "idx1" in search_providers and "idx2" in search_providers and "sh1" in search_providers
         self.check_dmc(containers)
 
     def test_compose_1idx3sh1cm1dep(self):
