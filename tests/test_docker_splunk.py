@@ -3638,7 +3638,7 @@ disabled = 1''' in std_out
         assert len(output["entry"]) == 1
         assert output["entry"][0]["content"]["label"] == "cm1"
         assert output["entry"][0]["content"]["status"] == "Connected"
-    
+
     def test_adhoc_1cm_idxc_pass4symmkey(self):
         # Create the container
         cid = None
