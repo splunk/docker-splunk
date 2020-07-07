@@ -35,7 +35,7 @@ apt-get update
 # put back tools for customer support
 apt-cache show ansible
 apt-get install -y --no-install-recommends ansible curl sudo libgssapi-krb5-2 busybox procps acl
-apt-get install -y --no-install-recommends python-requests
+apt-get install -y --no-install-recommends python-requests python-jmespath
 
 # Install scloud
 wget -P /usr/bin/ https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.6.0/scloud_v3.0.0_linux_amd64.tar.gz

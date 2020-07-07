@@ -34,7 +34,7 @@ wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-mul
 chmod +x /bin/busybox
 microdnf -y --nodocs update gnutls kernel-headers
 microdnf -y --nodocs install python2-pip python2-devel redhat-rpm-config gcc libffi-devel openssl-devel
-pip2 --no-cache-dir install requests ansible toml jmespath
+pip2 --no-cache-dir install requests ansible jmespath
 microdnf -y remove gcc openssl-devel redhat-rpm-config python2-devel device-mapper-libs device-mapper trousers systemd systemd-pam \
                    dwz dbus dbus-common dbus-daemon dbus-tools dbus-libs go-srpm-macros iptables-libs annobin cryptsetup-libs \
                    ocaml-srpm-macros openblas-srpm-macros qt5-srpm-macros perl-srpm-macros rust-srpm-macros ghc-srpm-macros \
