@@ -21,6 +21,11 @@ export LANG=en_US.utf8
 yum -y update && yum -y install wget sudo epel-release
 yum -y install busybox ansible python-requests
 
+# Install scloud
+wget -P /usr/bin/ https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.6.0/scloud_v3.0.0_linux_amd64.tar.gz
+tar -xf /usr/bin/scloud_v3.0.0_linux_amd64.tar.gz -C /usr/bin/
+rm /usr/bin/scloud_v3.0.0_linux_amd64.tar.gz
+
 cd /bin
 ln -s busybox killall
 ln -s busybox netstat

@@ -44,6 +44,11 @@ microdnf -y remove gcc openssl-devel redhat-rpm-config python2-devel device-mapp
                    libfdisk libpcap libseccomp libselinux-devel libutempter binutils libxcrypt-devel cpp glibc-devel glibc-headers \
                    krb5-devel libkadm5 platform-python-pip
 
+# Install scloud
+wget -P /usr/bin/ https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.6.0/scloud_v3.0.0_linux_amd64.tar.gz
+tar -xf /usr/bin/scloud_v3.0.0_linux_amd64.tar.gz -C /usr/bin/
+rm /usr/bin/scloud_v3.0.0_linux_amd64.tar.gz
+
 cd /bin
 ln -s python2 python || true
 ln -s busybox diff || true
