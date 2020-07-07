@@ -229,7 +229,7 @@ class TestDockerSplunk(object):
             assert status == 200
         return True
 
-    def check_dmc(self, containers):
+    def check_dmc(self, containers, num_peers, num_idx, num_sh, num_cm, num_lm):
         for container in containers:
             container_name = container["Names"][0].strip("/")
             splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
@@ -246,14 +246,41 @@ class TestDockerSplunk(object):
                 assert status == 200
                 output = json.loads(content)
                 assert output["entry"][0]["content"]["disabled"] == False
-                assert output["entry"][0]["content"]["configured"] == True
                 # check 3: curl -k https://localhost:8089/services/search/distributed/peers?output_mode=json -u admin:helloworld
                 status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/peers?output_mode=json".format(splunkd_port),
                                                             {"auth": ("admin", self.password), "verify": False})
                 assert status == 200
                 output = json.loads(content)
-                for sh in output["entry"]:
-                    assert sh["content"]["status"] == "Up"
+                assert num_peers == len(output["entry"])
+                for peer in output["entry"]:
+                    assert peer["content"]["status"] == "Up"
+                self.check_dmc_groups(splunkd_port, num_idx, num_sh, num_cm, num_lm)
+
+    def check_dmc_groups(self, splunkd_port, num_idx, num_sh, num_cm, num_lm):
+        # check dmc_group_indexer
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_indexer?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_idx
+        # check dmc_group_cluster_master
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_cluster_master?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_cm
+        # check dmc_group_license_master
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_license_master?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_lm
+        # check dmc_group_search_head
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_search_head?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_sh
 
     def get_container_logs(self, container_id):
         stream = self.client.logs(container_id, stream=True)
@@ -3793,7 +3820,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers)
+        self.check_dmc(containers, 2, 0, 2, 1, 3)
 
     def test_compose_1sh2idx2hf1dmc(self):
         # Standup deployment
@@ -3804,7 +3831,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers)
+        self.check_dmc(containers, 3, 2, 2, 0, 4)
 
     def test_compose_3idx1cm1dmc(self):
         # Standup deployment
@@ -3815,7 +3842,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers)
+        self.check_dmc(containers, 4, 3, 2, 1, 5)
 
     def test_compose_1uf1so1dmc(self):
         # Standup deployment
@@ -3826,7 +3853,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers)
+        self.check_dmc(containers, 1, 1, 1, 0, 2)
 
     def test_compose_1so1dmc(self):
         # Standup deployment
@@ -3837,7 +3864,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers)
+        self.check_dmc(containers, 1, 1, 1, 0, 2)
 
     def test_compose_2idx2sh(self):
         # Standup deployment
@@ -3894,7 +3921,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        self.check_dmc(containers)
+        self.check_dmc(containers, 4, 2, 3, 0, 5)
 
     def test_compose_1idx3sh1cm1dep(self):
         # Generate default.yml -- for SHC, we need a common default.yml otherwise things won't work
