@@ -3374,7 +3374,7 @@ disabled = 1''' in std_out
                 self.logger.error(e)
                 raise e
         # Search results won't return the correct results immediately :(
-        time.sleep(15)
+        time.sleep(30)
         search_providers, distinct_hosts = self.search_internal_distinct_hosts("so1", password=self.password)
         assert len(search_providers) == 1
         assert search_providers[0] == "so1"
@@ -3459,7 +3459,7 @@ disabled = 1''' in std_out
                     assert "sslPassword" in std_out
                     assert "useClientSSLCompression = true" in std_out
                     # Check that data is being forwarded properly
-                    time.sleep(15)
+                    time.sleep(30)
                     search_providers, distinct_hosts = self.search_internal_distinct_hosts("cm1", password=self.password)
                     assert len(search_providers) == 4
                     assert "idx1" in search_providers
@@ -3906,7 +3906,7 @@ disabled = 1''' in std_out
                 peers = [x["content"]["peerName"] for x in output["entry"]]
                 assert len(peers) == 2 and set(peers) == set(idx_list)
         # Search results won't return the correct results immediately :(
-        time.sleep(15)
+        time.sleep(30)
         search_providers, distinct_hosts = self.search_internal_distinct_hosts("sh1", password=self.password)
         assert len(search_providers) == 3
         assert "idx1" in search_providers and "idx2" in search_providers and "sh1" in search_providers
