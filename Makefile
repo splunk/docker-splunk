@@ -25,6 +25,8 @@ SPLUNK_WIN_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 SPLUNK_WIN_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/windows/${SPLUNK_WIN_FILENAME}
 UF_WIN_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/windows/${UF_WIN_FILENAME}
+# Splunk Cloud SDK binary
+SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.7.0/scloud_v4.0.0_linux_amd64.tar.gz
 
 # Security Scanner Variables
 SCANNER_DATE := `date +%Y-%m-%d`
@@ -59,16 +61,16 @@ ansible:
 base: base-debian-9 base-debian-10 base-centos-7 base-redhat-8 base-windows-2016
 
 base-debian-10:
-	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
+	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
 
 base-debian-9:
-	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-9:${IMAGE_VERSION} ./base/debian-9
+	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-debian-9:${IMAGE_VERSION} ./base/debian-9
 
 base-centos-7:
-	docker build ${DOCKER_BUILD_FLAGS} -t base-centos-7:${IMAGE_VERSION} ./base/centos-7
+	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-centos-7:${IMAGE_VERSION} ./base/centos-7
 
 base-redhat-8:
-	docker build ${DOCKER_BUILD_FLAGS} --label version=${SPLUNK_VERSION} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
+	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} --label version=${SPLUNK_VERSION} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
 
 base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016

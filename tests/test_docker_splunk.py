@@ -402,7 +402,7 @@ class TestDockerSplunk(object):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
     
-    def test_splunk_uid_gid(self):
+    def test_splunk_scloud(self):
         cid = None
         try:
             # Run container
@@ -412,11 +412,13 @@ class TestDockerSplunk(object):
             # Wait a bit
             time.sleep(5)
             # If the container is still running, we should be able to exec inside
-            # Check that the git SHA exists in /opt/ansible
-            exec_command = self.client.exec_create(cid, "id", user="splunk")
+            # Check that the version returns successfully for multiple users
+            exec_command = self.client.exec_create(cid, "scloud version", user="splunk")
             std_out = self.client.exec_start(exec_command)
-            assert "uid=41812" in std_out
-            assert "gid=41812" in std_out
+            assert "scloud version " in std_out
+            exec_command = self.client.exec_create(cid, "scloud version", user="ansible")
+            std_out = self.client.exec_start(exec_command)
+            assert "scloud version " in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -434,7 +436,7 @@ class TestDockerSplunk(object):
             # Wait a bit
             time.sleep(5)
             # If the container is still running, we should be able to exec inside
-            # Check that the git SHA exists in /opt/ansible
+            # Check that the uid/gid is correct
             exec_command = self.client.exec_create(cid, "id", user="splunk")
             std_out = self.client.exec_start(exec_command)
             assert "uid=41812" in std_out
@@ -506,8 +508,8 @@ class TestDockerSplunk(object):
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
-    
-    def test_uf_uid_gid(self):
+
+    def test_uf_scloud(self):
         cid = None
         try:
             # Run container
@@ -517,11 +519,13 @@ class TestDockerSplunk(object):
             # Wait a bit
             time.sleep(5)
             # If the container is still running, we should be able to exec inside
-            # Check that the git SHA exists in /opt/ansible
-            exec_command = self.client.exec_create(cid, "id", user="splunk")
+            # Check that the version returns successfully for multiple users
+            exec_command = self.client.exec_create(cid, "scloud version", user="splunk")
             std_out = self.client.exec_start(exec_command)
-            assert "uid=41812" in std_out
-            assert "gid=41812" in std_out
+            assert "scloud version " in std_out
+            exec_command = self.client.exec_create(cid, "scloud version", user="ansible")
+            std_out = self.client.exec_start(exec_command)
+            assert "scloud version " in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -539,7 +543,7 @@ class TestDockerSplunk(object):
             # Wait a bit
             time.sleep(5)
             # If the container is still running, we should be able to exec inside
-            # Check that the git SHA exists in /opt/ansible
+            # Check that the uid/gid is correct
             exec_command = self.client.exec_create(cid, "id", user="splunk")
             std_out = self.client.exec_start(exec_command)
             assert "uid=41812" in std_out

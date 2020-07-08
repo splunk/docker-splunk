@@ -38,9 +38,9 @@ apt-get install -y --no-install-recommends ansible curl sudo libgssapi-krb5-2 bu
 apt-get install -y --no-install-recommends python-requests python-jmespath
 
 # Install scloud
-wget -P /usr/bin/ https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.6.0/scloud_v3.0.0_linux_amd64.tar.gz
-tar -xf /usr/bin/scloud_v3.0.0_linux_amd64.tar.gz -C /usr/bin/
-rm /usr/bin/scloud_v3.0.0_linux_amd64.tar.gz
+wget -O /usr/bin/scloud.tar.gz ${SCLOUD_URL}
+tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
+rm /usr/bin/scloud.tar.gz
 
 cd /bin
 ln -s busybox diff
