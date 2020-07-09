@@ -1,0 +1,37 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  uf1:
+    image: ${UF_IMAGE:-splunk/universalforwarder:latest}
+    hostname: uf1
+    container_name: uf1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8089
+
+  dmc:
+    networks:
+      splunknet:
+        aliases:
+          - dmc
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    command: start
+    hostname: dmc
+    container_name: dmc
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_ROLE=splunk_monitor
+      - SPLUNK_LICENSE_URI
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089

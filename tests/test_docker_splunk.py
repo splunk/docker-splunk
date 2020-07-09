@@ -229,6 +229,59 @@ class TestDockerSplunk(object):
             assert status == 200
         return True
 
+    def check_dmc(self, containers, num_peers, num_idx, num_sh, num_cm, num_lm):
+        for container in containers:
+            container_name = container["Names"][0].strip("/")
+            splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
+            if container_name == "dmc":
+                # check 1: curl -k https://localhost:8089/servicesNS/nobody/splunk_monitoring_console/configs/conf-splunk_monitoring_console_assets/settings?output_mode=json -u admin:helloworld
+                status, content = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/splunk_monitoring_console/configs/conf-splunk_monitoring_console_assets/settings?output_mode=json".format(splunkd_port), 
+                                                            {"auth": ("admin", self.password), "verify": False})
+                assert status == 200
+                output = json.loads(content)
+                assert output["entry"][0]["content"]["disabled"] == False
+                # check 2: curl -k https://localhost:8089/servicesNS/nobody/system/apps/local/splunk_monitoring_console?output_mode=json -u admin:helloworld
+                status, content = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/system/apps/local/splunk_monitoring_console?output_mode=json".format(splunkd_port), 
+                                                            {"auth": ("admin", self.password), "verify": False})
+                assert status == 200
+                output = json.loads(content)
+                assert output["entry"][0]["content"]["disabled"] == False
+                # check 3: curl -k https://localhost:8089/services/search/distributed/peers?output_mode=json -u admin:helloworld
+                status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/peers?output_mode=json".format(splunkd_port),
+                                                            {"auth": ("admin", self.password), "verify": False})
+                assert status == 200
+                output = json.loads(content)
+                assert num_peers == len(output["entry"])
+                for peer in output["entry"]:
+                    assert peer["content"]["status"] == "Up"
+                self.check_dmc_groups(splunkd_port, num_idx, num_sh, num_cm, num_lm)
+
+    def check_dmc_groups(self, splunkd_port, num_idx, num_sh, num_cm, num_lm):
+        # check dmc_group_indexer
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_indexer?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_idx
+        # check dmc_group_cluster_master
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_cluster_master?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_cm
+        # check dmc_group_license_master
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_license_master?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_lm
+        # check dmc_group_search_head
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_search_head?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_sh
+
     def get_container_logs(self, container_id):
         stream = self.client.logs(container_id, stream=True)
         output = ""
@@ -3325,7 +3378,7 @@ disabled = 1''' in std_out
                 self.logger.error(e)
                 raise e
         # Search results won't return the correct results immediately :(
-        time.sleep(15)
+        time.sleep(30)
         search_providers, distinct_hosts = self.search_internal_distinct_hosts("so1", password=self.password)
         assert len(search_providers) == 1
         assert search_providers[0] == "so1"
@@ -3410,7 +3463,7 @@ disabled = 1''' in std_out
                     assert "sslPassword" in std_out
                     assert "useClientSSLCompression = true" in std_out
                     # Check that data is being forwarded properly
-                    time.sleep(15)
+                    time.sleep(30)
                     search_providers, distinct_hosts = self.search_internal_distinct_hosts("cm1", password=self.password)
                     assert len(search_providers) == 4
                     assert "idx1" in search_providers
@@ -3616,7 +3669,7 @@ disabled = 1''' in std_out
         assert len(output["entry"]) == 1
         assert output["entry"][0]["content"]["label"] == "cm1"
         assert output["entry"][0]["content"]["status"] == "Connected"
-    
+
     def test_adhoc_1cm_idxc_pass4symmkey(self):
         # Create the container
         cid = None
@@ -3762,6 +3815,61 @@ disabled = 1''' in std_out
             assert sh["content"]["label"] == "sh1" or sh["content"]["label"] == "cm1"
             assert sh["content"]["status"] == "Connected"
 
+    def test_compose_1sh1cm1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "1sh1cm1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 2, 0, 2, 1, 3)
+
+    def test_compose_1sh2idx2hf1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "1sh2idx2hf1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 3, 2, 2, 0, 4)
+
+    def test_compose_3idx1cm1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "3idx1cm1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 4, 3, 2, 1, 5)
+
+    def test_compose_1uf1so1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "1uf1so1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 1, 1, 1, 0, 2)
+
+    def test_compose_1so1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "1so1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 1, 1, 1, 0, 2)
+
     def test_compose_2idx2sh(self):
         # Standup deployment
         self.compose_file_name = "2idx2sh.yaml"
@@ -3802,12 +3910,23 @@ disabled = 1''' in std_out
                 peers = [x["content"]["peerName"] for x in output["entry"]]
                 assert len(peers) == 2 and set(peers) == set(idx_list)
         # Search results won't return the correct results immediately :(
-        time.sleep(15)
+        time.sleep(30)
         search_providers, distinct_hosts = self.search_internal_distinct_hosts("sh1", password=self.password)
         assert len(search_providers) == 3
         assert "idx1" in search_providers and "idx2" in search_providers and "sh1" in search_providers
         assert distinct_hosts == 4
-    
+
+    def test_compose_2idx2sh1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "2idx2sh1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 4, 2, 3, 0, 5)
+
     def test_compose_1idx3sh1cm1dep(self):
         # Generate default.yml -- for SHC, we need a common default.yml otherwise things won't work
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
@@ -3900,7 +4019,7 @@ disabled = 1''' in std_out
                 os.remove(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"))
             except OSError as e:
                 pass
-        
+
     def test_compose_2idx2sh1cm(self):
         # Standup deployment
         self.compose_file_name = "2idx2sh1cm.yaml"
