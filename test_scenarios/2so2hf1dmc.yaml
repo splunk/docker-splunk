@@ -1,0 +1,108 @@
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  so1:
+    networks:
+      splunknet:
+        aliases:
+          - so1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: so1
+    container_name: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1, so2
+      - SPLUNK_HEAVY_FORWARDER_URL=hf1,hf2
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+      - 8089
+
+  so2:
+    networks:
+      splunknet:
+        aliases:
+          - so2
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: so2
+    container_name: so2
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1, so2
+      - SPLUNK_HEAVY_FORWARDER_URL=hf1,hf2
+      - DEBUG=true
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+      - 8089
+
+  hf1:
+    networks:
+      splunknet:
+        aliases:
+          - hf1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    command: start
+    hostname: hf1
+    container_name: hf1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1,so2
+      - SPLUNK_HEAVY_FORWARDER_URL=hf1,hf2
+      - SPLUNK_ROLE=splunk_heavy_forwarder
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  hf2:
+    networks:
+      splunknet:
+        aliases:
+          - hf2
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    command: start
+    hostname: hf2
+    container_name: hf2
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1,so2
+      - SPLUNK_HEAVY_FORWARDER_URL=hf1,hf2
+      - SPLUNK_ROLE=splunk_heavy_forwarder
+      - SPLUNK_LICENSE_URI
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
+    volumes:
+      - ./defaults:/tmp/defaults
+
+  dmc:
+    networks:
+      splunknet:
+        aliases:
+          - dmc
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    command: start
+    hostname: dmc
+    container_name: dmc
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1,so2
+      - SPLUNK_HEAVY_FORWARDER_URL=hf1,hf2
+      - SPLUNK_ROLE=splunk_monitor
+      - SPLUNK_LICENSE_URI
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
