@@ -10,6 +10,7 @@ There are primarily two different ways to apply a license when starting your con
 * [Download via URL](#download-via-url)
 * [Free license](#splunk-free-license)
 * [Using a license master](#using-a-license-master)
+* [Using a remote instance](#using-a-remote-instance)
 
 ## Path to file
 We recommend using [Docker Secrets](https://docs.docker.com/engine/swarm/secrets) to manage your license. However, in a development environment, you can also specify a volume-mounted path to a file.
@@ -156,3 +157,34 @@ services:
 </p></details>
 
 Note that in the above, only the license master container `lm1` needs to download and apply the license. When the standalone `so1` container comes up, it will detect (based off the environment variable `SPLUNK_LICENSE_MASTER_URL`) that there is a central license master, and consequently add itself as a license slave to that host.
+
+## Using a remote instance
+Alternatively, you may elect to create your Splunk environment all within containers but host the license master externally such that it can be used by multiple teams or organizations. These images support this type of configuration, through the following example:
+```yaml
+version: "3.6"
+
+networks:
+  splunknet:
+    driver: bridge
+    attachable: true
+
+services:
+  so1:
+    networks:
+      splunknet:
+        aliases:
+          - so1
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    hostname: so1
+    container_name: so1
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_STANDALONE_URL=so1
+      - SPLUNK_LICENSE_MASTER_URL=http://central-license-master.internal.com:8088
+      - SPLUNK_ROLE=splunk_standalone
+      - SPLUNK_PASSWORD
+    ports:
+      - 8000
+```
+
+Note that it's possible to use a different protocol and port when supplying the license master URL. If scheme and port are not provided, the playbooks fall back to using `https` and the `8089` Splunk Enterprise management port.
