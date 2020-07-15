@@ -301,6 +301,9 @@ run_tests_centos7:
 	@echo 'Running the super awesome tests; CentOS 7'
 	pytest -sv tests/test_docker_splunk.py --platform centos-7 --junitxml test-results/centos7-result/testresults_centos7.xml
 
+cam:
+	pytest -n 1 tests/test_splunk_image.py --platform redhat-8
+
 run_tests_redhat8:
 	@echo 'Running the super awesome tests; RedHat 8'
 	pytest -sv tests/test_docker_splunk.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_redhat8.xml
