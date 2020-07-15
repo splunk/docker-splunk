@@ -15,6 +15,9 @@
 FROM debian:buster-slim
 LABEL maintainer="support@splunk.com"
 
+ARG SCLOUD_URL
+ENV SCLOUD_URL ${SCLOUD_URL}
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY install.sh /install.sh

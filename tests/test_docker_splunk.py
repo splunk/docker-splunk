@@ -152,7 +152,7 @@ class TestDockerSplunk(object):
     def get_number_of_containers(self, filename):
         yml = {}
         with open(filename, "r") as f:
-            yml = yaml.load(f)
+            yml = yaml.load(f, Loader=yaml.Loader)
         return len(yml["services"])
     
     def wait_for_containers(self, count, label=None, name=None, timeout=300):
@@ -228,6 +228,59 @@ class TestDockerSplunk(object):
             status, content = self.handle_request_retry("GET", url, kwargs)
             assert status == 200
         return True
+
+    def check_dmc(self, containers, num_peers, num_idx, num_sh, num_cm, num_lm):
+        for container in containers:
+            container_name = container["Names"][0].strip("/")
+            splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
+            if container_name == "dmc":
+                # check 1: curl -k https://localhost:8089/servicesNS/nobody/splunk_monitoring_console/configs/conf-splunk_monitoring_console_assets/settings?output_mode=json -u admin:helloworld
+                status, content = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/splunk_monitoring_console/configs/conf-splunk_monitoring_console_assets/settings?output_mode=json".format(splunkd_port), 
+                                                            {"auth": ("admin", self.password), "verify": False})
+                assert status == 200
+                output = json.loads(content)
+                assert output["entry"][0]["content"]["disabled"] == False
+                # check 2: curl -k https://localhost:8089/servicesNS/nobody/system/apps/local/splunk_monitoring_console?output_mode=json -u admin:helloworld
+                status, content = self.handle_request_retry("GET", "https://localhost:{}/servicesNS/nobody/system/apps/local/splunk_monitoring_console?output_mode=json".format(splunkd_port), 
+                                                            {"auth": ("admin", self.password), "verify": False})
+                assert status == 200
+                output = json.loads(content)
+                assert output["entry"][0]["content"]["disabled"] == False
+                # check 3: curl -k https://localhost:8089/services/search/distributed/peers?output_mode=json -u admin:helloworld
+                status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/peers?output_mode=json".format(splunkd_port),
+                                                            {"auth": ("admin", self.password), "verify": False})
+                assert status == 200
+                output = json.loads(content)
+                assert num_peers == len(output["entry"])
+                for peer in output["entry"]:
+                    assert peer["content"]["status"] == "Up"
+                self.check_dmc_groups(splunkd_port, num_idx, num_sh, num_cm, num_lm)
+
+    def check_dmc_groups(self, splunkd_port, num_idx, num_sh, num_cm, num_lm):
+        # check dmc_group_indexer
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_indexer?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_idx
+        # check dmc_group_cluster_master
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_cluster_master?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_cm
+        # check dmc_group_license_master
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_license_master?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_lm
+        # check dmc_group_search_head
+        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/search/distributed/groups/dmc_group_search_head?output_mode=json".format(splunkd_port), 
+                                                    {"auth": ("admin", self.password), "verify": False})
+        assert status == 200
+        output = json.loads(content)
+        assert len(output["entry"][0]["content"]["member"]) == num_sh
 
     def get_container_logs(self, container_id):
         stream = self.client.logs(container_id, stream=True)
@@ -402,7 +455,7 @@ class TestDockerSplunk(object):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
     
-    def test_splunk_uid_gid(self):
+    def test_splunk_scloud(self):
         cid = None
         try:
             # Run container
@@ -412,11 +465,13 @@ class TestDockerSplunk(object):
             # Wait a bit
             time.sleep(5)
             # If the container is still running, we should be able to exec inside
-            # Check that the git SHA exists in /opt/ansible
-            exec_command = self.client.exec_create(cid, "id", user="splunk")
+            # Check that the version returns successfully for multiple users
+            exec_command = self.client.exec_create(cid, "scloud version", user="splunk")
             std_out = self.client.exec_start(exec_command)
-            assert "uid=41812" in std_out
-            assert "gid=41812" in std_out
+            assert "scloud version " in std_out
+            exec_command = self.client.exec_create(cid, "scloud version", user="ansible")
+            std_out = self.client.exec_start(exec_command)
+            assert "scloud version " in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -434,7 +489,7 @@ class TestDockerSplunk(object):
             # Wait a bit
             time.sleep(5)
             # If the container is still running, we should be able to exec inside
-            # Check that the git SHA exists in /opt/ansible
+            # Check that the uid/gid is correct
             exec_command = self.client.exec_create(cid, "id", user="splunk")
             std_out = self.client.exec_start(exec_command)
             assert "uid=41812" in std_out
@@ -506,8 +561,8 @@ class TestDockerSplunk(object):
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
-    
-    def test_uf_uid_gid(self):
+
+    def test_uf_scloud(self):
         cid = None
         try:
             # Run container
@@ -517,11 +572,13 @@ class TestDockerSplunk(object):
             # Wait a bit
             time.sleep(5)
             # If the container is still running, we should be able to exec inside
-            # Check that the git SHA exists in /opt/ansible
-            exec_command = self.client.exec_create(cid, "id", user="splunk")
+            # Check that the version returns successfully for multiple users
+            exec_command = self.client.exec_create(cid, "scloud version", user="splunk")
             std_out = self.client.exec_start(exec_command)
-            assert "uid=41812" in std_out
-            assert "gid=41812" in std_out
+            assert "scloud version " in std_out
+            exec_command = self.client.exec_create(cid, "scloud version", user="ansible")
+            std_out = self.client.exec_start(exec_command)
+            assert "scloud version " in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -539,7 +596,7 @@ class TestDockerSplunk(object):
             # Wait a bit
             time.sleep(5)
             # If the container is still running, we should be able to exec inside
-            # Check that the git SHA exists in /opt/ansible
+            # Check that the uid/gid is correct
             exec_command = self.client.exec_create(cid, "id", user="splunk")
             std_out = self.client.exec_start(exec_command)
             assert "uid=41812" in std_out
@@ -1444,6 +1501,80 @@ class TestDockerSplunk(object):
                 os.remove(os.path.join(FIXTURES_DIR, "default.yml"))
             except OSError:
                 pass
+
+    def test_adhoc_1so_run_as_root(self):
+        # Create a splunk container
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], name=splunk_container_name, user="root",
+                                               environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_USER": "root",
+                                                            "SPLUNK_GROUP": "root"
+                                                        },
+                                               host_config=self.client.create_host_config(port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check that root owns the splunkd process
+            exec_command = self.client.exec_create(cid, "ps -u root", user="root")
+            std_out = self.client.exec_start(exec_command)
+            assert "entrypoint.sh" in std_out
+            assert "splunkd" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
+    def test_adhoc_1uf_run_as_root(self):
+        # Create a uf container
+        cid = None
+        try:
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089], name=splunk_container_name, user="root",
+                                               environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_USER": "root",
+                                                            "SPLUNK_GROUP": "root"
+                                                        },
+                                               host_config=self.client.create_host_config(port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check that root owns the splunkd process
+            exec_command = self.client.exec_create(cid, "ps -u root", user="root")
+            std_out = self.client.exec_start(exec_command)
+            assert "entrypoint.sh" in std_out
+            assert "splunkd" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
 
     def test_adhoc_1so_hec_idempotence(self):
         """
@@ -2479,10 +2610,18 @@ disabled = 1''' in std_out
                     exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/apps/splunk_app_example/local/", user="splunk")
                     std_out = self.client.exec_start(exec_command)
                     assert "savedsearches.conf" in std_out
+                    assert "app.conf" in std_out
+                    exec_command = self.client.exec_create(container["Id"], "cat /opt/splunk/etc/apps/splunk_app_example/local/app.conf", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "state = disabled" in std_out
                     # Check that the app exists in etc/deployment-apps
                     exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/deployment-apps/splunk_app_example/local/", user="splunk")
                     std_out = self.client.exec_start(exec_command)
-                    assert "savedsearches.conf" not in std_out
+                    assert "savedsearches.conf" in std_out
+                    assert "app.conf" in std_out
+                    exec_command = self.client.exec_create(container["Id"], "cat /opt/splunk/etc/deployment-apps/splunk_app_example/local/app.conf", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "# Autogenerated file " == std_out
                 if container_name == "cm1":
                     # Check if the created file exists
                     exec_command = self.client.exec_create(container["Id"], "cat /opt/splunk/etc/users/admin/user-prefs/local/user-prefs.conf", user="splunk")
@@ -2501,6 +2640,14 @@ disabled = 1''' in std_out
                             status, content = self.handle_request_retry("GET", url, kwargs)
                             assert status == 200
                             assert json.loads(content)["entry"][0]["content"]["version"] == "0.0.1"
+                            exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/apps/splunk_app_example/local/", user="splunk")
+                            std_out = self.client.exec_start(exec_command)
+                            assert "savedsearches.conf" in std_out
+                            assert "app.conf" in std_out
+                            exec_command = self.client.exec_create(container["Id"], "cat /opt/splunk/etc/apps/splunk_app_example/local/app.conf", user="splunk")
+                            std_out = self.client.exec_start(exec_command)
+                            assert "# Autogenerated file" in std_out
+                            assert "state = enabled" in std_out
                         except Exception as e:
                             self.logger.error(e)
                             if i < RETRIES-1:
@@ -2558,10 +2705,18 @@ disabled = 1''' in std_out
                     exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/apps/splunk_app_example/local/", user="splunk")
                     std_out = self.client.exec_start(exec_command)
                     assert "savedsearches.conf" in std_out
+                    assert "app.conf" in std_out
+                    exec_command = self.client.exec_create(container["Id"], "cat /opt/splunk/etc/apps/splunk_app_example/local/app.conf", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "state = disabled" in std_out
                     # Check that the app exists in etc/deployment-apps
                     exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/deployment-apps/splunk_app_example/local/", user="splunk")
                     std_out = self.client.exec_start(exec_command)
-                    assert "savedsearches.conf" not in std_out
+                    assert "savedsearches.conf" in std_out
+                    assert "app.conf" in std_out
+                    exec_command = self.client.exec_create(container["Id"], "cat /opt/splunk/etc/deployment-apps/splunk_app_example/local/app.conf", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "# Autogenerated file " == std_out
                 if container_name == "so1":
                     RETRIES = 5
                     for i in range(RETRIES):
@@ -2572,6 +2727,14 @@ disabled = 1''' in std_out
                             status, content = self.handle_request_retry("GET", url, kwargs)
                             assert status == 200
                             assert json.loads(content)["entry"][0]["content"]["version"] == "0.0.1"
+                            exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/apps/splunk_app_example/local/", user="splunk")
+                            std_out = self.client.exec_start(exec_command)
+                            assert "savedsearches.conf" in std_out
+                            assert "app.conf" in std_out
+                            exec_command = self.client.exec_create(container["Id"], "cat /opt/splunk/etc/apps/splunk_app_example/local/app.conf", user="splunk")
+                            std_out = self.client.exec_start(exec_command)
+                            assert "# Autogenerated file" in std_out
+                            assert "state = enabled" in std_out
                         except Exception as e:
                             self.logger.error(e)
                             if i < RETRIES-1:
@@ -2629,10 +2792,18 @@ disabled = 1''' in std_out
                     exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/apps/splunk_app_example/local/", user="splunk")
                     std_out = self.client.exec_start(exec_command)
                     assert "savedsearches.conf" in std_out
+                    assert "app.conf" in std_out
+                    exec_command = self.client.exec_create(container["Id"], "cat /opt/splunk/etc/apps/splunk_app_example/local/app.conf", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "state = disabled" in std_out
                     # Check that the app exists in etc/deployment-apps
                     exec_command = self.client.exec_create(container["Id"], "ls /opt/splunk/etc/deployment-apps/splunk_app_example/local/", user="splunk")
                     std_out = self.client.exec_start(exec_command)
-                    assert "savedsearches.conf" not in std_out
+                    assert "savedsearches.conf" in std_out
+                    assert "app.conf" in std_out
+                    exec_command = self.client.exec_create(container["Id"], "cat /opt/splunk/etc/deployment-apps/splunk_app_example/local/app.conf", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "# Autogenerated file " == std_out
                 if container_name == "uf1":
                     RETRIES = 5
                     for i in range(RETRIES):
@@ -2643,6 +2814,14 @@ disabled = 1''' in std_out
                             status, content = self.handle_request_retry("GET", url, kwargs)
                             assert status == 200
                             assert json.loads(content)["entry"][0]["content"]["version"] == "0.0.1"
+                            exec_command = self.client.exec_create(container["Id"], "ls /opt/splunkforwarder/etc/apps/splunk_app_example/local/", user="splunk")
+                            std_out = self.client.exec_start(exec_command)
+                            assert "savedsearches.conf" in std_out
+                            assert "app.conf" in std_out
+                            exec_command = self.client.exec_create(container["Id"], "cat /opt/splunkforwarder/etc/apps/splunk_app_example/local/app.conf", user="splunk")
+                            std_out = self.client.exec_start(exec_command)
+                            assert "# Autogenerated file" in std_out
+                            assert "state = enabled" in std_out
                         except Exception as e:
                             self.logger.error(e)
                             if i < RETRIES-1:
@@ -3199,7 +3378,7 @@ disabled = 1''' in std_out
                 self.logger.error(e)
                 raise e
         # Search results won't return the correct results immediately :(
-        time.sleep(15)
+        time.sleep(30)
         search_providers, distinct_hosts = self.search_internal_distinct_hosts("so1", password=self.password)
         assert len(search_providers) == 1
         assert search_providers[0] == "so1"
@@ -3275,7 +3454,7 @@ disabled = 1''' in std_out
                 assert "disabled = 0" in std_out
                 assert "[SSL]" in std_out
                 assert "serverCert = /tmp/defaults/cert.pem" in std_out
-                assert "[sslConfig]" in std_out
+                assert "[sslConfig]" not in std_out
                 assert "rootCA = /tmp/defaults/ca.pem" in std_out
                 if container_name == "cm1":
                     exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/outputs.conf", user="splunk")
@@ -3284,7 +3463,7 @@ disabled = 1''' in std_out
                     assert "sslPassword" in std_out
                     assert "useClientSSLCompression = true" in std_out
                     # Check that data is being forwarded properly
-                    time.sleep(15)
+                    time.sleep(30)
                     search_providers, distinct_hosts = self.search_internal_distinct_hosts("cm1", password=self.password)
                     assert len(search_providers) == 4
                     assert "idx1" in search_providers
@@ -3490,7 +3669,7 @@ disabled = 1''' in std_out
         assert len(output["entry"]) == 1
         assert output["entry"][0]["content"]["label"] == "cm1"
         assert output["entry"][0]["content"]["status"] == "Connected"
-    
+
     def test_adhoc_1cm_idxc_pass4symmkey(self):
         # Create the container
         cid = None
@@ -3636,6 +3815,61 @@ disabled = 1''' in std_out
             assert sh["content"]["label"] == "sh1" or sh["content"]["label"] == "cm1"
             assert sh["content"]["status"] == "Connected"
 
+    def test_compose_1sh1cm1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "1sh1cm1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 2, 0, 2, 1, 3)
+
+    def test_compose_1sh2idx2hf1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "1sh2idx2hf1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 3, 2, 2, 0, 4)
+
+    def test_compose_3idx1cm1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "3idx1cm1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 4, 3, 2, 1, 5)
+
+    def test_compose_1uf1so1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "1uf1so1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 1, 1, 1, 0, 2)
+
+    def test_compose_1so1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "1so1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 1, 1, 1, 0, 2)
+
     def test_compose_2idx2sh(self):
         # Standup deployment
         self.compose_file_name = "2idx2sh.yaml"
@@ -3676,12 +3910,23 @@ disabled = 1''' in std_out
                 peers = [x["content"]["peerName"] for x in output["entry"]]
                 assert len(peers) == 2 and set(peers) == set(idx_list)
         # Search results won't return the correct results immediately :(
-        time.sleep(15)
+        time.sleep(30)
         search_providers, distinct_hosts = self.search_internal_distinct_hosts("sh1", password=self.password)
         assert len(search_providers) == 3
         assert "idx1" in search_providers and "idx2" in search_providers and "sh1" in search_providers
         assert distinct_hosts == 4
-    
+
+    def test_compose_2idx2sh1dmc(self):
+        # Standup deployment
+        self.compose_file_name = "2idx2sh1dmc.yaml"
+        self.project_name = generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        # Wait for containers to come up
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+        self.check_dmc(containers, 4, 2, 3, 0, 5)
+
     def test_compose_1idx3sh1cm1dep(self):
         # Generate default.yml -- for SHC, we need a common default.yml otherwise things won't work
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
@@ -3774,7 +4019,7 @@ disabled = 1''' in std_out
                 os.remove(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"))
             except OSError as e:
                 pass
-        
+
     def test_compose_2idx2sh1cm(self):
         # Standup deployment
         self.compose_file_name = "2idx2sh1cm.yaml"
