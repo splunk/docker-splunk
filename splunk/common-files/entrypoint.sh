@@ -53,16 +53,16 @@ watch_for_failure(){
 	fi
 	echo ===============================================================================
 	echo
-	echo Ansible playbook complete, will begin streaming var/log/splunk/splunkd_stderr.log
-	echo
 	user_permission_change
 	if [ `whoami` != "${SPLUNK_USER}" ]; then
 		RUN_AS_SPLUNK="sudo -u ${SPLUNK_USER}"
 	fi
 	# Any crashes/errors while Splunk is running should get logged to splunkd_stderr.log and sent to the container's stdout
 	if [ -z "$SPLUNK_TAIL_FILE" ]; then
+		echo Ansible playbook complete, will begin streaming splunkd_stderr.log
 		${RUN_AS_SPLUNK} tail -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
 	else
+		echo Ansible playbook complete, will begin streaming ${SPLUNK_TAIL_FILE}
 		${RUN_AS_SPLUNK} tail -n 0 -f ${SPLUNK_TAIL_FILE} &
 	fi
 	wait

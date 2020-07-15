@@ -19,7 +19,12 @@ localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 export LANG=en_US.utf8
 
 yum -y update && yum -y install wget sudo epel-release
-yum -y install busybox ansible python-requests
+yum -y install busybox ansible python-requests python-jmespath
+
+# Install scloud
+wget -O /usr/bin/scloud.tar.gz ${SCLOUD_URL}
+tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
+rm /usr/bin/scloud.tar.gz
 
 cd /bin
 ln -s busybox killall
