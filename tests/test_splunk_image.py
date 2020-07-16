@@ -619,7 +619,7 @@ class TestDockerSplunk(Executor):
                 self.client.remove_container(cid, v=True, force=True)
 
 
-TODO: Figure out how this works
+#TODO: Figure out how this works
 
     def test_adhoc_1so_password_from_file(self):
         # Create a splunk container
