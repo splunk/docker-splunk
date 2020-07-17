@@ -59,7 +59,7 @@ splunk:
 ```
 
 ### Auto-generated Certificates
-If you're just getting your feet wet with DSP and these Docker images, it can be helpful to rely on the Docker image to generate the certificates for you. Using `SPLUNK_DSP_CERT=auto` or `splunk.dsp.cert: auto` will let let the container to create the certificate and print it out through the container's logs for you to register yourself:
+If you're just getting your feet wet with DSP and these Docker images, it can be helpful to rely on the Docker image to generate the certificates for you. Using `SPLUNK_DSP_CERT=auto` or `splunk.dsp.cert: auto` will let the container to create the certificate and print it out through the container's logs for you to register yourself:
 ```bash
 $ scloud forwarders add-certificate --pem "<copied from cert printed to container stdout>" 
 ```
