@@ -95,7 +95,7 @@ services:
       - ./.scloud_context:/home/splunk/.scloud_context
 ```
 
-Alternatively, this can also be done using the `default.yml` as such:
+Alternatively, this can also be done using the `default.yml` as so:
 ```yaml
 ---
 splunk:
