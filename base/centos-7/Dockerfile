@@ -15,5 +15,8 @@
 FROM centos:7
 LABEL maintainer="support@splunk.com"
 
+ARG SCLOUD_URL
+ENV SCLOUD_URL ${SCLOUD_URL}
+
 COPY install.sh /install.sh
 RUN /install.sh && rm -rf /install.sh

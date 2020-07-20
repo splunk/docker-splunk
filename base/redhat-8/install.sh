@@ -34,7 +34,7 @@ wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-mul
 chmod +x /bin/busybox
 microdnf -y --nodocs update gnutls kernel-headers
 microdnf -y --nodocs install python2-pip python2-devel redhat-rpm-config gcc libffi-devel openssl-devel
-pip2 --no-cache-dir install requests ansible
+pip2 --no-cache-dir install requests ansible jmespath
 microdnf -y remove gcc openssl-devel redhat-rpm-config python2-devel device-mapper-libs device-mapper trousers systemd systemd-pam \
                    dwz dbus dbus-common dbus-daemon dbus-tools dbus-libs go-srpm-macros iptables-libs annobin cryptsetup-libs \
                    ocaml-srpm-macros openblas-srpm-macros qt5-srpm-macros perl-srpm-macros rust-srpm-macros ghc-srpm-macros \
@@ -43,6 +43,11 @@ microdnf -y remove gcc openssl-devel redhat-rpm-config python2-devel device-mapp
                    elfutils-libs elfutils-debuginfod-client elfutils-default-yama-scope pcre2-devel pcre2-utf16 pcre2-utf32 \
                    libfdisk libpcap libseccomp libselinux-devel libutempter binutils libxcrypt-devel cpp glibc-devel glibc-headers \
                    krb5-devel libkadm5 platform-python-pip
+
+# Install scloud
+wget -O /usr/bin/scloud.tar.gz ${SCLOUD_URL}
+tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
+rm /usr/bin/scloud.tar.gz
 
 cd /bin
 ln -s python2 python || true

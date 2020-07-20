@@ -33,9 +33,14 @@ apt update
 # put back tools for customer support
 apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl gcc libpython-dev libffi-dev libssl-dev
 apt-get install -y --no-install-recommends python-pip python-setuptools python-requests python-yaml
-pip --no-cache-dir install ansible
+pip --no-cache-dir install ansible jmespath
 apt-get remove -y gcc libffi-dev libssl-dev libpython-dev
 apt-get autoremove -y
+
+# Install scloud
+wget -O /usr/bin/scloud.tar.gz ${SCLOUD_URL}
+tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
+rm /usr/bin/scloud.tar.gz
 
 cd /bin
 ln -s busybox killall

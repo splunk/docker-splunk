@@ -2,6 +2,7 @@
 
 ## Navigation
 
+* [8.0.5](#805)
 * [8.0.4.1](#8041)
 * [8.0.4](#804)
 * [8.0.3](#803)
@@ -30,6 +31,24 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.0.5
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise maintenance patch.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.0.5](https://docs.splunk.com/Documentation/Splunk/8.0.5/ReleaseNotes/Fixedissues)
+* Support for Splunk Cloud
+* Added tests and documentation for new features
+
+#### splunk-ansible changes:
+* Support for Splunk Enterprise Security (ES)
+* Added a role for the Distributed Monitoring Console (DMC)
+* Support for forwarding from the Splunk Data Stream Processor (DSP)
+* `splunk.license_master_url` now allows scheme and port to be set along with the protocol
 
 ---
 

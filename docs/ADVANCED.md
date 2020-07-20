@@ -17,6 +17,7 @@ Let's dive into the nitty-gritty of how to tweak the setup of your containerized
 * [Create custom configs](#create-custom-configs)
 * [Enable SmartStore](#enable-smartstore)
     * [Configure cache manager](#configure-cache-manager)
+* [Forward to Data Stream Processor](#forward-to-data-stream-processor)
 * [Use a deployment server](#use-a-deployment-server)
 * [Deploy distributed topology](#deploy-distributed-topology)
 * [Enable SSL internal communication](#enable-ssl-internal-communication)
@@ -51,17 +52,37 @@ When starting the docker container, the `default.yml` can be mounted in `/tmp/de
 
 Environment variables specified at runtime will take precedence over anything defined in `default.yml`.
 ```bash
-# Volume-mounting option
+# Volume-mounting option using --volumes/-v flag
 $ docker run -d -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
              -e "SPLUNK_START_ARGS=--accept-license" \
-             -v default.yml:/tmp/defaults/default.yml \
+             -v "$(pwd)/default.yml:/tmp/defaults/default.yml" \
+             splunk/splunk:latest
+
+# Volume-mounting option using --mount flag
+$ docker run -d -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
+             -e "SPLUNK_START_ARGS=--accept-license" \
+             --mount type=bind,source="$(pwd)"/default.yml,target=/tmp/defaults/default.yml
              splunk/splunk:latest
 
 # URL option
-$ docker run -d -p 8000:8000 -v -e "SPLUNK_PASSWORD=<password>" \
+$ docker run -d -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
              -e "SPLUNK_START_ARGS=--accept-license" \
              -e "SPLUNK_DEFAULTS_URL=http://company.net/path/to/default.yml" \
              splunk/splunk:latest
+```
+
+Additionally, note that you do not need to supply the full `default.yml` if you only choose to modify a portion of how Splunk Enterprise is configured upon boot. For instance, if you wish to take advantage of the ability to write conf files through the `splunk.conf` key, the full `default.yml` passed in will simply look like the following:
+```
+splunk:
+  conf:
+    - key: indexes
+      value:
+        directory: /opt/splunk/etc/system/local
+        content:
+          test:
+            homePath: $SPLUNK_DB/test/db
+            coldPath: $SPLUNK_DB/test/colddb
+            thawedPath: $SPLUNK_DB/test/thaweddb
 ```
 
 ### Configuration specs for default.yml
@@ -304,6 +325,9 @@ splunk:
         hotlist_bloom_filter_recency_hours: 1
   ...
 ```
+
+## Forward to Data Stream Processor
+See the [DSP integration document](advanced/DSP.md) to learn how to directly send data from a forwarder to [Splunk Data Stream Processor](https://www.splunk.com/en_us/software/stream-processing.html).
 
 ## Use a deployment server
 Deployment servers can be used to manage otherwise unclustered or disjoint Splunk instances. A primary use-case would be to stand up a deployment server to manage app or configuration distribution to a fleet of 100 universal forwarders.
