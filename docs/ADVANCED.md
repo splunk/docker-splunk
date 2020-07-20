@@ -17,6 +17,7 @@ Let's dive into the nitty-gritty of how to tweak the setup of your containerized
 * [Create custom configs](#create-custom-configs)
 * [Enable SmartStore](#enable-smartstore)
     * [Configure cache manager](#configure-cache-manager)
+* [Forward to Data Stream Processor](#forward-to-data-stream-processor)
 * [Use a deployment server](#use-a-deployment-server)
 * [Deploy distributed topology](#deploy-distributed-topology)
 * [Enable SSL internal communication](#enable-ssl-internal-communication)
@@ -324,6 +325,9 @@ splunk:
         hotlist_bloom_filter_recency_hours: 1
   ...
 ```
+
+## Forward to Data Stream Processor
+See the [DSP integration document](advanced/DSP.md) to learn how to directly send data from a forwarder to [Splunk Data Stream Processor](https://www.splunk.com/en_us/software/stream-processing.html).
 
 ## Use a deployment server
 Deployment servers can be used to manage otherwise unclustered or disjoint Splunk instances. A primary use-case would be to stand up a deployment server to manage app or configuration distribution to a fleet of 100 universal forwarders.
