@@ -2,7 +2,8 @@
 # encoding: utf-8
 
 #TODO: add
-#test_adhoc_1so_upgrade, test_compose_1deployment1cm, test_compose_1deployment1so, test_compose_1deployment1uf, test_compose_1so_apps, test_compose_1uf_apps, test_compose_3idx1cm_splunktcp_ssl, test_compose_1idx3sh1cm1dep
+#test_adhoc_1so_upgrade, test_compose_1deployment1cm, test_compose_1deployment1so, test_compose_1deployment1uf, test_compose_1so_apps, test_compose_1uf_apps, 
+# test_compose_3idx1cm_splunktcp_ssl, test_compose_1idx3sh1cm1dep, test_compose_3idx1cm_splunktcp_ssl
 
 import pytest
 import time
@@ -104,7 +105,7 @@ class TestDockerSplunk(Executor):
         except:
             pass
 
-    def wait_for_containers(self, count, label=None, name=None, timeout=100000):
+    def wait_for_containers(self, count, label=None, name=None, timeout=500):
         '''
         NOTE: This helper method can only be used for `compose up` scenarios where self.project_name is defined
         '''
@@ -3126,96 +3127,3 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
      
-
-    # def test_compose_3idx1cm_splunktcp_ssl(self):
-    #     # Generate default.yml
-    #     self.project_name = generate_random_string()
-    #     self.DIR = os.path.join(FIXTURES_DIR, self.project_name)
-    #     os.mkdir(self.DIR)
-    #     cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
-    #     self.client.start(cid.get("Id"))
-    #     output = self.get_container_logs(cid.get("Id"))
-    #     self.client.remove_container(cid.get("Id"), v=True, force=True)
-    #     # Get the password
-    #     password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
-    #     assert password and password != "null"
-    #     # Commands to generate self-signed certificates for Splunk here: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
-    #     passphrase = "carolebaskindidit"
-    #     cmds = [    
-    #                 "openssl genrsa -aes256 -passout pass:{pw} -out {path}/ca.key 2048".format(pw=passphrase, path=self.DIR),
-    #                 "openssl req -new -key {path}/ca.key -passin pass:{pw} -out {path}/ca.csr -subj /CN=localhost".format(pw=passphrase, path=self.DIR),
-    #                 "openssl x509 -req -in {path}/ca.csr -sha512 -passin pass:{pw} -signkey {path}/ca.key -CAcreateserial -out {path}/ca.pem -days 3".format(pw=passphrase, path=self.DIR),
-    #                 "openssl genrsa -aes256 -passout pass:{pw} -out {path}/server.key 2048".format(pw=passphrase, path=self.DIR),
-    #                 "openssl req -new -passin pass:{pw} -key {path}/server.key -out {path}/server.csr -subj /CN=localhost".format(pw=passphrase, path=self.DIR),
-    #                 "openssl x509 -req -passin pass:{pw} -in {path}/server.csr -SHA256 -CA {path}/ca.pem -CAkey {path}/ca.key -CAcreateserial -out {path}/server.pem -days 3".format(pw=passphrase, path=self.DIR),
-    #                 "cat {path}/server.pem {path}/server.key {path}/ca.pem > {path}/cert.pem".format(path=self.DIR)
-    #         ]
-    #     for cmd in cmds:
-    #         execute_cmd = subprocess.check_output(["/bin/sh", "-c", cmd])
-    #     # Update s2s ssl settings
-    #     output = re.sub(r'''  s2s:.*?ssl: false''', r'''  s2s:
-    # ca: /tmp/defaults/ca.pem
-    # cert: /tmp/defaults/cert.pem
-    # enable: true
-    # password: {}
-    # port: 9997
-    # ssl: true'''.format(passphrase), output, flags=re.DOTALL)
-    #     # Write the default.yml to a file
-    #     with open(os.path.join(self.DIR, "default.yml"), "w") as f:
-    #         f.write(output)
-    #     # Standup deployment
-    #     try:
-    #         self.compose_file_name = "3idx1cm.yaml"
-    #         self.edit_service_names()
-    #         container_count, rc = self.compose_up_dir()
-    #         assert rc == 0
-    #         # Wait for containers to come up
-    #         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
-    #         # Get container logs
-    #         container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
-    #         for container in container_mapping:
-    #             # Check ansible version & configs
-    #             ansible_logs = self.get_container_logs("{}-{}".format(container, self.project_name))
-    #             self.check_ansible(ansible_logs)
-    #             # Check values in log output
-    #             inventory_json = self.extract_json("{}-{}".format(container, self.project_name))
-    #             self.check_common_keys(inventory_json, container_mapping[container])
-    #             try:
-    #                 assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
-    #                 assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
-    #             except KeyError as e:
-    #                 self.logger.error(e)
-    #                 raise e
-    #         # Check Splunkd on all the containers
-    #         assert self.check_splunkd("admin", self.password)
-    #         # Make sure apps are installed, and shcluster is setup properly
-    #         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-    #         assert len(containers) == 4
-    #         for container in containers:
-    #             container_name = container["Names"][0].strip("/")
-    #             cid = container["Id"]
-    #             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/inputs.conf", user="splunk")
-    #             std_out = self.client.exec_start(exec_command)
-    #             assert "[splunktcp-ssl:9997]" in std_out  #TODO: Broken here
-    #             assert "disabled = 0" in std_out
-    #             assert "[SSL]" in std_out
-    #             assert "serverCert = /tmp/defaults/cert.pem" in std_out
-    #             assert "[sslConfig]" not in std_out
-    #             assert "rootCA = /tmp/defaults/ca.pem" in std_out
-    #             if "cm1" in container_name:
-    #                 exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/outputs.conf", user="splunk")
-    #                 std_out = self.client.exec_start(exec_command)
-    #                 assert "clientCert = /tmp/defaults/cert.pem" in std_out
-    #                 assert "sslPassword" in std_out
-    #                 assert "useClientSSLCompression = true" in std_out
-    #                 # Check that data is being forwarded properly
-    #                 time.sleep(30)
-    #                 search_providers, distinct_hosts = self.search_internal_distinct_hosts("cm1-{}".format(self.project_name), password=self.password)
-    #                 assert len(search_providers) == 4
-    #                 assert "idx1" in search_providers
-    #                 assert "idx2" in search_providers
-    #                 assert "idx3" in search_providers
-    #                 assert distinct_hosts == 4
-    #     except Exception as e:
-    #         self.logger.error(e)
-    #         raise e
