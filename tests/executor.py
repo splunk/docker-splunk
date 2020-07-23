@@ -114,3 +114,13 @@ class Executor(object):
                 break
             output += char
         return output
+
+    def get_container_logs1(self, container_id):
+        container_id = "{}_{}_1".format(self.project_name, container_id)
+        stream = self.client.logs(container_id, stream=True)
+        output = ""
+        for char in stream:
+            if "Ansible playbook complete" in char:
+                break
+            output += char
+        return output

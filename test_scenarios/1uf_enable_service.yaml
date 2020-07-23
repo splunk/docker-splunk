@@ -12,7 +12,6 @@ services:
         aliases:
           - uf1
     image: ${UF_IMAGE:-splunk/universalforwarder:latest}
-    container_name: uf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_ENABLE_SERVICE=true

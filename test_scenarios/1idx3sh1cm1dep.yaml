@@ -13,7 +13,6 @@ services:
           - appserver
     image: nwang92/nginx-mitm
     hostname: appserver
-    container_name: appserver
     ports:
       - 80
     volumes:
@@ -26,7 +25,6 @@ services:
           - dep1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: dep1
-    container_name: dep1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1
@@ -52,7 +50,6 @@ services:
           - sh1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: sh1
-    container_name: sh1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1
@@ -77,7 +74,6 @@ services:
           - sh2
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: sh2
-    container_name: sh2
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1
@@ -102,7 +98,6 @@ services:
           - sh3
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: sh3
-    container_name: sh3
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1
@@ -127,7 +122,6 @@ services:
           - cm1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: cm1
-    container_name: cm1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1
@@ -153,7 +147,6 @@ services:
           - idx1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: idx1
-    container_name: idx1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1

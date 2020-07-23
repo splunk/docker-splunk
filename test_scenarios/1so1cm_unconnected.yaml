@@ -13,7 +13,6 @@ services:
           - cm1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: cm1
-    container_name: cm1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_ROLE=splunk_cluster_master
@@ -30,7 +29,6 @@ services:
           - so1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: so1
-    container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - DEBUG=true
