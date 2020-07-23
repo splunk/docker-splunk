@@ -82,8 +82,11 @@ class TestDockerSplunk(Executor):
         self.DIR = None
 
     def teardown_method(self, method):
-        if self.compose_file_name and self.project_name and self.DIR:
-            command = "docker-compose -p {} -f {} down --volumes --remove-orphans".format(self.project_name, os.path.join(self.DIR, self.compose_file_name))
+        if self.compose_file_name and self.project_name:
+            if self.DIR:
+                command = "docker-compose -p {} -f {} down --volumes --remove-orphans".format(self.project_name, os.path.join(self.DIR, self.compose_file_name))
+            else:
+                command = "docker-compose -p {} -f test_scenarios/{} down --volumes --remove-orphans".format(self.project_name, self.compose_file_name)
             out, err, rc = self._run_command(command)
             self._clean_docker_env()
         if self.DIR:
@@ -160,11 +163,6 @@ class TestDockerSplunk(Executor):
                     continue
                 raise e
 
-    def tar_example_app(self):
-        # Tar the app before spinning up scenario
-        with tarfile.open(EXAMPLE_APP_TGZ, "w:gz") as tar:
-            tar.add(EXAMPLE_APP, arcname=os.path.basename(EXAMPLE_APP))
-
     def check_splunkd(self, username, password, name=None, scheme="https"):
         '''
         NOTE: This helper method can only be used for `compose up` scenarios where self.project_name is defined
@@ -229,22 +227,6 @@ class TestDockerSplunk(Executor):
         out, err, rc = self._run_command(command)
         return container_count, rc
 
-    def compose_up_dir(self):
-        container_count = self.get_number_of_containers(os.path.join(SCENARIOS_DIR, self.compose_file_name))
-        command = "docker-compose -p {} -f {} up -d".format(self.project_name, os.path.join(self.DIR, self.compose_file_name))
-        out, err, rc = self._run_command(command)
-        return container_count, rc
-
-    def compose_up_with_directory(self):
-        self.DIR = os.path.join(FIXTURES_DIR, self.project_name)
-        os.mkdir(self.DIR)
-        self.edit_service_names()
-        f = os.path.join(self.DIR, self.compose_file_name)
-        container_count = self.get_number_of_containers(f)
-        command = "docker-compose -p {} -f {} up -d".format(self.project_name, f)
-        out, err, rc = self._run_command(command)
-        return self.DIR, container_count, rc
-
     def extract_json(self, container_name):
         retries = 15
         for i in range(retries):
@@ -261,8 +243,8 @@ class TestDockerSplunk(Executor):
             self.logger.error(e)
             return None
 
-    def extract_json_with_project_name(self, container_name):
-        container_name = container_name + "-{}".format(self.project_name)
+    def extract_json1(self, container_name):
+        container_name = "{}_{}_1".format(self.project_name, container_name)
         retries = 15
         for i in range(retries):
             exec_command = self.client.exec_create(container_name, "cat /opt/container_artifact/ansible_inventory.json")
@@ -277,23 +259,6 @@ class TestDockerSplunk(Executor):
         except Exception as e:
             self.logger.error(e)
             return None
-
-    def edit_service_names(self):
-        yml = {}
-        with open(os.path.join(SCENARIOS_DIR, self.compose_file_name)) as f:
-            yml = yaml.load(f, Loader=yaml.Loader)
-        
-        yml = dict(yml)
-        for key in yml['services'].keys():
-            yml['services'][key]['container_name'] = yml['services'][key]['container_name'] + "-{}".format(self.project_name)
-
-        with open(os.path.join(self.DIR, self.compose_file_name), "w") as f:
-            yaml.dump(yml, f)
-    
-    def remove_all_containers(self):
-        containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-        for container in containers:
-            self.client.remove_container(container["Id"], v=True, force=True)
 
     def get_number_of_containers(self, filename):
         yml = {}
@@ -1777,14 +1742,14 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so_trial.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("so1")
+        log_json = self.extract_json1("so1")
         self.check_common_keys(log_json, "so")
         # Check container logs
-        output = self.get_container_logs("so1-{}".format(self.project_name))
+        output = self.get_container_logs1("so1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -1793,14 +1758,14 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so_custombuild.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("so1")
+        log_json = self.extract_json1("so1")
         self.check_common_keys(log_json, "so")
         # Check container logs
-        output = self.get_container_logs("so1-{}".format(self.project_name))
+        output = self.get_container_logs1("so1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -1811,15 +1776,15 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so_namedvolumes.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("so1")
+        log_json = self.extract_json1("so1")
         self.check_common_keys(log_json, "so")
         # Check container logs
-        output = self.get_container_logs("so1-{}".format(self.project_name))
+        output = self.get_container_logs1("so1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -1830,15 +1795,15 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so_before_start_cmd.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("so1")
+        log_json = self.extract_json1("so1")
         self.check_common_keys(log_json, "so")
         # Check container logs
-        output = self.get_container_logs("so1-{}".format(self.project_name))
+        output = self.get_container_logs1("so1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -1852,15 +1817,15 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1uf_before_start_cmd.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("uf1")
+        log_json = self.extract_json1("uf1")
         self.check_common_keys(log_json, "uf")
         # Check container logs
-        output = self.get_container_logs("uf1-{}".format(self.project_name))
+        output = self.get_container_logs1("uf1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -1873,15 +1838,15 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so_splunk_add_user.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("so1")
+        log_json = self.extract_json1("so1")
         self.check_common_keys(log_json, "so")
         # Check container logs
-        output = self.get_container_logs("so1-{}".format(self.project_name))
+        output = self.get_container_logs1("so1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -1894,15 +1859,15 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1hf_splunk_add_user.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("hf1")
+        log_json = self.extract_json1("hf1")
         self.check_common_keys(log_json, "hf")
         # Check container logs
-        output = self.get_container_logs("hf1-{}".format(self.project_name))
+        output = self.get_container_logs1("hf1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -1915,15 +1880,15 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1uf_splunk_add_user.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("uf1")
+        log_json = self.extract_json1("uf1")
         self.check_common_keys(log_json, "uf")
         # Check container logs
-        output = self.get_container_logs("uf1-{}".format(self.project_name))
+        output = self.get_container_logs1("uf1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -1937,15 +1902,15 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1uf_splunk_cmd.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("uf1")
+        log_json = self.extract_json1("uf1")
         self.check_common_keys(log_json, "uf")
         # Check container logs
-        output = self.get_container_logs("uf1-{}".format(self.project_name))
+        output = self.get_container_logs1("uf1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -1958,12 +1923,12 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so_java_oracle.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("so1")
+        log_json = self.extract_json1("so1")
         self.check_common_keys(log_json, "so")
         try:
             assert log_json["all"]["vars"]["java_version"] == "oracle:8"
@@ -1971,19 +1936,19 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("so1-{}".format(self.project_name))
+        output = self.get_container_logs1("so1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if java is installed
-        exec_command = self.client.exec_create("so1-{}".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command)
         assert "java version \"1.8.0" in std_out
         # Restart the container and make sure java is still installed
-        self.client.restart("so1-{}".format(self.project_name))
+        self.client.restart("{}_so1_1".format(self.project_name))
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
-        exec_command = self.client.exec_create("so1-{}".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command)
         assert "java version \"1.8.0" in std_out
  
@@ -1992,12 +1957,12 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so_java_openjdk8.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("so1")
+        log_json = self.extract_json1("so1")
         self.check_common_keys(log_json, "so")
         try:
             assert log_json["all"]["vars"]["java_version"] == "openjdk:8"
@@ -2005,19 +1970,19 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("so1-{}".format(self.project_name))
+        output = self.get_container_logs1("so1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if java is installed
-        exec_command = self.client.exec_create("so1-{}".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command)
         assert "openjdk version \"1.8.0" in std_out
         # Restart the container and make sure java is still installed
-        self.client.restart("so1-{}".format(self.project_name))
+        self.client.restart("{}_so1_1".format(self.project_name))
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
-        exec_command = self.client.exec_create("so1-{}".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command)
         assert "openjdk version \"1.8.0" in std_out
  
@@ -2026,12 +1991,12 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so_java_openjdk11.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("so1")
+        log_json = self.extract_json1("so1")
         self.check_common_keys(log_json, "so")
         try:
             assert log_json["all"]["vars"]["java_version"] == "openjdk:11"
@@ -2039,19 +2004,19 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("so1-{}".format(self.project_name))
+        output = self.get_container_logs1("so1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if java is installed
-        exec_command = self.client.exec_create("so1-{}".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command)
         assert "openjdk version \"11.0.2" in std_out
         # Restart the container and make sure java is still installed
-        self.client.restart("so1-{}".format(self.project_name))
+        self.client.restart("{}_so1_1".format(self.project_name))
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
-        exec_command = self.client.exec_create("so1-{}".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command)
         assert "openjdk version \"11.0.2" in std_out
 
@@ -2059,12 +2024,12 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so_hec.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("so1")
+        log_json = self.extract_json1("so1")
         self.check_common_keys(log_json, "so")
         try:
             # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
@@ -2073,7 +2038,7 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("so1-{}".format(self.project_name))
+        output = self.get_container_logs1("so1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -2091,12 +2056,12 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1uf_hec.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("uf1")
+        log_json = self.extract_json1("uf1")
         self.check_common_keys(log_json, "uf")
         try:
             # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
@@ -2105,7 +2070,7 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("uf1-{}".format(self.project_name))
+        output = self.get_container_logs1("uf1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -2123,12 +2088,12 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so_enable_service.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("so1")
+        log_json = self.extract_json1("so1")
         self.check_common_keys(log_json, "so")
         try:
             # enable_service is set in the compose file
@@ -2137,17 +2102,17 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("so1-{}".format(self.project_name))
+        output = self.get_container_logs1("so1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if service is registered
         if 'debian' in PLATFORM:
-            exec_command = self.client.exec_create("so1-{}".format(self.project_name), "sudo service splunk status")
+            exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "sudo service splunk status")
             std_out = self.client.exec_start(exec_command)
             assert "splunkd is running" in std_out
         else:
-            exec_command = self.client.exec_create("so1-{}".format(self.project_name), "stat /etc/init.d/splunk")
+            exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "stat /etc/init.d/splunk")
             std_out = self.client.exec_start(exec_command)
             assert "/etc/init.d/splunk" in std_out
  
@@ -2155,12 +2120,12 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1uf_enable_service.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json_with_project_name("uf1")
+        log_json = self.extract_json1("uf1")
         self.check_common_keys(log_json, "uf")
         try:
             # enable_service is set in the compose file
@@ -2169,17 +2134,17 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("uf1-{}".format(self.project_name))
+        output = self.get_container_logs1("uf1")
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if service is registered
         if 'debian' in PLATFORM:
-            exec_command = self.client.exec_create("uf1-{}".format(self.project_name), "sudo service splunk status")
+            exec_command = self.client.exec_create("{}_uf1_1".format(self.project_name), "sudo service splunk status")
             std_out = self.client.exec_start(exec_command)
             assert "splunkd is running" in std_out
         else:
-            exec_command = self.client.exec_create("uf1-{}".format(self.project_name), "stat /etc/init.d/splunk")
+            exec_command = self.client.exec_create("{}_uf1_1".format(self.project_name), "stat /etc/init.d/splunk")
             std_out = self.client.exec_start(exec_command)
             assert "/etc/init.d/splunk" in std_out
  
@@ -2187,7 +2152,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1uf1so.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2195,10 +2160,10 @@ disabled = 1''' in std_out
         container_mapping = {"so1": "so", "uf1": "uf"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs("{}-{}".format(container, self.project_name))
+            ansible_logs = self.get_container_logs1("{}".format(container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json("{}-{}".format(container, self.project_name))
+            inventory_json = self.extract_json1("{}".format(container))
             self.check_common_keys(inventory_json, container_mapping[container])
             try:
                 assert inventory_json["splunk_standalone"]["hosts"] == ["so1"]
@@ -2207,7 +2172,7 @@ disabled = 1''' in std_out
                 raise e
         # Search results won't return the correct results immediately :(
         time.sleep(30)
-        search_providers, distinct_hosts = self.search_internal_distinct_hosts("so1-{}".format(self.project_name), password=self.password)
+        search_providers, distinct_hosts = self.search_internal_distinct_hosts("{}_so1_1".format(self.project_name), password=self.password)
         assert len(search_providers) == 1
         assert search_providers[0] == "so1"
         assert distinct_hosts == 2
@@ -2230,8 +2195,7 @@ disabled = 1''' in std_out
         # Standup deployment
         try:
             self.compose_file_name = "3idx1cm.yaml"
-            self.edit_service_names()
-            container_count, rc = self.compose_up_dir()
+            container_count, rc = self.compose_up()
             assert rc == 0
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
@@ -2239,10 +2203,10 @@ disabled = 1''' in std_out
             container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
             for container in container_mapping:
                 # Check ansible version & configs
-                ansible_logs = self.get_container_logs("{}-{}".format(container, self.project_name))
+                ansible_logs = self.get_container_logs1("{}".format(container))
                 self.check_ansible(ansible_logs)
                 # Check values in log output
-                inventory_json = self.extract_json("{}-{}".format(container, self.project_name))
+                inventory_json = self.extract_json1("{}".format(container))
                 self.check_common_keys(inventory_json, container_mapping[container])
                 try:
                     assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
@@ -2256,9 +2220,9 @@ disabled = 1''' in std_out
             containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
             assert len(containers) == 4
             for container in containers:
-                container_name = container["Names"][0].strip("/")
+                container_name = container["Names"][0].strip("/").split('_')[1]
                 splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
-                if container_name == "cm1-{}".format(self.project_name):
+                if container_name == "cm1":
                     # Check the replication factor & search factor
                     url = "https://localhost:{}/services/cluster/config/config?output_mode=json".format(splunkd_port)
                     kwargs = {"auth": ("admin", self.password), "verify": False}
@@ -2291,8 +2255,7 @@ disabled = 1''' in std_out
         # Standup deployment
         try:
             self.compose_file_name = "3idx1cm.yaml"
-            self.edit_service_names()
-            container_count, rc = self.compose_up_dir()
+            container_count, rc = self.compose_up()
             assert rc == 0
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
@@ -2300,10 +2263,10 @@ disabled = 1''' in std_out
             container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
             for container in container_mapping:
                 # Check ansible version & configs
-                ansible_logs = self.get_container_logs("{}-{}".format(container, self.project_name))
+                ansible_logs = self.get_container_logs1("{}".format(container))
                 self.check_ansible(ansible_logs)
                 # Check values in log output
-                inventory_json = self.extract_json("{}-{}".format(container, self.project_name))
+                inventory_json = self.extract_json1("{}".format(container))
                 self.check_common_keys(inventory_json, container_mapping[container])
                 try:
                     assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
@@ -2317,9 +2280,9 @@ disabled = 1''' in std_out
             containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
             assert len(containers) == 4
             for container in containers:
-                container_name = container["Names"][0].strip("/")
+                container_name = container["Names"][0].strip("/").split('_')[1]
                 splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
-                if container_name == "cm1-{}".format(self.project_name):
+                if container_name == "cm1":
                     # Check the replication factor & search factor
                     url = "https://localhost:{}/services/cluster/config/config?output_mode=json".format(splunkd_port)
                     kwargs = {"auth": ("admin", self.password), "verify": False}
@@ -2335,7 +2298,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so1cm_connected.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2343,10 +2306,10 @@ disabled = 1''' in std_out
         container_mapping = {"so1": "so", "cm1": "cm"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs("{}-{}".format(container, self.project_name))
+            ansible_logs = self.get_container_logs1("{}".format(container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json("{}-{}".format(container, self.project_name))
+            inventory_json = self.extract_json1("{}".format(container))
             self.check_common_keys(inventory_json, container_mapping[container])
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -2366,7 +2329,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so1cm_unconnected.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2374,10 +2337,10 @@ disabled = 1''' in std_out
         container_mapping = {"so1": "so", "cm1": "cm"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs("{}-{}".format(container, self.project_name))
+            ansible_logs = self.get_container_logs1("{}".format(container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json("{}-{}".format(container, self.project_name))
+            inventory_json = self.extract_json1("{}".format(container))
             self.check_common_keys(inventory_json, container_mapping[container])
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -2507,7 +2470,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1sh1cm.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2515,10 +2478,10 @@ disabled = 1''' in std_out
         container_mapping = {"sh1": "sh", "cm1": "cm"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs("{}-{}".format(container, self.project_name))
+            ansible_logs = self.get_container_logs1("{}".format(container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json("{}-{}".format(container, self.project_name))
+            inventory_json = self.extract_json1("{}".format(container))
             self.check_common_keys(inventory_json, container_mapping[container])
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -2539,7 +2502,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1sh1cm1dmc.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2550,7 +2513,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1sh2idx2hf1dmc.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2561,7 +2524,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "3idx1cm1dmc.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2572,7 +2535,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1uf1so1dmc.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2583,7 +2546,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "1so1dmc.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2594,7 +2557,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "2idx2sh1dmc.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2605,7 +2568,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "2idx2sh.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2613,10 +2576,10 @@ disabled = 1''' in std_out
         container_mapping = {"sh1": "sh", "sh2": "sh", "idx1": "idx", "idx2": "idx"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs("{}-{}".format(container, self.project_name))
+            ansible_logs = self.get_container_logs1("{}".format(container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json("{}-{}".format(container, self.project_name))
+            inventory_json = self.extract_json1("{}".format(container))
             self.check_common_keys(inventory_json, container_mapping[container])
             try:
                 assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
@@ -2642,7 +2605,7 @@ disabled = 1''' in std_out
                 assert len(peers) == 2 and set(peers) == set(idx_list)
         # Search results won't return the correct results immediately :(
         time.sleep(30)
-        search_providers, distinct_hosts = self.search_internal_distinct_hosts("sh1-{}".format(self.project_name), password=self.password)
+        search_providers, distinct_hosts = self.search_internal_distinct_hosts("{}_sh1_1".format(self.project_name), password=self.password)
         assert len(search_providers) == 3
         assert "idx1" in search_providers and "idx2" in search_providers and "sh1" in search_providers
         assert distinct_hosts == 4
@@ -2651,7 +2614,7 @@ disabled = 1''' in std_out
         # Standup deployment
         self.compose_file_name = "2idx2sh1cm.yaml"
         self.project_name = generate_random_string()
-        self.DIR, container_count, rc = self.compose_up_with_directory()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -2659,10 +2622,10 @@ disabled = 1''' in std_out
         container_mapping = {"sh1": "sh", "sh2": "sh", "idx1": "idx", "idx2": "idx", "cm1": "cm"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs("{}-{}".format(container, self.project_name))
+            ansible_logs = self.get_container_logs1("{}".format(container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json("{}-{}".format(container, self.project_name))
+            inventory_json = self.extract_json1("{}".format(container))
             self.check_common_keys(inventory_json, container_mapping[container])
             try:
                 assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
@@ -2696,11 +2659,10 @@ disabled = 1''' in std_out
         assert len(idx_list) == 0 and len(sh_list) == 0
         # Add one more indexer
         self.compose_file_name = "2idx2sh1cm_idx3.yaml"
-        self.edit_service_names()
-        container_count, rc = self.compose_up_dir()
+        container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
-        assert self.wait_for_containers(container_count, name="idx3")
+        assert self.wait_for_containers(container_count, name="{}_idx3_1".format(self.project_name))
 
         retries = 10
         for n in range(retries):
@@ -3131,7 +3093,6 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
      
-flaky
     def test_adhoc_1so_upgrade(self):
         # Pull the old image
         for line in self.client.pull("splunk/splunk:{}".format(OLD_SPLUNK_VERSION), stream=True, decode=True):
