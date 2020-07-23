@@ -13,7 +13,6 @@ services:
           - appserver
     image: nwang92/nginx-mitm
     hostname: appserver
-    container_name: appserver
     ports:
       - 80
     volumes:
@@ -26,7 +25,6 @@ services:
           - depserver1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: depserver1
-    container_name: depserver1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_ROLE=splunk_deployment_server
@@ -45,7 +43,6 @@ services:
           - cm1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: cm1
-    container_name: cm1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_DEPLOYMENT_SERVER=depserver1

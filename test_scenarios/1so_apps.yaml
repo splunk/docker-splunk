@@ -13,7 +13,6 @@ services:
           - appserver
     image: nwang92/nginx-mitm
     hostname: appserver
-    container_name: appserver
     ports:
       - 80
     volumes:
@@ -26,7 +25,6 @@ services:
           - so1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: so1
-    container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_PASSWORD
