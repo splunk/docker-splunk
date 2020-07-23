@@ -47,6 +47,8 @@ formatter = logging.Formatter('%(asctime)s %(levelname)s [%(name)s] [%(process)d
 file_handler.setFormatter(formatter)
 LOGGER.addHandler(file_handler)
 
+os.environ['COMPOSE_HTTP_TIMEOUT']='200'
+os.environ['DOCKER_CLIENT_TIMEOUT']='200'
 
 def pytest_generate_tests(metafunc):
     # This is called for every test. Only get/set command line arguments
