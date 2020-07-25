@@ -1576,6 +1576,118 @@ class TestDockerSplunk(object):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
+    def test_adhoc_1so_declarative_password(self):
+        """
+        This test is intended to check how the container gets provisioned with declarative passwords
+        """
+        # Create a splunk container
+        cid = None
+        try:
+            # Start the container using no-provision, otherwise we can't mutate the password
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+                                            name=splunk_container_name,
+                                            command="no-provision",
+                                            environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_DECLARATIVE_ADMIN_PASSWORD": "true"
+                                                        },
+                                            host_config=self.client.create_host_config(port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Create a new /tmp/defaults/default.yml to change desired HEC settings
+            exec_command = self.client.exec_create(cid, "mkdir -p /tmp/defaults", user="splunk")
+            self.client.exec_start(exec_command)
+            exec_command = self.client.exec_create(cid, "touch /tmp/defaults/default.yml", user="splunk")
+            self.client.exec_start(exec_command)
+            exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
+splunk:
+  password: thisisarealpassword123
+EOL'
+''', user="splunk")
+            self.client.exec_start(exec_command)
+            # Execute ansible
+            exec_command = self.client.exec_create(cid, "/sbin/entrypoint.sh start-and-exit")
+            std_out = self.client.exec_start(exec_command)
+            # Check splunk with the initial password
+            assert self.check_splunkd("admin", "thisisarealpassword123")
+            # Mutate the password so that ansible changes it on the next run
+            exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
+splunk:
+  password: thisisadifferentpw456
+EOL'
+''', user="splunk")
+            self.client.exec_start(exec_command)
+            # Execute ansible again
+            exec_command = self.client.exec_create(cid, "/sbin/entrypoint.sh start-and-exit")
+            stdout = self.client.exec_start(exec_command)
+            # Check splunk with the initial password
+            assert self.check_splunkd("admin", "thisisadifferentpw456")
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
+    def test_adhoc_1uf_declarative_password(self):
+        """
+        This test is intended to check how the container gets provisioned with declarative passwords
+        """
+        # Create a splunk container
+        cid = None
+        try:
+            # Start the container using no-provision, otherwise we can't mutate the password
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089], 
+                                            name=splunk_container_name,
+                                            command="no-provision",
+                                            environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_DECLARATIVE_ADMIN_PASSWORD": "true"
+                                                        },
+                                            host_config=self.client.create_host_config(port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Create a new /tmp/defaults/default.yml to change desired HEC settings
+            exec_command = self.client.exec_create(cid, "mkdir -p /tmp/defaults", user="splunk")
+            self.client.exec_start(exec_command)
+            exec_command = self.client.exec_create(cid, "touch /tmp/defaults/default.yml", user="splunk")
+            self.client.exec_start(exec_command)
+            exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
+splunk:
+  password: thisisarealpassword123
+EOL'
+''', user="splunk")
+            self.client.exec_start(exec_command)
+            # Execute ansible
+            exec_command = self.client.exec_create(cid, "/sbin/entrypoint.sh start-and-exit")
+            std_out = self.client.exec_start(exec_command)
+            # Check splunk with the initial password
+            assert self.check_splunkd("admin", "thisisarealpassword123")
+            # Mutate the password so that ansible changes it on the next run
+            exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
+splunk:
+  password: thisisadifferentpw456
+EOL'
+''', user="splunk")
+            self.client.exec_start(exec_command)
+            # Execute ansible again
+            exec_command = self.client.exec_create(cid, "/sbin/entrypoint.sh start-and-exit")
+            stdout = self.client.exec_start(exec_command)
+            # Check splunk with the initial password
+            assert self.check_splunkd("admin", "thisisadifferentpw456")
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
     def test_adhoc_1so_hec_idempotence(self):
         """
         This test is intended to check how the container gets provisioned with changing splunk.hec.* parameters
@@ -1610,6 +1722,8 @@ disabled = 0
             assert "tcp        0      0 0.0.0.0:8088            0.0.0.0:*               LISTEN" in std_out
             # Create a new /tmp/defaults/default.yml to change desired HEC settings
             exec_command = self.client.exec_create(cid, "mkdir -p /tmp/defaults", user="splunk")
+            self.client.exec_start(exec_command)
+            exec_command = self.client.exec_create(cid, "touch /tmp/defaults/default.yml", user="splunk")
             self.client.exec_start(exec_command)
             exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
 splunk:
