@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-#TODO: add test_compose_3idx1cm_splunktcp_ssl, test_compose_3idx1cm_splunktcp_ssl
+#TODO: add test_compose_3idx1cm_splunktcp_ssl, test_compose_3idx1cm_splunktcp_ssl, 1idx3sh1cm1dep
 
 import pytest
 import time
@@ -2952,7 +2952,6 @@ disabled = 1''' in std_out
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
-     
 
     def test_adhoc_1so_splunkd_custom_ssl(self):
         # Generate default.yml
@@ -3023,7 +3022,6 @@ disabled = 1''' in std_out
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
-     
 
     def test_adhoc_1uf_splunkd_custom_ssl(self):
         # Generate default.yml
@@ -3153,6 +3151,7 @@ disabled = 1''' in std_out
                 self.client.remove_container(cid, v=True, force=True)
 
     def test_compose_1deployment1cm(self):
+        os.mkdir(os.path.join(SCENARIOS_DIR, "defaults", "1deployment1cm"))
         # Generate default.yml
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -3170,6 +3169,9 @@ disabled = 1''' in std_out
             search_syntax_highlighting: dark
             search_assistant:
           "serverClass:secrets:app:test": {}''', output)
+        # Write the default.yml to a file
+        with open(os.path.join(SCENARIOS_DIR, "defaults", "1deployment1cm", "default.yml"), "w") as f:
+            f.write(output)
         # Standup deployment
         try:
             self.compose_file_name = "1deployment1cm.yaml"
@@ -3179,14 +3181,13 @@ disabled = 1''' in std_out
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
             # Get container logs
-            container_mapping = {"{}_cm1_1".format(self.project_name): "cm", "{}_depserver1_1".format(self.project_name): "deployment_server"}
-            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+            container_mapping = {"cm1": "cm", "depserver1": "deployment_server"}
             for container in container_mapping:
                 # Check ansible version & configs
-                ansible_logs = self.get_container_logs(container)
+                ansible_logs = self.get_container_logs1(container)
                 self.check_ansible(ansible_logs)
                 # Check values in log output
-                inventory_json = self.extract_json(container)
+                inventory_json = self.extract_json1(container)
                 self.check_common_keys(inventory_json, container_mapping[container])
             # Check Splunkd on all the containers
             assert self.check_splunkd("admin", self.password)
@@ -3197,8 +3198,7 @@ disabled = 1''' in std_out
                 # Skip the nginx container
                 if "nginx" in container["Image"]:
                     continue
-                container_name = container["Names"][0].strip("/")
-                container_name = container_name.split('_')[1]
+                container_name = container["Names"][0].strip("/").split('_')[1]
                 splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
                 if container_name == "depserver1":
                     # Check the app and version
@@ -3257,6 +3257,11 @@ disabled = 1''' in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
+        finally:
+            try:
+                rmtree(os.path.join(SCENARIOS_DIR, "defaults", "1deployment1cm"))
+            except:
+                pass
 
     def test_compose_1deployment1so(self):
         # Standup deployment
@@ -3418,95 +3423,6 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
 
-
-    def test_compose_1idx3sh1cm1dep(self):
-        # Generate default.yml -- for SHC, we need a common default.yml otherwise things won't work
-        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
-        self.client.start(cid.get("Id"))
-        output = self.get_container_logs(cid.get("Id"))
-        self.client.remove_container(cid.get("Id"), v=True, force=True)
-        # Get the password
-        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
-        assert password and password != "null"
-        # Standup deployment
-        try:
-            self.compose_file_name = "1idx3sh1cm1dep.yaml"
-            self.project_name = generate_random_string()
-            container_count, rc = self.compose_up()
-            assert rc == 0
-            # Wait for containers to come up
-            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
-            # Get container logs
-            container_mapping = {
-                "{}_sh1_1".format(self.project_name): "sh", 
-                "{}_sh2_1".format(self.project_name): "sh", 
-                "{}_sh3_1".format(self.project_name): "sh", 
-                "{}_cm1_1".format(self.project_name): "cm", 
-                "{}_idx1_1".format(self.project_name): "idx", 
-                "{}_dep1_1".format(self.project_name): "dep"
-                }
-            for container in container_mapping:
-                # Check ansible version & configs
-                ansible_logs = self.get_container_logs(container)
-                self.check_ansible(ansible_logs)
-                # Check values in log output
-                inventory_json = self.extract_json(container)
-                self.check_common_keys(inventory_json, container_mapping[container])
-                try:
-                    assert inventory_json["splunk_indexer"]["hosts"] == ["idx1"]
-                    assert inventory_json["splunk_search_head_captain"]["hosts"] == ["sh1"]
-                    assert inventory_json["splunk_search_head"]["hosts"] == ["sh2", "sh3"]
-                    assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
-                    assert inventory_json["splunk_deployer"]["hosts"] == ["dep1"]
-                except KeyError as e:
-                    self.logger.error(e)
-                    raise e
-            # Check Splunkd on all the containers
-            assert self.check_splunkd("admin", self.password)
-            # Make sure apps are installed, and shcluster is setup properly
-            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-            assert len(containers) == 7
-            for container in containers:
-                # Skip the nginx container
-                if "nginx" in container["Image"]:
-                    continue
-                container_name = container["Names"][0].strip("/")
-                container_name = container_name.split('_')[1]
-                splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
-                if container_name in {"sh1", "sh2", "sh3", "idx1"}:
-                    # Check the app and version
-                    url = "https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port)
-                    kwargs = {"auth": ("admin", self.password), "verify": False}
-                    status, content = self.handle_request_retry("GET", url, kwargs)
-                    assert status == 200
-                    assert json.loads(content)["entry"][0]["content"]["version"] == "0.0.1"
-                # Make sure preferred captain is set
-                if container_name == "sh1":
-                    url = "https://localhost:{}/servicesNS/nobody/system/configs/conf-server/shclustering?output_mode=json".format(splunkd_port)
-                    kwargs = {"auth": ("admin", self.password), "verify": False}
-                    status, content = self.handle_request_retry("GET", url, kwargs)
-                    assert json.loads(content)["entry"][0]["content"]["preferred_captain"] == "1"
-            # Search results won't return the correct results immediately :(
-            time.sleep(30)
-            RETRIES = 10
-            IMPLICIT_WAIT = 6
-            for n in range(RETRIES):
-                try:
-                    self.logger.info("Attempt #{}: checking internal search host count".format(n+1))
-                    search_providers, distinct_hosts = self.search_internal_distinct_hosts("{}_sh1_1".format(self.project_name), password=self.password)
-                    assert len(search_providers) == 2
-                    assert "idx1" in search_providers and "sh1" in search_providers
-                    assert distinct_hosts == 6
-                    break
-                except Exception as e:
-                    self.logger.error("Attempt #{} error: {}".format(n+1, str(e)))
-                    if n < RETRIES-1:
-                        time.sleep(IMPLICIT_WAIT)
-                        continue
-                    raise e
-        except Exception as e:
-            self.logger.error(e)
-            raise e
 
     def test_compose_1so_apps(self):
         # Standup deployment

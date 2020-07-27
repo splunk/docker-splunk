@@ -34,7 +34,7 @@ services:
     ports:
       - 8089
     volumes:
-      - ./defaults:/tmp/defaults
+      - ./defaults/1deployment1cm:/tmp/defaults
 
   cm1:
     networks:
@@ -54,4 +54,4 @@ services:
       - 8000
       - 8089
     volumes:
-      - ./defaults:/tmp/defaults
+      - ./defaults/1deployment1cm:/tmp/defaults
