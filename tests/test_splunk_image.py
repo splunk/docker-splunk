@@ -2497,7 +2497,7 @@ disabled = 1''' in std_out
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         for container in containers:
             container_name = container["Names"][0].strip("/").split('_')[1]
-            splunkd_port = self.client.port(containers[0]["Id"], 8089)[0]["HostPort"]
+            splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
             if container_name == "cm1":
                 status, content = self.handle_request_retry("GET", "https://localhost:{}/services/cluster/master/searchheads?output_mode=json".format(splunkd_port), 
                                                             {"auth": ("admin", self.password), "verify": False})
