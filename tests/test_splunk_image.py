@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-#TODO: add test_compose_3idx1cm_splunktcp_ssl, test_compose_3idx1cm_splunktcp_ssl, 1idx3sh1cm1dep
-
 import pytest
 import time
 import re
@@ -98,6 +96,15 @@ class TestDockerSplunk(Executor):
                 pass
         self.compose_file_name, self.project_name, self.DIR = None, None, None
 
+    def cleanup_files(self, files):
+        try:
+            for file in files:
+                os.remove(file)
+        except OSError as e:
+            pass
+        except Exception as e:
+            raise e
+
     def _clean_docker_env(self):
         # Remove anything spun up by docker-compose
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
@@ -108,6 +115,17 @@ class TestDockerSplunk(Executor):
             self.client.prune_volumes()
         except:
             pass
+
+    def check_for_default(self):
+        print("WAITING FOR DEFAULT TO BE REMOVED")
+        count = 0
+        while True:
+            if not os.path.isfile(os.path.join(DEFAULTS_DIR, "default.yml")): 
+                break
+            if count == 100:
+                assert False
+            count += 1
+            time.sleep(10)
 
     def wait_for_containers(self, count, label=None, name=None, timeout=500):
         '''
@@ -945,6 +963,70 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
+    def test_compose_3idx1cm_custom_repl_factor(self):
+        self.check_for_default()
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
+        # Change repl factor & search factor
+        output = re.sub(r'    replication_factor: 3', r'''    replication_factor: 2''', output)
+        output = re.sub(r'    search_factor: 3', r'''    search_factor: 1''', output)
+        # Write the default.yml to a file
+        with open(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
+            f.write(output)
+        # Standup deployment
+        try:
+            self.compose_file_name = "3idx1cm.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
+            # Get container logs
+            container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
+            for container in container_mapping:
+                # Check ansible version & configs
+                ansible_logs = self.get_container_logs1(container)
+                self.check_ansible(ansible_logs)
+                # Check values in log output
+                inventory_json = self.extract_json1(container)
+                self.check_common_keys(inventory_json, container_mapping[container])
+                try:
+                    assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
+                    assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
+                except KeyError as e:
+                    self.logger.error(e)
+                    raise e
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Make sure apps are installed, and shcluster is setup properly
+            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+            assert len(containers) == 4
+            for container in containers:
+                container_name = container["Names"][0].strip("/").split("_")[1]
+                splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
+                if container_name == "cm1":
+                    # Check the replication factor & search factor
+                    url = "https://localhost:{}/services/cluster/config/config?output_mode=json".format(splunkd_port)
+                    kwargs = {"auth": ("admin", self.password), "verify": False}
+                    status, content = self.handle_request_retry("GET", url, kwargs)
+                    assert status == 200
+                    assert json.loads(content)["entry"][0]["content"]["replication_factor"] == 2
+                    assert json.loads(content)["entry"][0]["content"]["search_factor"] == 1
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            try:
+                os.remove(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"))
+            except OSError as e:
+                pass
+
     def test_adhoc_1uf_splunk_pass4symmkey(self):
         # Create a splunk container
         cid = None
@@ -1505,6 +1587,96 @@ disabled = 1''' in std_out
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
+
+    def test_compose_1idx3sh1cm1dep(self):
+        self.check_for_default()
+        # Generate default.yml -- for SHC, we need a common default.yml otherwise things won't work
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
+        # Write the default.yml to a file
+        with open(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
+            f.write(output)
+        # Standup deployment
+        try:
+            self.compose_file_name = "1idx3sh1cm1dep.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
+            # Get container logs
+            container_mapping = {"sh1": "sh", "sh2": "sh", "sh3": "sh", "cm1": "cm", "idx1": "idx", "dep1": "dep"}
+            for container in container_mapping:
+                # Check ansible version & configs
+                ansible_logs = self.get_container_logs1(container)
+                self.check_ansible(ansible_logs)
+                # Check values in log output
+                inventory_json = self.extract_json1(container)
+                self.check_common_keys(inventory_json, container_mapping[container])
+                try:
+                    assert inventory_json["splunk_indexer"]["hosts"] == ["idx1"]
+                    assert inventory_json["splunk_search_head_captain"]["hosts"] == ["sh1"]
+                    assert inventory_json["splunk_search_head"]["hosts"] == ["sh2", "sh3"]
+                    assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
+                    assert inventory_json["splunk_deployer"]["hosts"] == ["dep1"]
+                except KeyError as e:
+                    self.logger.error(e)
+                    raise e
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Make sure apps are installed, and shcluster is setup properly
+            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+            assert len(containers) == 7
+            for container in containers:
+                # Skip the nginx container
+                if "nginx" in container["Image"]:
+                    continue
+                container_name = container["Names"][0].strip("/").split("_")[1]
+                splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
+                if container_name in {"sh1", "sh2", "sh3", "idx1"}:
+                    # Check the app and version
+                    url = "https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port)
+                    kwargs = {"auth": ("admin", self.password), "verify": False}
+                    status, content = self.handle_request_retry("GET", url, kwargs)
+                    assert status == 200
+                    assert json.loads(content)["entry"][0]["content"]["version"] == "0.0.1"
+                # Make sure preferred captain is set
+                if container_name == "sh1":
+                    url = "https://localhost:{}/servicesNS/nobody/system/configs/conf-server/shclustering?output_mode=json".format(splunkd_port)
+                    kwargs = {"auth": ("admin", self.password), "verify": False}
+                    status, content = self.handle_request_retry("GET", url, kwargs)
+                    assert json.loads(content)["entry"][0]["content"]["preferred_captain"] == "1"
+            # Search results won't return the correct results immediately :(
+            time.sleep(30)
+            RETRIES = 10
+            IMPLICIT_WAIT = 6
+            for n in range(RETRIES):
+                try:
+                    self.logger.info("Attempt #{}: checking internal search host count".format(n+1))
+                    search_providers, distinct_hosts = self.search_internal_distinct_hosts("{}_sh1_1".format(self.project_name), password=self.password)
+                    assert len(search_providers) == 2
+                    assert "idx1" in search_providers and "sh1" in search_providers
+                    assert distinct_hosts == 6
+                    break
+                except Exception as e:
+                    self.logger.error("Attempt #{} error: {}".format(n+1, str(e)))
+                    if n < RETRIES-1:
+                        time.sleep(IMPLICIT_WAIT)
+                        continue
+                    raise e
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            try:
+                os.remove(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"))
+            except OSError as e:
+                pass
 
     def test_adhoc_1so_hec_ssl_disabled(self):
         # Create the container
@@ -2180,9 +2352,7 @@ disabled = 1''' in std_out
         assert distinct_hosts == 2
  
     def test_compose_3idx1cm_default_repl_factor(self):
-        self.project_name = generate_random_string()
-        self.DIR = os.path.join(FIXTURES_DIR, self.project_name)
-        os.mkdir(self.DIR)
+        self.check_for_default()
         # Generate default.yml
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -2192,11 +2362,12 @@ disabled = 1''' in std_out
         password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
         assert password and password != "null"
         # Write the default.yml to a file
-        with open(os.path.join(self.DIR, "default.yml"), "w") as f:
+        with open(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
             f.write(output)
         # Standup deployment
         try:
             self.compose_file_name = "3idx1cm.yaml"
+            self.project_name = generate_random_string()
             container_count, rc = self.compose_up()
             assert rc == 0
             # Wait for containers to come up
@@ -2205,10 +2376,10 @@ disabled = 1''' in std_out
             container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
             for container in container_mapping:
                 # Check ansible version & configs
-                ansible_logs = self.get_container_logs1("{}".format(container))
+                ansible_logs = self.get_container_logs1(container)
                 self.check_ansible(ansible_logs)
                 # Check values in log output
-                inventory_json = self.extract_json1("{}".format(container))
+                inventory_json = self.extract_json1(container)
                 self.check_common_keys(inventory_json, container_mapping[container])
                 try:
                     assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
@@ -2222,7 +2393,7 @@ disabled = 1''' in std_out
             containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
             assert len(containers) == 4
             for container in containers:
-                container_name = container["Names"][0].strip("/").split('_')[1]
+                container_name = container["Names"][0].strip("/").split("_")[1]
                 splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
                 if container_name == "cm1":
                     # Check the replication factor & search factor
@@ -2235,66 +2406,11 @@ disabled = 1''' in std_out
         except Exception as e:
             self.logger.error(e)
             raise e
-
-    def test_compose_3idx1cm_custom_repl_factor(self):
-        self.project_name = generate_random_string()
-        self.DIR = os.path.join(FIXTURES_DIR, self.project_name)
-        os.mkdir(self.DIR)
-        # Generate default.yml
-        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
-        self.client.start(cid.get("Id"))
-        output = self.get_container_logs(cid.get("Id"))
-        self.client.remove_container(cid.get("Id"), v=True, force=True)
-        # Get the password
-        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
-        assert password and password != "null"
-        # Change repl factor & search factor
-        output = re.sub(r'    replication_factor: 3', r'''    replication_factor: 2''', output)
-        output = re.sub(r'    search_factor: 3', r'''    search_factor: 1''', output)
-        # Write the default.yml to a file
-        with open(os.path.join(self.DIR, "default.yml"), "w") as f:
-            f.write(output)
-        # Standup deployment
-        try:
-            self.compose_file_name = "3idx1cm.yaml"
-            container_count, rc = self.compose_up()
-            assert rc == 0
-            # Wait for containers to come up
-            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
-            # Get container logs
-            container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
-            for container in container_mapping:
-                # Check ansible version & configs
-                ansible_logs = self.get_container_logs1("{}".format(container))
-                self.check_ansible(ansible_logs)
-                # Check values in log output
-                inventory_json = self.extract_json1("{}".format(container))
-                self.check_common_keys(inventory_json, container_mapping[container])
-                try:
-                    assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
-                    assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
-                except KeyError as e:
-                    self.logger.error(e)
-                    raise e
-            # Check Splunkd on all the containers
-            assert self.check_splunkd("admin", self.password)
-            # Make sure apps are installed, and shcluster is setup properly
-            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
-            assert len(containers) == 4
-            for container in containers:
-                container_name = container["Names"][0].strip("/").split('_')[1]
-                splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
-                if container_name == "cm1":
-                    # Check the replication factor & search factor
-                    url = "https://localhost:{}/services/cluster/config/config?output_mode=json".format(splunkd_port)
-                    kwargs = {"auth": ("admin", self.password), "verify": False}
-                    status, content = self.handle_request_retry("GET", url, kwargs)
-                    assert status == 200
-                    assert json.loads(content)["entry"][0]["content"]["replication_factor"] == 3
-                    assert json.loads(content)["entry"][0]["content"]["search_factor"] == 3
-        except Exception as e:
-            self.logger.error(e)
-            raise e
+        finally:
+            try:
+                os.remove(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"))
+            except OSError as e:
+                pass
 
     def test_compose_1so1cm_connected(self):
         # Standup deployment
@@ -3085,8 +3201,6 @@ disabled = 1''' in std_out
             self.client.start(cid)
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=self.project_name)
-            # Check splunkd
-            assert self.check_splunkd("admin", password)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/system/local/server.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -3105,65 +3219,75 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
      
-    # def test_adhoc_1so_upgrade(self):
-    #     # Pull the old image
-    #     for line in self.client.pull("splunk/splunk:{}".format(OLD_SPLUNK_VERSION), stream=True, decode=True):
-    #         continue
-    #     # Create the "splunk-old" container
-    #     try:
-    #         cid = None
-    #         splunk_container_name = generate_random_string()
-    #         user = "admin"
-    #         cid = self.client.create_container("splunk/splunk:{}".format(OLD_SPLUNK_VERSION), tty=True, ports=[8089, 8088], hostname="splunk",
-    #                                         name=splunk_container_name, environment={"DEBUG": "true", "SPLUNK_HEC_TOKEN": "qwerty", "SPLUNK_PASSWORD": self.password, "SPLUNK_START_ARGS": "--accept-license"},
-    #                                         host_config=self.client.create_host_config(mounts=[Mount("/opt/splunk/etc", "opt-splunk-etc"), Mount("/opt/splunk/var", "opt-splunk-var")],
-    #                                                                                    port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
-    #                                         )
-    #         cid = cid.get("Id")
-    #         self.client.start(cid)
-    #         # Poll for the container to be ready
-    #         assert self.wait_for_containers(1, name=splunk_container_name)
-    #         # Check splunkd
-    #         assert self.check_splunkd(user, self.password)
-    #         # Add some data via HEC
-    #         splunk_hec_port = self.client.port(cid, 8088)[0]["HostPort"]
-    #         url = "https://localhost:{}/services/collector/event".format(splunk_hec_port)
-    #         kwargs = {"json": {"event": "world never says hello back"}, "verify": False, "headers": {"Authorization": "Splunk qwerty"}}
-    #         status, content = self.handle_request_retry("POST", url, kwargs)
-    #         assert status == 200
-    #         # Sleep to let the data index
-    #         time.sleep(3)
-    #         # Remove the "splunk-old" container
-    #         self.client.remove_container(cid, v=False, force=True)
-    #         # Create the "splunk-new" container re-using volumes
-    #         splunk_container_name = generate_random_string()
-    #         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8000], hostname="splunk",
-    #                                         name=splunk_container_name, environment={"DEBUG": "true", "SPLUNK_HEC_TOKEN": "qwerty", "SPLUNK_PASSWORD": self.password, "SPLUNK_START_ARGS": "--accept-license"},
-    #                                         host_config=self.client.create_host_config(mounts=[Mount("/opt/splunk/etc", "opt-splunk-etc"), Mount("/opt/splunk/var", "opt-splunk-var")],
-    #                                                                                    port_bindings={8089: ("0.0.0.0",), 8000: ("0.0.0.0",)})
-    #                                         )
-    #         cid = cid.get("Id")
-    #         self.client.start(cid)
-    #         # Poll for the container to be ready
-    #         assert self.wait_for_containers(1, name=splunk_container_name)
-    #         # Check splunkd
-    #         assert self.check_splunkd(user, self.password) #error is probably here
-    #         # Run a search
-    #         time.sleep(3)
-    #         query = "search index=main earliest=-10m"
-    #         meta, results = self._run_splunk_query(cid, query, user, self.password)
-    #         results = results["results"]
-    #         assert len(results) == 1
-    #         assert results[0]["_raw"] == "world never says hello back"
-    #     except Exception as e:
-    #         self.logger.error(e)
-    #         raise e
-    #     finally:
-    #         if cid:
-    #             self.client.remove_container(cid, v=True, force=True)
+    def test_adhoc_1so_upgrade(self):
+        # Pull the old image
+        for line in self.client.pull("splunk/splunk:{}".format(OLD_SPLUNK_VERSION), stream=True, decode=True):
+            continue
+        # Create the "splunk-old" container
+        try:
+            cid = None
+            splunk_container_name = generate_random_string()
+            user, password = "admin", generate_random_string()
+            cid = self.client.create_container("splunk/splunk:{}".format(OLD_SPLUNK_VERSION), tty=True, ports=[8089, 8088], hostname="splunk",
+                                            name=splunk_container_name, environment={"DEBUG": "true", "SPLUNK_HEC_TOKEN": "qwerty", "SPLUNK_PASSWORD": password, "SPLUNK_START_ARGS": "--accept-license"},
+                                            host_config=self.client.create_host_config(mounts=[Mount("/opt/splunk/etc", "opt-splunk-etc"), Mount("/opt/splunk/var", "opt-splunk-var")],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8088: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name), "name": splunk_container_name})
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Add some data via HEC
+            splunk_hec_port = self.client.port(cid, 8088)[0]["HostPort"]
+            url = "https://localhost:{}/services/collector/event".format(splunk_hec_port)
+            kwargs = {"json": {"event": "world never says hello back"}, "verify": False, "headers": {"Authorization": "Splunk qwerty"}}
+            status, content = self.handle_request_retry("POST", url, kwargs)
+            assert status == 200
+            # Sleep to let the data index
+            time.sleep(3)
+            # Remove the "splunk-old" container
+            self.client.remove_container(cid, v=False, force=True)
+            # Create the "splunk-new" container re-using volumes
+            splunk_container_name = generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8000], hostname="splunk",
+                                            name=splunk_container_name, environment={"DEBUG": "true", "SPLUNK_HEC_TOKEN": "qwerty", "SPLUNK_PASSWORD": password, "SPLUNK_START_ARGS": "--accept-license"},
+                                            host_config=self.client.create_host_config(mounts=[Mount("/opt/splunk/etc", "opt-splunk-etc"), Mount("/opt/splunk/var", "opt-splunk-var")],
+                                                                                       port_bindings={8089: ("0.0.0.0",), 8000: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name), "name": splunk_container_name})
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Run a search
+            time.sleep(3)
+            query = "search index=main earliest=-10m"
+            meta, results = self._run_splunk_query(cid, query, user, password)
+            results = results["results"]
+            assert len(results) == 1
+            assert results[0]["_raw"] == "world never says hello back"
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
 
     def test_compose_1deployment1cm(self):
-        os.mkdir(os.path.join(SCENARIOS_DIR, "defaults", "1deployment1cm"))
+        self.check_for_default()
         # Generate default.yml
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -3182,7 +3306,7 @@ disabled = 1''' in std_out
             search_assistant:
           "serverClass:secrets:app:test": {}''', output)
         # Write the default.yml to a file
-        with open(os.path.join(SCENARIOS_DIR, "defaults", "1deployment1cm", "default.yml"), "w") as f:
+        with open(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
             f.write(output)
         # Standup deployment
         try:
@@ -3210,7 +3334,7 @@ disabled = 1''' in std_out
                 # Skip the nginx container
                 if "nginx" in container["Image"]:
                     continue
-                container_name = container["Names"][0].strip("/").split('_')[1]
+                container_name = container["Names"][0].strip("/").split("_")[1]
                 splunkd_port = self.client.port(container["Id"], 8089)[0]["HostPort"]
                 if container_name == "depserver1":
                     # Check the app and version
@@ -3271,8 +3395,8 @@ disabled = 1''' in std_out
             raise e
         finally:
             try:
-                rmtree(os.path.join(SCENARIOS_DIR, "defaults", "1deployment1cm"))
-            except:
+                os.remove(os.path.join(SCENARIOS_DIR, "defaults", "default.yml"))
+            except OSError as e:
                 pass
 
     def test_compose_1deployment1so(self):
@@ -3516,3 +3640,106 @@ disabled = 1''' in std_out
             # Let's go further and check app version
             output = json.loads(content)
             assert output["entry"][0]["content"]["version"] == "0.0.1"
+
+    def test_compose_3idx1cm_splunktcp_ssl(self):
+        self.check_for_default()
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
+        # Commands to generate self-signed certificates for Splunk here: https://docs.splunk.com/Documentation/Splunk/latest/Security/ConfigureSplunkforwardingtousesignedcertificates
+        passphrase = "carolebaskindidit"
+        cmds = [    
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/ca.key 2048".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "openssl req -new -key {path}/ca.key -passin pass:{pw} -out {path}/ca.csr -subj /CN=localhost".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "openssl x509 -req -in {path}/ca.csr -sha512 -passin pass:{pw} -signkey {path}/ca.key -CAcreateserial -out {path}/ca.pem -days 3".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "openssl genrsa -aes256 -passout pass:{pw} -out {path}/server.key 2048".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "openssl req -new -passin pass:{pw} -key {path}/server.key -out {path}/server.csr -subj /CN=localhost".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "openssl x509 -req -passin pass:{pw} -in {path}/server.csr -SHA256 -CA {path}/ca.pem -CAkey {path}/ca.key -CAcreateserial -out {path}/server.pem -days 3".format(pw=passphrase, path=DEFAULTS_DIR),
+                    "cat {path}/server.pem {path}/server.key {path}/ca.pem > {path}/cert.pem".format(path=DEFAULTS_DIR)
+            ]
+        for cmd in cmds:
+            execute_cmd = subprocess.check_output(["/bin/sh", "-c", cmd])
+        # Update s2s ssl settings
+        output = re.sub(r'''  s2s:.*?ssl: false''', r'''  s2s:
+    ca: /tmp/defaults/ca.pem
+    cert: /tmp/defaults/cert.pem
+    enable: true
+    password: {}
+    port: 9997
+    ssl: true'''.format(passphrase), output, flags=re.DOTALL)
+        # Write the default.yml to a file
+        with open(os.path.join(DEFAULTS_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Standup deployment
+        try:
+            self.compose_file_name = "3idx1cm.yaml"
+            self.project_name = generate_random_string()
+            container_count, rc = self.compose_up()
+            assert rc == 0
+            # Wait for containers to come up
+            assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
+            # Get container logs
+            container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
+            for container in container_mapping:
+                # Check ansible version & configs
+                ansible_logs = self.get_container_logs1(container)
+                self.check_ansible(ansible_logs)
+                # Check values in log output
+                inventory_json = self.extract_json1(container)
+                self.check_common_keys(inventory_json, container_mapping[container])
+                try:
+                    assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
+                    assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
+                except KeyError as e:
+                    self.logger.error(e)
+                    raise e
+            # Check Splunkd on all the containers
+            assert self.check_splunkd("admin", self.password)
+            # Make sure apps are installed, and shcluster is setup properly
+            containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
+            assert len(containers) == 4
+            for container in containers:
+                container_name = container["Names"][0].strip("/").split("_")[1]
+                cid = container["Id"]
+                exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/inputs.conf", user="splunk")
+                std_out = self.client.exec_start(exec_command)
+                assert "[splunktcp-ssl:9997]" in std_out
+                assert "disabled = 0" in std_out
+                assert "[SSL]" in std_out
+                assert "serverCert = /tmp/defaults/cert.pem" in std_out
+                assert "[sslConfig]" not in std_out
+                assert "rootCA = /tmp/defaults/ca.pem" in std_out
+                if container_name == "cm1":
+                    exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/outputs.conf", user="splunk")
+                    std_out = self.client.exec_start(exec_command)
+                    assert "clientCert = /tmp/defaults/cert.pem" in std_out
+                    assert "sslPassword" in std_out
+                    assert "useClientSSLCompression = true" in std_out
+                    # Check that data is being forwarded properly
+                    time.sleep(30)
+                    search_providers, distinct_hosts = self.search_internal_distinct_hosts("{}_cm1_1".format(self.project_name), password=self.password)
+                    assert len(search_providers) == 4
+                    assert "idx1" in search_providers
+                    assert "idx2" in search_providers
+                    assert "idx3" in search_providers
+                    assert distinct_hosts == 4
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            files = [
+                        os.path.join(DEFAULTS_DIR, "ca.key"),
+                        os.path.join(DEFAULTS_DIR, "ca.csr"),
+                        os.path.join(DEFAULTS_DIR, "ca.pem"),
+                        os.path.join(DEFAULTS_DIR, "server.key"),
+                        os.path.join(DEFAULTS_DIR, "server.csr"),
+                        os.path.join(DEFAULTS_DIR, "server.pem"),
+                        os.path.join(DEFAULTS_DIR, "cert.pem"),
+                        os.path.join(DEFAULTS_DIR, "default.yml")
+                    ]
+            self.cleanup_files(files)
