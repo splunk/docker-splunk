@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  security-scanning:
+  setup:
     machine:
       image: circleci/classic:latest
     steps:
@@ -21,6 +21,11 @@ jobs:
           name: Build Container
           command: |
             make all
+  security-scanning:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - checkout
       - run:
           name: Run Vulnerability Scanner
           command: |
@@ -37,26 +42,6 @@ jobs:
       image: circleci/classic:latest
     steps:
       - checkout
-      - run:
-          name: Setup python3
-          command: |
-            pyenv global 2.7.12 3.5.2
-            python --version
-            pip --version
-            python3 --version
-            pip3 --version
-      - run:
-          name: Setup Tests / Scanner Requirements
-          command: |
-            make test_setup
-      - run:
-          name: Build Debian 10 Splunk
-          command: |
-            make splunk-debian-10
-      - run:
-          name: Build Debian 10 UF
-          command: |
-            make uf-debian-10
       - run:
           name: Test if image size increase
           command: make test_debian10_image_size
@@ -79,26 +64,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Setup python3
-          command: |
-            pyenv global 2.7.12 3.5.2
-            python --version
-            pip --version
-            python3 --version
-            pip3 --version
-      - run:
-          name: Setup Tests / Scanner Requirements
-          command: |
-            make test_setup
-      - run:
-          name: Build Redhat 8 Splunk
-          command: |
-            make splunk-redhat-8
-      - run:
-          name: Build Redhat 8 UF
-          command: |
-            make uf-redhat-8
-      - run:
           name: Run small Redhat 8 image tests
           command: make run_small_tests_redhat8
           no_output_timeout: 20m
@@ -117,22 +82,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Setup python3
-          command: |
-            pyenv global 2.7.12 3.5.2
-            python --version
-            pip --version
-            python3 --version
-            pip3 --version
-      - run:
-          name: Setup Tests / Scanner Requirements
-          command: |
-            make test_setup
-      - run:
-          name: Build Container
-          command: |
-            make all
-      - run:
           name: Export Build Images for Artifacts
           command: |
             make save_containers
@@ -149,9 +98,16 @@ workflows:
   version: 2
   build:
     jobs:
-      - security-scanning
-      - debian10-testing
-      - container-validation
-      - redhat8-testing
-
-      
+      - setup
+      - security-scanning:
+          requires:
+            - setup
+      - debian10-testing:
+          requires:
+            - setup
+      - container-validation:
+          requires:
+            - setup
+      - redhat8-testing:
+          requires:
+            - setup
