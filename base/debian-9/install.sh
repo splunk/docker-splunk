@@ -43,6 +43,8 @@ tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
 rm /usr/bin/scloud.tar.gz
 
 cd /bin
+ln -s busybox clear
+ln -s busybox find
 ln -s busybox diff
 ln -s busybox killall
 ln -s busybox netstat

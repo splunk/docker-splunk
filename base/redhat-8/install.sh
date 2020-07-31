@@ -50,6 +50,8 @@ tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
 rm /usr/bin/scloud.tar.gz
 
 cd /bin
+ln -s busybox clear
+ln -s busybox find
 ln -s python2 python || true
 ln -s busybox diff || true
 ln -s busybox hostname || true
