@@ -82,6 +82,30 @@ class TestDockerSplunk(Executor):
         assert "SPLUNK_HOME - home directory where Splunk gets installed (default: /opt/splunk)" in output
         assert "Examples:" in output
     
+    def test_splunk_scloud(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the version returns successfully for multiple users
+            exec_command = self.client.exec_create(cid, "scloud version", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "scloud version " in std_out
+            exec_command = self.client.exec_create(cid, "scloud version", user="ansible")
+            std_out = self.client.exec_start(exec_command)
+            assert "scloud version " in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
     def test_splunk_entrypoint_create_defaults(self):
         # Run container
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
@@ -1523,6 +1547,47 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
+    def test_adhoc_1so_preplaybook(self):
+        # Create a splunk container
+        cid = None
+        try:
+            splunk_container_name = self.generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089], 
+                                            volumes=["/playbooks/play.yml"], name=splunk_container_name,
+                                            environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_ANSIBLE_PRE_TASKS": "file:///playbooks/play.yml"
+                                                        },
+                                            host_config=self.client.create_host_config(binds=[self.FIXTURES_DIR + "/touch_dummy_file.yml:/playbooks/play.yml"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /tmp/i-am", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "batman" in std_out
+            # Check file owner
+            exec_command = self.client.exec_create(cid, r'stat -c \'%U\' /tmp/i-am')
+            std_out = self.client.exec_start(exec_command)
+            assert "splunk" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
     def test_compose_1so_apps(self):
         # Tar the app before spinning up the scenario
         with tarfile.open(self.EXAMPLE_APP_TGZ, "w:gz") as tar:
@@ -1566,6 +1631,65 @@ disabled = 1''' in std_out
             # Let's go further and check app version
             output = json.loads(content)
             assert output["entry"][0]["content"]["version"] == "0.0.1"
+
+    def test_adhoc_1so_custom_conf(self):
+        self.check_for_default()
+        # Generate default.yml
+        cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
+        # Add a custom conf file
+        output = re.sub(r'  group: splunk', r'''  group: splunk
+  conf:
+    user-prefs:
+      directory: /opt/splunk/etc/users/admin/user-prefs/local
+      content:
+        general:
+          default_namespace: appboilerplate
+          search_syntax_highlighting: dark''', output)
+        # Write the default.yml to a file
+        with open(os.path.join(self.FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = self.generate_random_string()
+            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="start", ports=[8089], 
+                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                            environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
+                                            host_config=self.client.create_host_config(binds=[self.FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/users/admin/user-prefs/local/user-prefs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "[general]" in std_out
+            assert "default_namespace = appboilerplate" in std_out
+            assert "search_syntax_highlighting = dark" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.FIXTURES_DIR, "default.yml"))
+            except OSError:
+                pass
 
     def test_compose_1uf_apps(self):
          # Tar the app before spinning up the scenario
@@ -2362,6 +2486,126 @@ disabled = 1''' in std_out
                 os.remove(os.path.join(self.DIR, "default.yml"))
             except OSError:
                 pass
+
+    def test_uf_scloud(self):
+        cid = None
+        try:
+            # Run container
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="no-provision")
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Wait a bit
+            time.sleep(5)
+            # If the container is still running, we should be able to exec inside
+            # Check that the version returns successfully for multiple users
+            exec_command = self.client.exec_create(cid, "scloud version", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "scloud version " in std_out
+            exec_command = self.client.exec_create(cid, "scloud version", user="ansible")
+            std_out = self.client.exec_start(exec_command)
+            assert "scloud version " in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+
+    def test_adhoc_1uf_custom_conf(self):
+        self.check_for_default()
+        # Generate default.yml
+        cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
+        self.client.start(cid.get("Id"))
+        output = self.get_container_logs(cid.get("Id"))
+        self.client.remove_container(cid.get("Id"), v=True, force=True)
+        # Get the password
+        password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
+        assert password and password != "null"
+        # Add a custom conf file
+        output = re.sub(r'  group: splunk', r'''  group: splunk
+  conf:
+    user-prefs:
+      directory: /opt/splunkforwarder/etc/users/admin/user-prefs/local
+      content:
+        general:
+          default_namespace: appboilerplate
+          search_syntax_highlighting: dark''', output)
+        # Write the default.yml to a file
+        with open(os.path.join(self.FIXTURES_DIR, "default.yml"), "w") as f:
+            f.write(output)
+        # Create the container and mount the default.yml
+        cid = None
+        try:
+            splunk_container_name = self.generate_random_string()
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start", ports=[8089], 
+                                            volumes=["/tmp/defaults/"], name=splunk_container_name,
+                                            environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license"},
+                                            host_config=self.client.create_host_config(binds=[self.FIXTURES_DIR + ":/tmp/defaults/"],
+                                                                                       port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check if the created file exists
+            exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/users/admin/user-prefs/local/user-prefs.conf", user="splunk")
+            std_out = self.client.exec_start(exec_command)
+            assert "[general]" in std_out
+            assert "default_namespace = appboilerplate" in std_out
+            assert "search_syntax_highlighting = dark" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.FIXTURES_DIR, "default.yml"))
+            except OSError:
+                pass
+
+    def test_adhoc_1uf_run_as_root(self):
+        # Create a uf container
+        cid = None
+        try:
+            splunk_container_name = self.generate_random_string()
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089], name=splunk_container_name, user="root",
+                                               environment={
+                                                            "DEBUG": "true", 
+                                                            "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": self.password,
+                                                            "SPLUNK_USER": "root",
+                                                            "SPLUNK_GROUP": "root"
+                                                        },
+                                               host_config=self.client.create_host_config(port_bindings={8089: ("0.0.0.0",)})
+                                            )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            # Poll for the container to be ready
+            assert self.wait_for_containers(1, name=splunk_container_name)
+            # Check splunkd
+            splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
+            url = "https://localhost:{}/services/server/info".format(splunkd_port)
+            kwargs = {"auth": ("admin", self.password), "verify": False}
+            status, content = self.handle_request_retry("GET", url, kwargs)
+            assert status == 200
+            # Check that root owns the splunkd process
+            exec_command = self.client.exec_create(cid, "ps -u root", user="root")
+            std_out = self.client.exec_start(exec_command)
+            assert "entrypoint.sh" in std_out
+            assert "splunkd" in std_out
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
 
     def test_compose_1hf_splunk_add(self):
         # Check that SPLUNK_ADD works for splunk image (role=heavy forwarder)
