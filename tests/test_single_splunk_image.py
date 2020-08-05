@@ -25,9 +25,6 @@ global PLATFORM
 PLATFORM = "debian-9"
 OLD_SPLUNK_VERSION = "7.3.4"
 
-os.environ['COMPOSE_HTTP_TIMEOUT']='500'
-os.environ['DOCKER_CLIENT_TIMEOUT']='500'
-
 def pytest_generate_tests(metafunc):
     # This is called for every test. Only get/set command line arguments
     # if the argument is specified in the list of test "fixturenames".
@@ -40,16 +37,7 @@ class TestDockerSplunk(Executor):
 
     @classmethod
     def setup_class(cls):
-        cls.client = docker.APIClient()
-        # Docker variables
-        global PLATFORM
-        cls.BASE_IMAGE_NAME = "base-{}".format(PLATFORM)
-        cls.SPLUNK_IMAGE_NAME = "splunk-{}".format(PLATFORM)
-        cls.UF_IMAGE_NAME = "uf-{}".format(PLATFORM)
-        cls.password = cls.generate_random_string()
-        cls.compose_file_name = None
-        cls.project_name = None
-        cls.DIR = None
+        super(TestDockerSplunk, cls).setup_class(PLATFORM)
 
     def setup_method(self, method):
         # Make sure all running containers are removed
@@ -306,7 +294,6 @@ class TestDockerSplunk(Executor):
             url = "https://localhost:{}/services/server/info".format(splunkd_port)
             kwargs = {"auth": ("chewbacca", p), "verify": False}
             status, content = self.handle_request_retry("GET", url, kwargs)
-            print(splunkd_port, url, status)
             assert status == 200
         except Exception as e:
             self.logger.error(e)

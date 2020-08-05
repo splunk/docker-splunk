@@ -34,6 +34,9 @@ file_handler = logging.handlers.RotatingFileHandler(os.path.join(FILE_DIR, "dock
 formatter = logging.Formatter('%(asctime)s %(levelname)s [%(name)s] [%(process)d] %(message)s')
 file_handler.setFormatter(formatter)
 LOGGER.addHandler(file_handler)
+# Define Docker client settings
+os.environ['COMPOSE_HTTP_TIMEOUT'] = "500"
+os.environ['DOCKER_CLIENT_TIMEOUT'] = "500"
 
 
 class Executor(object):
@@ -46,7 +49,6 @@ class Executor(object):
     RETRY_COUNT = 3
     RETRY_DELAY = 6 # in seconds
 
-    FILE_DIR = os.path.dirname(os.path.realpath(__file__))
     FIXTURES_DIR = os.path.join(FILE_DIR, "fixtures")
     EXAMPLE_APP = os.path.join(FIXTURES_DIR, "splunk_app_example")
     EXAMPLE_APP_TGZ = os.path.join(FIXTURES_DIR, "splunk_app_example.tgz")
@@ -62,13 +64,16 @@ class Executor(object):
         cls.UF_IMAGE_NAME = "uf-{}".format(platform)
         # Define new, random password for each executor
         cls.password = Executor.generate_random_string()
+        cls.compose_file_name = None
+        cls.project_name = None
+        cls.DIR = None
+        cls.container_id = None
         # Wrap into custom env variable for subprocess overrides
         cls.env = {
             "SPLUNK_PASSWORD": cls.password,
             "SPLUNK_IMAGE": cls.SPLUNK_IMAGE_NAME,
             "UF_IMAGE": cls.UF_IMAGE_NAME
         }
-
 
     @classmethod
     def teardown_class(cls):
@@ -150,13 +155,12 @@ class Executor(object):
         for container in containers:
             self.client.remove_container(container["Id"], v=True, force=True)
         try:
-            self.client.prune_networks()
+            self.client.prune_networks({"until": "15s"})
             self.client.prune_volumes()
         except:
             pass
 
     def check_for_default(self):
-        print("WAITING FOR DEFAULT TO BE REMOVED")
         count = 0
         while True:
             if not os.path.isfile(os.path.join(self.DEFAULTS_DIR, "default.yml")): 
@@ -170,12 +174,9 @@ class Executor(object):
         '''
         NOTE: This helper method can only be used for `compose up` scenarios where self.project_name is defined
         '''
-
-        print("WAITING FOR CONTAINERS")
         start = time.time()
         end = start
         # Wait
-        temp = 1
         while end-start < timeout:
             filters = {}
             if name:
@@ -198,12 +199,12 @@ class Executor(object):
                         healthy_count += 1
                 else:
                     self.logger.info("Container {} is ready".format(container["Names"][0]))
+                    healthy_count += 1
             if healthy_count == count:
                 self.logger.info("All containers ready to proceed")
                 break
             time.sleep(5)
             end = time.time()
-            temp+=1
         return True
 
     def handle_request_retry(self, method, url, kwargs):
