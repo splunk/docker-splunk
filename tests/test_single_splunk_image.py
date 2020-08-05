@@ -1092,6 +1092,10 @@ disabled = 1''' in std_out
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.DIR, "default.yml"))
+            except OSError:
+                pass
 
     def test_adhoc_1so_web_ssl(self):
         # Create the container
@@ -1344,6 +1348,10 @@ disabled = 1''' in std_out
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.DIR, "default.yml"))
+            except OSError:
+                pass
 
     def test_adhoc_1so_splunktcp_ssl(self):
         # Generate default.yml
@@ -1409,6 +1417,10 @@ disabled = 1''' in std_out
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.DIR, "default.yml"))
+            except OSError:
+                pass
 
     def test_adhoc_1so_splunkd_custom_ssl(self):
         # Generate default.yml
@@ -1479,6 +1491,10 @@ disabled = 1''' in std_out
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.DIR, "default.yml"))
+            except OSError:
+                pass
      
     def test_adhoc_1so_upgrade(self):
         # Pull the old image
@@ -1882,6 +1898,10 @@ disabled = 1''' in std_out
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.DIR, "default.yml"))
+            except OSError:
+                pass
 
     def test_adhoc_1uf_splunkd_custom_ssl(self):
         # Generate default.yml
@@ -1950,6 +1970,10 @@ disabled = 1''' in std_out
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.DIR, "default.yml"))
+            except OSError:
+                pass
 
     def test_adhoc_1uf_hec_custom_cert(self):
         # Generate default.yml
@@ -2021,6 +2045,10 @@ disabled = 1''' in std_out
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.DIR, "default.yml"))
+            except OSError:
+                pass
 
     def test_compose_1uf_enable_service(self):
         # Standup deployment
@@ -2110,6 +2138,10 @@ disabled = 1''' in std_out
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.DIR, "default.yml"))
+            except OSError:
+                pass
 
     def test_compose_1uf_before_start_cmd(self):
         # Check that SPLUNK_BEFORE_START_CMD works for splunkforwarder image

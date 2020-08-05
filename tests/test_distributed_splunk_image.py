@@ -499,6 +499,10 @@ class TestDockerSplunk(Executor):
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.DIR, "default.yml"))
+            except OSError:
+                pass
 
     def test_compose_1sh1cm(self):
         # Standup deployment
