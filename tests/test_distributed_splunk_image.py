@@ -22,14 +22,9 @@ from urllib3.exceptions import InsecureRequestWarning, SubjectAltNameWarning
 urllib3.disable_warnings(InsecureRequestWarning)
 urllib3.disable_warnings(SubjectAltNameWarning)
 
-
 global PLATFORM
 PLATFORM = "debian-9"
 OLD_SPLUNK_VERSION = "7.3.4"
-
-
-os.environ['COMPOSE_HTTP_TIMEOUT']='500'
-os.environ['DOCKER_CLIENT_TIMEOUT']='500'
 
 def pytest_generate_tests(metafunc):
     # This is called for every test. Only get/set command line arguments
@@ -42,16 +37,7 @@ class TestDockerSplunk(Executor):
 
     @classmethod
     def setup_class(cls):
-        cls.client = docker.APIClient()
-        # Docker variables
-        global PLATFORM
-        cls.BASE_IMAGE_NAME = "base-{}".format(PLATFORM)
-        cls.SPLUNK_IMAGE_NAME = "splunk-{}".format(PLATFORM)
-        cls.UF_IMAGE_NAME = "uf-{}".format(PLATFORM)
-        cls.password = cls.generate_random_string()
-        cls.compose_file_name = None
-        cls.project_name = None
-        cls.DIR = None
+        super(TestDockerSplunk, cls).setup_class(PLATFORM)
 
     def setup_method(self, method):
         # Make sure all running containers are removed
@@ -103,10 +89,10 @@ class TestDockerSplunk(Executor):
             container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
             for container in container_mapping:
                 # Check ansible version & configs
-                ansible_logs = self.get_container_logs1(container)
+                ansible_logs = self.get_container_logs("{}_{}_1".format(self.project_name, container))
                 self.check_ansible(ansible_logs)
                 # Check values in log output
-                inventory_json = self.extract_json1(container)
+                inventory_json = self.extract_json("{}_{}_1".format(self.project_name, container))
                 self.check_common_keys(inventory_json, container_mapping[container])
                 try:
                     assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
@@ -167,10 +153,10 @@ class TestDockerSplunk(Executor):
             container_mapping = {"sh1": "sh", "sh2": "sh", "sh3": "sh", "cm1": "cm", "idx1": "idx", "dep1": "dep"}
             for container in container_mapping:
                 # Check ansible version & configs
-                ansible_logs = self.get_container_logs1(container)
+                ansible_logs = self.get_container_logs("{}_{}_1".format(self.project_name, container))
                 self.check_ansible(ansible_logs)
                 # Check values in log output
-                inventory_json = self.extract_json1(container)
+                inventory_json = self.extract_json("{}_{}_1".format(self.project_name, container))
                 self.check_common_keys(inventory_json, container_mapping[container])
                 try:
                     assert inventory_json["splunk_indexer"]["hosts"] == ["idx1"]
@@ -244,10 +230,10 @@ class TestDockerSplunk(Executor):
         container_mapping = {"so1": "so", "uf1": "uf"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs1("{}".format(container))
+            ansible_logs = self.get_container_logs("{}_{}_1".format(self.project_name, container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json1("{}".format(container))
+            inventory_json = self.extract_json("{}_{}_1".format(self.project_name, container))
             self.check_common_keys(inventory_json, container_mapping[container])
             try:
                 assert inventory_json["splunk_standalone"]["hosts"] == ["so1"]
@@ -286,10 +272,10 @@ class TestDockerSplunk(Executor):
             container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
             for container in container_mapping:
                 # Check ansible version & configs
-                ansible_logs = self.get_container_logs1(container)
+                ansible_logs = self.get_container_logs("{}_{}_1".format(self.project_name, container))
                 self.check_ansible(ansible_logs)
                 # Check values in log output
-                inventory_json = self.extract_json1(container)
+                inventory_json = self.extract_json("{}_{}_1".format(self.project_name, container))
                 self.check_common_keys(inventory_json, container_mapping[container])
                 try:
                     assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]
@@ -334,10 +320,10 @@ class TestDockerSplunk(Executor):
         container_mapping = {"so1": "so", "cm1": "cm"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs1("{}".format(container))
+            ansible_logs = self.get_container_logs("{}_{}_1".format(self.project_name, container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json1("{}".format(container))
+            inventory_json = self.extract_json("{}_{}_1".format(self.project_name, container))
             self.check_common_keys(inventory_json, container_mapping[container])
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -368,10 +354,10 @@ class TestDockerSplunk(Executor):
         container_mapping = {"so1": "so", "cm1": "cm"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs1("{}".format(container))
+            ansible_logs = self.get_container_logs("{}_{}_1".format(self.project_name, container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json1("{}".format(container))
+            inventory_json = self.extract_json("{}_{}_1".format(self.project_name, container))
             self.check_common_keys(inventory_json, container_mapping[container])
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -516,10 +502,10 @@ class TestDockerSplunk(Executor):
         container_mapping = {"sh1": "sh", "cm1": "cm"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs1("{}".format(container))
+            ansible_logs = self.get_container_logs("{}_{}_1".format(self.project_name, container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json1("{}".format(container))
+            inventory_json = self.extract_json("{}_{}_1".format(self.project_name, container))
             self.check_common_keys(inventory_json, container_mapping[container])
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -617,10 +603,10 @@ class TestDockerSplunk(Executor):
         container_mapping = {"sh1": "sh", "sh2": "sh", "idx1": "idx", "idx2": "idx"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs1("{}".format(container))
+            ansible_logs = self.get_container_logs("{}_{}_1".format(self.project_name, container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json1("{}".format(container))
+            inventory_json = self.extract_json("{}_{}_1".format(self.project_name, container))
             self.check_common_keys(inventory_json, container_mapping[container])
             try:
                 assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2"]
@@ -663,10 +649,10 @@ class TestDockerSplunk(Executor):
         container_mapping = {"sh1": "sh", "sh2": "sh", "idx1": "idx", "idx2": "idx", "cm1": "cm"}
         for container in container_mapping:
             # Check ansible version & configs
-            ansible_logs = self.get_container_logs1(container)
+            ansible_logs = self.get_container_logs("{}_{}_1".format(self.project_name, container))
             self.check_ansible(ansible_logs)
             # Check values in log output
-            inventory_json = self.extract_json1(container)
+            inventory_json = self.extract_json("{}_{}_1".format(self.project_name, container))
             self.check_common_keys(inventory_json, container_mapping[container])
             try:
                 assert inventory_json["splunk_cluster_master"]["hosts"] == ["cm1"]
@@ -760,10 +746,10 @@ class TestDockerSplunk(Executor):
             container_mapping = {"cm1": "cm", "depserver1": "deployment_server"}
             for container in container_mapping:
                 # Check ansible version & configs
-                ansible_logs = self.get_container_logs1(container)
+                ansible_logs = self.get_container_logs("{}_{}_1".format(self.project_name, container))
                 self.check_ansible(ansible_logs)
                 # Check values in log output
-                inventory_json = self.extract_json1(container)
+                inventory_json = self.extract_json("{}_{}_1".format(self.project_name, container))
                 self.check_common_keys(inventory_json, container_mapping[container])
             # Check Splunkd on all the containers
             assert self.check_splunkd("admin", self.password)
@@ -1050,10 +1036,10 @@ class TestDockerSplunk(Executor):
             container_mapping = {"cm1": "cm", "idx1": "idx", "idx2": "idx", "idx3": "idx"}
             for container in container_mapping:
                 # Check ansible version & configs
-                ansible_logs = self.get_container_logs1(container)
+                ansible_logs = self.get_container_logs("{}_{}_1".format(self.project_name, container))
                 self.check_ansible(ansible_logs)
                 # Check values in log output
-                inventory_json = self.extract_json1(container)
+                inventory_json = self.extract_json("{}_{}_1".format(self.project_name, container))
                 self.check_common_keys(inventory_json, container_mapping[container])
                 try:
                     assert inventory_json["splunk_indexer"]["hosts"] == ["idx1", "idx2", "idx3"]

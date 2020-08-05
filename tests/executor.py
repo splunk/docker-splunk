@@ -130,16 +130,6 @@ class Executor(object):
             output += char
         return output
 
-    def get_container_logs1(self, container_id):
-        container_id = "{}_{}_1".format(self.project_name, container_id)
-        stream = self.client.logs(container_id, stream=True)
-        output = ""
-        for char in stream:
-            if "Ansible playbook complete" in char:
-                break
-            output += char
-        return output
-
     def cleanup_files(self, files):
         try:
             for file in files:
@@ -288,23 +278,6 @@ class Executor(object):
         return container_count, rc
 
     def extract_json(self, container_name):
-        retries = 15
-        for i in range(retries):
-            exec_command = self.client.exec_create(container_name, "cat /opt/container_artifact/ansible_inventory.json")
-            json_data = self.client.exec_start(exec_command)
-            if "No such file or directory" in json_data:
-                time.sleep(5)
-            else: 
-                break
-        try:
-            data = json.loads(json_data)
-            return data
-        except Exception as e:
-            self.logger.error(e)
-            return None
-
-    def extract_json1(self, container_name):
-        container_name = "{}_{}_1".format(self.project_name, container_name)
         retries = 15
         for i in range(retries):
             exec_command = self.client.exec_create(container_name, "cat /opt/container_artifact/ansible_inventory.json")
