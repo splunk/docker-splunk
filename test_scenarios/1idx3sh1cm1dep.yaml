@@ -36,6 +36,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
       - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
     ports:
       - 8000
@@ -61,6 +62,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8000
       - 8089
@@ -85,6 +87,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8000
       - 8089
@@ -109,6 +112,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8000
       - 8089
@@ -133,6 +137,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
       - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
     ports:
       - 8000
@@ -159,6 +164,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8000
       - 8089

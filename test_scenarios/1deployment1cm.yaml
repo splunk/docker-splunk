@@ -31,6 +31,7 @@ services:
       - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8089
     volumes:
@@ -50,6 +51,7 @@ services:
       - SPLUNK_CLUSTER_MASTER_URL=cm1
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8000
       - 8089

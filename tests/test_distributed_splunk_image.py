@@ -62,7 +62,7 @@ class TestDockerSplunk(Executor):
         self.compose_file_name, self.project_name, self.DIR = None, None, None
 
     def test_compose_3idx1cm_custom_repl_factor(self):
-        self.check_for_default()
+        self.project_name = self.generate_random_string()
         # Generate default.yml
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -75,13 +75,12 @@ class TestDockerSplunk(Executor):
         output = re.sub(r'    replication_factor: 3', r'''    replication_factor: 2''', output)
         output = re.sub(r'    search_factor: 3', r'''    search_factor: 1''', output)
         # Write the default.yml to a file
-        with open(os.path.join(self.SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
+        with open(os.path.join(self.SCENARIOS_DIR, "defaults", "{}.yml".format(self.project_name)), "w") as f:
             f.write(output)
         # Standup deployment
         try:
             self.compose_file_name = "3idx1cm.yaml"
-            self.project_name = self.generate_random_string()
-            container_count, rc = self.compose_up()
+            container_count, rc = self.compose_up(defaults_url="/tmp/defaults/{}.yml".format(self.project_name))
             assert rc == 0
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
@@ -121,12 +120,12 @@ class TestDockerSplunk(Executor):
             raise e
         finally:
             try:
-                os.remove(os.path.join(self.SCENARIOS_DIR, "defaults", "default.yml"))
+                os.remove(os.path.join(self.SCENARIOS_DIR, "defaults", "{}.yml".format(self.project_name)))
             except OSError as e:
                 pass
 
     def test_compose_1idx3sh1cm1dep(self):
-        self.check_for_default()
+        self.project_name = self.generate_random_string()
         # Generate default.yml -- for SHC, we need a common default.yml otherwise things won't work
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -136,7 +135,7 @@ class TestDockerSplunk(Executor):
         password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
         assert password and password != "null"
         # Write the default.yml to a file
-        with open(os.path.join(self.SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
+        with open(os.path.join(self.SCENARIOS_DIR, "defaults", "{}.yml".format(self.project_name)), "w") as f:
             f.write(output)
         # Tar the app before spinning up the scenario
         with tarfile.open(self.EXAMPLE_APP_TGZ, "w:gz") as tar:
@@ -144,8 +143,7 @@ class TestDockerSplunk(Executor):
         # Standup deployment
         try:
             self.compose_file_name = "1idx3sh1cm1dep.yaml"
-            self.project_name = self.generate_random_string()
-            container_count, rc = self.compose_up()
+            container_count, rc = self.compose_up(defaults_url="/tmp/defaults/{}.yml".format(self.project_name))
             assert rc == 0
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
@@ -214,7 +212,7 @@ class TestDockerSplunk(Executor):
             raise e
         finally:
             try:
-                os.remove(os.path.join(self.SCENARIOS_DIR, "defaults", "default.yml"))
+                os.remove(os.path.join(self.SCENARIOS_DIR, "defaults", "{}.yml".format(self.project_name)))
             except OSError as e:
                 pass
 
@@ -248,7 +246,7 @@ class TestDockerSplunk(Executor):
         assert distinct_hosts == 2
  
     def test_compose_3idx1cm_default_repl_factor(self):
-        self.check_for_default()
+        self.project_name = self.generate_random_string()
         # Generate default.yml
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -258,13 +256,12 @@ class TestDockerSplunk(Executor):
         password = re.search(r"^  password: (.*?)\n", output, flags=re.MULTILINE|re.DOTALL).group(1).strip()
         assert password and password != "null"
         # Write the default.yml to a file
-        with open(os.path.join(self.SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
+        with open(os.path.join(self.SCENARIOS_DIR, "defaults", "{}.yml".format(self.project_name)), "w") as f:
             f.write(output)
         # Standup deployment
         try:
             self.compose_file_name = "3idx1cm.yaml"
-            self.project_name = self.generate_random_string()
-            container_count, rc = self.compose_up()
+            container_count, rc = self.compose_up(defaults_url="/tmp/defaults/{}.yml".format(self.project_name))
             assert rc == 0
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
@@ -304,7 +301,7 @@ class TestDockerSplunk(Executor):
             raise e
         finally:
             try:
-                os.remove(os.path.join(self.SCENARIOS_DIR, "defaults", "default.yml"))
+                os.remove(os.path.join(self.SCENARIOS_DIR, "defaults", "{}.yml".format(self.project_name)))
             except OSError as e:
                 pass
 
@@ -710,7 +707,7 @@ class TestDockerSplunk(Executor):
                         assert False
 
     def test_compose_1deployment1cm(self):
-        self.check_for_default()
+        self.project_name = self.generate_random_string()
         # Tar the app before spinning up the scenario
         with tarfile.open(self.EXAMPLE_APP_TGZ, "w:gz") as tar:
             tar.add(self.EXAMPLE_APP, arcname=os.path.basename(self.EXAMPLE_APP))
@@ -732,13 +729,12 @@ class TestDockerSplunk(Executor):
             search_assistant:
           "serverClass:secrets:app:test": {}''', output)
         # Write the default.yml to a file
-        with open(os.path.join(self.SCENARIOS_DIR, "defaults", "default.yml"), "w") as f:
+        with open(os.path.join(self.SCENARIOS_DIR, "defaults", "{}.yml".format(self.project_name)), "w") as f:
             f.write(output)
         # Standup deployment
         try:
             self.compose_file_name = "1deployment1cm.yaml"
-            self.project_name = self.generate_random_string()
-            container_count, rc = self.compose_up()
+            container_count, rc = self.compose_up(defaults_url="/tmp/defaults/{}.yml".format(self.project_name))
             assert rc == 0
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -821,7 +817,7 @@ class TestDockerSplunk(Executor):
             raise e
         finally:
             try:
-                os.remove(os.path.join(self.SCENARIOS_DIR, "defaults", "default.yml"))
+                os.remove(os.path.join(self.SCENARIOS_DIR, "defaults", "{}.yml".format(self.project_name)))
             except OSError as e:
                 pass
 
@@ -991,7 +987,7 @@ class TestDockerSplunk(Executor):
             raise e
 
     def test_compose_3idx1cm_splunktcp_ssl(self):
-        self.check_for_default()
+        self.project_name = self.generate_random_string()
         # Generate default.yml
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -1022,13 +1018,12 @@ class TestDockerSplunk(Executor):
     port: 9997
     ssl: true'''.format(passphrase), output, flags=re.DOTALL)
         # Write the default.yml to a file
-        with open(os.path.join(self.DEFAULTS_DIR, "default.yml"), "w") as f:
+        with open(os.path.join(self.DEFAULTS_DIR, "{}.yml".format(self.project_name)), "w") as f:
             f.write(output)
         # Standup deployment
         try:
             self.compose_file_name = "3idx1cm.yaml"
-            self.project_name = self.generate_random_string()
-            container_count, rc = self.compose_up()
+            container_count, rc = self.compose_up(defaults_url="/tmp/defaults/{}.yml".format(self.project_name))
             assert rc == 0
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
@@ -1089,6 +1084,6 @@ class TestDockerSplunk(Executor):
                         os.path.join(self.DEFAULTS_DIR, "server.csr"),
                         os.path.join(self.DEFAULTS_DIR, "server.pem"),
                         os.path.join(self.DEFAULTS_DIR, "cert.pem"),
-                        os.path.join(self.DEFAULTS_DIR, "default.yml")
+                        os.path.join(self.DEFAULTS_DIR, "{}.yml".format(self.project_name))
                     ]
             self.cleanup_files(files)

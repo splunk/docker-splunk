@@ -150,16 +150,6 @@ class Executor(object):
         except:
             pass
 
-    def check_for_default(self):
-        count = 0
-        while True:
-            if not os.path.isfile(os.path.join(self.DEFAULTS_DIR, "default.yml")): 
-                break
-            if count == 100:
-                assert False
-            count += 1
-            time.sleep(10)
-
     def wait_for_containers(self, count, label=None, name=None, timeout=500):
         '''
         NOTE: This helper method can only be used for `compose up` scenarios where self.project_name is defined
@@ -271,10 +261,10 @@ class Executor(object):
         job_results = json.loads(job_results.content)
         return job_metadata, job_results
 
-    def compose_up(self):
+    def compose_up(self, defaults_url=None):
         container_count = self.get_number_of_containers(os.path.join(self.SCENARIOS_DIR, self.compose_file_name))
         command = "docker-compose -p {} -f test_scenarios/{} up -d".format(self.project_name, self.compose_file_name)
-        out, err, rc = self._run_command(command)
+        out, err, rc = self._run_command(command, defaults_url)
         return container_count, rc
 
     def extract_json(self, container_name):
@@ -306,7 +296,7 @@ class Executor(object):
         distinct_hosts = int(results["results"][0]["distinct_hosts"])
         return search_providers, distinct_hosts
 
-    def _run_command(self, command):
+    def _run_command(self, command, defaults_url=None):
         if isinstance(command, list):
             sh = command
         elif isinstance(command, str):
@@ -316,6 +306,8 @@ class Executor(object):
         env["SPLUNK_PASSWORD"] = self.password
         env["SPLUNK_IMAGE"] = self.SPLUNK_IMAGE_NAME
         env["UF_IMAGE"] = self.UF_IMAGE_NAME
+        if defaults_url:
+            env["SPLUNK_DEFAULTS_URL"] = defaults_url
         proc = subprocess.Popen(sh, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         lines = []
         err_lines = []
