@@ -22,6 +22,7 @@ services:
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_deployer
+      - SPLUNK_SHC_PASS4SYMMKEY=mylittlepony
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
@@ -45,6 +46,7 @@ services:
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_search_head_captain
+      - SPLUNK_SHC_PASS4SYMMKEY=mylittlepony
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
@@ -68,6 +70,7 @@ services:
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_search_head
+      - SPLUNK_SHC_PASS4SYMMKEY=mylittlepony
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
@@ -91,6 +94,7 @@ services:
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_search_head
+      - SPLUNK_SHC_PASS4SYMMKEY=mylittlepony
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
@@ -114,6 +118,7 @@ services:
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_indexer
+      - SPLUNK_SHC_PASS4SYMMKEY=mylittlepony
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
@@ -137,6 +142,7 @@ services:
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_indexer
+      - SPLUNK_SHC_PASS4SYMMKEY=mylittlepony
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
@@ -160,6 +166,7 @@ services:
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_ROLE=splunk_monitor
+      - SPLUNK_SHC_PASS4SYMMKEY=mylittlepony
       - SPLUNK_LICENSE_URI
       - SPLUNK_PASSWORD
       - DEBUG=true
