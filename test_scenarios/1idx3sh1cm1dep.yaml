@@ -37,7 +37,7 @@ services:
       - DEBUG=true
       - SPLUNK_PASSWORD
       - SPLUNK_DEFAULTS_URL
-      - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
+      - SPLUNK_APPS_URL
     ports:
       - 8000
       - 8089
@@ -138,7 +138,7 @@ services:
       - DEBUG=true
       - SPLUNK_PASSWORD
       - SPLUNK_DEFAULTS_URL
-      - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
+      - SPLUNK_APPS_URL
     ports:
       - 8000
       - 8089
@@ -160,7 +160,7 @@ services:
       - SPLUNK_DEPLOYER_URL=dep1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
       - SPLUNK_ROLE=splunk_indexer
-      - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
+      - SPLUNK_APPS_URL
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD

@@ -138,12 +138,12 @@ class TestDockerSplunk(Executor):
         with open(os.path.join(self.SCENARIOS_DIR, "defaults", "{}.yml".format(self.project_name)), "w") as f:
             f.write(output)
         # Tar the app before spinning up the scenario
-        with tarfile.open(self.EXAMPLE_APP_TGZ, "w:gz") as tar:
+        with tarfile.open(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)), "w:gz") as tar:
             tar.add(self.EXAMPLE_APP, arcname=os.path.basename(self.EXAMPLE_APP))
         # Standup deployment
         try:
             self.compose_file_name = "1idx3sh1cm1dep.yaml"
-            container_count, rc = self.compose_up(defaults_url="/tmp/defaults/{}.yml".format(self.project_name))
+            container_count, rc = self.compose_up(defaults_url="/tmp/defaults/{}.yml".format(self.project_name), apps_url="http://appserver/{}.tgz".format(self.project_name))
             assert rc == 0
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
@@ -213,6 +213,7 @@ class TestDockerSplunk(Executor):
         finally:
             try:
                 os.remove(os.path.join(self.SCENARIOS_DIR, "defaults", "{}.yml".format(self.project_name)))
+                os.remove(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)))
             except OSError as e:
                 pass
 
@@ -709,7 +710,7 @@ class TestDockerSplunk(Executor):
     def test_compose_1deployment1cm(self):
         self.project_name = self.generate_random_string()
         # Tar the app before spinning up the scenario
-        with tarfile.open(self.EXAMPLE_APP_TGZ, "w:gz") as tar:
+        with tarfile.open(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)), "w:gz") as tar:
             tar.add(self.EXAMPLE_APP, arcname=os.path.basename(self.EXAMPLE_APP))
         # Generate default.yml
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
@@ -734,7 +735,7 @@ class TestDockerSplunk(Executor):
         # Standup deployment
         try:
             self.compose_file_name = "1deployment1cm.yaml"
-            container_count, rc = self.compose_up(defaults_url="/tmp/defaults/{}.yml".format(self.project_name))
+            container_count, rc = self.compose_up(defaults_url="/tmp/defaults/{}.yml".format(self.project_name), apps_url="http://appserver/{}.tgz".format(self.project_name))
             assert rc == 0
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -818,18 +819,19 @@ class TestDockerSplunk(Executor):
         finally:
             try:
                 os.remove(os.path.join(self.SCENARIOS_DIR, "defaults", "{}.yml".format(self.project_name)))
+                os.remove(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)))
             except OSError as e:
                 pass
 
     def test_compose_1deployment1so(self):
+        self.project_name = self.generate_random_string()
         # Tar the app before spinning up the scenario
-        with tarfile.open(self.EXAMPLE_APP_TGZ, "w:gz") as tar:
+        with tarfile.open(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)), "w:gz") as tar:
             tar.add(self.EXAMPLE_APP, arcname=os.path.basename(self.EXAMPLE_APP))
         # Standup deployment
         try:
             self.compose_file_name = "1deployment1so.yaml"
-            self.project_name = self.generate_random_string()
-            container_count, rc = self.compose_up()
+            container_count, rc = self.compose_up(apps_url="http://appserver/{}.tgz".format(self.project_name))
             assert rc == 0
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -902,16 +904,21 @@ class TestDockerSplunk(Executor):
         except Exception as e:
             self.logger.error(e)
             raise e
+        finally:
+            try:
+                os.remove(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)))
+            except OSError:
+                pass
 
     def test_compose_1deployment1uf(self):
+        self.project_name = self.generate_random_string()
         # Tar the app before spinning up the scenario
-        with tarfile.open(self.EXAMPLE_APP_TGZ, "w:gz") as tar:
+        with tarfile.open(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)), "w:gz") as tar:
             tar.add(self.EXAMPLE_APP, arcname=os.path.basename(self.EXAMPLE_APP))
         # Standup deployment
         try:
             self.compose_file_name = "1deployment1uf.yaml"
-            self.project_name = self.generate_random_string()
-            container_count, rc = self.compose_up()
+            container_count, rc = self.compose_up(apps_url="http://appserver/{}.tgz".format(self.project_name))
             assert rc == 0
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -985,6 +992,11 @@ class TestDockerSplunk(Executor):
         except Exception as e:
             self.logger.error(e)
             raise e
+        finally:
+            try:
+                os.remove(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)))
+            except OSError:
+                pass
 
     def test_compose_3idx1cm_splunktcp_ssl(self):
         self.project_name = self.generate_random_string()

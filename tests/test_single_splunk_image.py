@@ -1592,13 +1592,13 @@ disabled = 1''' in std_out
                 self.client.remove_container(cid, v=True, force=True)
 
     def test_compose_1so_apps(self):
+        self.project_name = self.generate_random_string()
         # Tar the app before spinning up the scenario
-        with tarfile.open(self.EXAMPLE_APP_TGZ, "w:gz") as tar:
+        with tarfile.open(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)), "w:gz") as tar:
             tar.add(self.EXAMPLE_APP, arcname=os.path.basename(self.EXAMPLE_APP))
         # Standup deployment
         self.compose_file_name = "1so_apps.yaml"
-        self.project_name = self.generate_random_string()
-        container_count, rc = self.compose_up()
+        container_count, rc = self.compose_up(apps_url="http://appserver/{}.tgz".format(self.project_name))
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -1606,7 +1606,7 @@ disabled = 1''' in std_out
         log_json = self.extract_json("{}_so1_1".format(self.project_name))
         self.check_common_keys(log_json, "so")
         try:
-            assert log_json["all"]["vars"]["splunk"]["apps_location"][0] == "http://appserver/splunk_app_example.tgz"
+            assert log_json["all"]["vars"]["splunk"]["apps_location"][0] == "http://appserver/{}.tgz".format(self.project_name)
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["default"] == "/opt/splunk/etc/apps"
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["deployment"] == "/opt/splunk/etc/deployment-apps"
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["httpinput"] == "/opt/splunk/etc/apps/splunk_httpinput"
@@ -1634,6 +1634,10 @@ disabled = 1''' in std_out
             # Let's go further and check app version
             output = json.loads(content)
             assert output["entry"][0]["content"]["version"] == "0.0.1"
+        try:
+            os.remove(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)))
+        except OSError:
+            pass
 
     def test_adhoc_1so_custom_conf(self):
         splunk_container_name = self.generate_random_string()
@@ -1697,13 +1701,13 @@ disabled = 1''' in std_out
                 pass
 
     def test_compose_1uf_apps(self):
+        self.project_name = self.generate_random_string()
          # Tar the app before spinning up the scenario
-        with tarfile.open(self.EXAMPLE_APP_TGZ, "w:gz") as tar:
+        with tarfile.open(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)), "w:gz") as tar:
             tar.add(self.EXAMPLE_APP, arcname=os.path.basename(self.EXAMPLE_APP))
         # Standup deployment
         self.compose_file_name = "1uf_apps.yaml"
-        self.project_name = self.generate_random_string()
-        container_count, rc = self.compose_up()
+        container_count, rc = self.compose_up(apps_url="http://appserver/{}.tgz".format(self.project_name))
         assert rc == 0
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
@@ -1711,7 +1715,7 @@ disabled = 1''' in std_out
         log_json = self.extract_json("{}_uf1_1".format(self.project_name))
         self.check_common_keys(log_json, "uf")
         try:
-            assert log_json["all"]["vars"]["splunk"]["apps_location"][0] == "http://appserver/splunk_app_example.tgz"
+            assert log_json["all"]["vars"]["splunk"]["apps_location"][0] == "http://appserver/{}.tgz".format(self.project_name)
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["default"] == "/opt/splunkforwarder/etc/apps"
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["deployment"] == "/opt/splunkforwarder/etc/deployment-apps"
             assert log_json["all"]["vars"]["splunk"]["app_paths"]["httpinput"] == "/opt/splunkforwarder/etc/apps/splunk_httpinput"
@@ -1739,6 +1743,10 @@ disabled = 1''' in std_out
             # Let's go further and check app version
             output = json.loads(content)
             assert output["entry"][0]["content"]["version"] == "0.0.1"
+        try:
+            os.remove(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)))
+        except OSError:
+            pass
 
     def test_uf_entrypoint_help(self):
         # Run container

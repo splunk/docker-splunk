@@ -28,7 +28,7 @@ services:
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_ROLE=splunk_deployment_server
-      - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
+      - SPLUNK_APPS_URL
       - DEBUG=true
       - SPLUNK_PASSWORD
       - SPLUNK_DEFAULTS_URL
