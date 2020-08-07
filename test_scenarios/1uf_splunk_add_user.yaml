@@ -12,7 +12,6 @@ services:
         aliases:
           - uf1
     image: ${UF_IMAGE:-splunk/universalforwarder:latest}
-    container_name: uf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_ADD=user elaine -password changemepls -role admin,user kramer -password changemepls -role admin

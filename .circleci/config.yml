@@ -61,8 +61,12 @@ jobs:
           name: Test if image size increase
           command: make test_debian10_image_size
       - run:
-          name: Run Debian 10 image tests
-          command: make run_tests_debian10
+          name: Run small Debian 10 image tests
+          command: make run_small_tests_debian10
+          no_output_timeout: 20m
+      - run:
+          name: Run large Debian 10 image tests
+          command: make run_large_tests_debian10
           no_output_timeout: 20m
       - store_artifacts:
           path: test-results
@@ -95,8 +99,12 @@ jobs:
           command: |
             make uf-redhat-8
       - run:
-          name: Run Redhat 8 image tests
-          command: make run_tests_redhat8
+          name: Run small Redhat 8 image tests
+          command: make run_small_tests_redhat8
+          no_output_timeout: 20m
+      - run:
+          name: Run large Redhat 8 image tests
+          command: make run_large_tests_redhat8
           no_output_timeout: 20m
       - store_artifacts:
           path: test-results
@@ -145,5 +153,3 @@ workflows:
       - debian10-testing
       - container-validation
       - redhat8-testing
-
-      

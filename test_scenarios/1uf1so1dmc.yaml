@@ -13,7 +13,6 @@ services:
           - uf1
     image: ${UF_IMAGE:-splunk/universalforwarder:latest}
     hostname: uf1
-    container_name: uf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_STANDALONE_URL=so1
@@ -30,7 +29,6 @@ services:
           - so1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: so1
-    container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_STANDALONE_URL=so1
@@ -48,7 +46,6 @@ services:
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: dmc
-    container_name: dmc
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_STANDALONE_URL=so1

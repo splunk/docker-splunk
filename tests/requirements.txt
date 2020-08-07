@@ -5,3 +5,5 @@ PyYAML
 docker-compose
 pyasn1
 junit-xml
+pytest-xdist
+pytest-rerunfailures
