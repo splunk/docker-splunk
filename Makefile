@@ -289,23 +289,35 @@ sample-compose-up: sample-compose-down
 sample-compose-down:
 	docker-compose -f test_scenarios/${SPLUNK_COMPOSE} down --volumes --remove-orphans || true
 
-test: clean ansible test_setup all run_tests_centos7 run_tests_redhat8 run_tests_debian9
+test: clean ansible test_setup all run_small_tests run_large_tests
 
-test_centos7: clean ansible splunk-centos-7 uf-centos-7 test_setup run_tests_centos7
+run_small_tests: run_small_tests_centos7 run_small_tests_redhat8 run_small_tests_debian9 run_small_tests_debian10
 
-test_redhat8: clean ansible splunk-redhat-8 uf-redhat-8 test_setup run_tests_redhat8
+run_large_tests: run_large_tests_centos7 run_large_tests_redhat8 run_large_tests_debian9 run_large_tests_debian10
 
-test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_tests_debian9
+test_centos7: clean ansible splunk-centos-7 uf-centos-7 test_setup run_small_tests_centos7 run_large_tests_centos7
 
-test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_tests_debian10
+test_redhat8: clean ansible splunk-redhat-8 uf-redhat-8 test_setup run_small_tests_redhat8 run_large_tests_redhat8
 
-run_tests_centos7:
-	@echo 'Running the super awesome tests; CentOS 7'
-	pytest -sv tests/test_docker_splunk.py --platform centos-7 --junitxml test-results/centos7-result/testresults_centos7.xml
+test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_small_tests_debian9 run_large_tests_debian9
 
-run_tests_redhat8:
-	@echo 'Running the super awesome tests; RedHat 8'
-	pytest -sv tests/test_docker_splunk.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_redhat8.xml
+test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_small_tests_debian10 run_large_tests_debian10
+
+run_small_tests_centos7:
+	@echo 'Running the super awesome small tests; CentOS 7'
+	pytest -n 3 --reruns 1 -sv tests/test_single_splunk_image.py --platform centos-7 --junitxml test-results/centos7-result/testresults_small_centos7.xml
+
+run_large_tests_centos7:
+	@echo 'Running the super awesome large tests; CentOS 7'
+	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform centos-7 --junitxml test-results/centos7-result/testresults_large_centos7.xml
+
+run_small_tests_redhat8:
+	@echo 'Running the super awesome small tests; RedHat 8'
+	pytest -n 3 --reruns 1 -sv tests/test_single_splunk_image.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_small_redhat8.xml
+
+run_large_tests_redhat8:
+	@echo 'Running the super awesome large tests; RedHat 8'
+	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_large_redhat8.xml
 
 test_setup:
 	@echo 'Install test requirements'
@@ -316,13 +328,21 @@ test_setup:
 	mkdir test-results/debian10-result || true
 	mkdir test-results/redhat8-result || true
 
-run_tests_debian9:
-	@echo 'Running the super awesome tests; Debian 9'
-	pytest -sv tests/test_docker_splunk.py --platform debian-9 --junitxml test-results/debian9-result/testresults_debian9.xml
+run_small_tests_debian9:
+	@echo 'Running the super awesome small tests; Debian 9'
+	pytest -n 3 --reruns 1 -sv tests/test_single_splunk_image.py --platform debian-9 --junitxml test-results/debian9-result/testresults_small_debian9.xml
 
-run_tests_debian10:
-	@echo 'Running the super awesome tests; Debian 10'
-	pytest -sv tests/test_docker_splunk.py --platform debian-10 --junitxml test-results/debian10-result/testresults_debian10.xml
+run_large_tests_debian9:
+	@echo 'Running the super awesome large tests; Debian 9'
+	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform debian-9 --junitxml test-results/debian9-result/testresults_large_debian9.xml
+
+run_small_tests_debian10:
+	@echo 'Running the super awesome small tests; Debian 10'
+	pytest -n 3 --reruns 1 -sv tests/test_single_splunk_image.py --platform debian-10 --junitxml test-results/debian10-result/testresults_small_debian10.xml
+
+run_large_tests_debian10:
+	@echo 'Running the super awesome large tests; Debian 10'
+	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform debian-10 --junitxml test-results/debian10-result/testresults_large_debian10.xml
 
 save_containers:
 	@echo 'Saving the following containers:${CONTAINERS_TO_SAVE}'
