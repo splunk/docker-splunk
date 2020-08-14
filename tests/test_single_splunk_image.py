@@ -871,7 +871,7 @@ EOL'
             exec_command = self.client.exec_create(cid, "/sbin/entrypoint.sh start-and-exit")
             std_out = self.client.exec_start(exec_command)
             # Check splunk with the initial password
-            assert self.check_splunkd("admin", "thisisarealpassword123")
+            assert self.check_splunkd("admin", "thisisarealpassword123", name=splunk_container_name)
             # Mutate the password so that ansible changes it on the next run
             exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
 splunk:
@@ -883,7 +883,7 @@ EOL'
             exec_command = self.client.exec_create(cid, "/sbin/entrypoint.sh start-and-exit")
             stdout = self.client.exec_start(exec_command)
             # Check splunk with the initial password
-            assert self.check_splunkd("admin", "thisisadifferentpw456")
+            assert self.check_splunkd("admin", "thisisadifferentpw456", name=splunk_container_name)
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -927,7 +927,7 @@ EOL'
             exec_command = self.client.exec_create(cid, "/sbin/entrypoint.sh start-and-exit")
             std_out = self.client.exec_start(exec_command)
             # Check splunk with the initial password
-            assert self.check_splunkd("admin", "thisisarealpassword123")
+            assert self.check_splunkd("admin", "thisisarealpassword123", name=splunk_container_name)
             # Mutate the password so that ansible changes it on the next run
             exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
 splunk:
@@ -939,7 +939,7 @@ EOL'
             exec_command = self.client.exec_create(cid, "/sbin/entrypoint.sh start-and-exit")
             stdout = self.client.exec_start(exec_command)
             # Check splunk with the initial password
-            assert self.check_splunkd("admin", "thisisadifferentpw456")
+            assert self.check_splunkd("admin", "thisisadifferentpw456", name=splunk_container_name)
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -955,7 +955,6 @@ EOL'
         cid = None
         try:
             splunk_container_name = self.generate_random_string()
-            self.project_name = self.generate_random_string()
             cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8088, 9999], 
                                             name=splunk_container_name,
                                             environment={
@@ -970,7 +969,7 @@ EOL'
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", self.password)
+            assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check that HEC endpoint is up - by default, the image will enable HEC
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -997,7 +996,7 @@ EOL'
             # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
             self.client.restart(splunk_container_name)
             assert self.wait_for_containers(1, name=splunk_container_name)
-            assert self.check_splunkd("admin", self.password)
+            assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -1030,7 +1029,7 @@ EOL'
             # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
             self.client.restart(splunk_container_name)
             assert self.wait_for_containers(1, name=splunk_container_name)
-            assert self.check_splunkd("admin", self.password)
+            assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -1061,7 +1060,7 @@ EOL'
             # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
             self.client.restart(splunk_container_name)
             assert self.wait_for_containers(1, name=splunk_container_name)
-            assert self.check_splunkd("admin", self.password)
+            assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -1085,7 +1084,7 @@ EOL'
             # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
             self.client.restart(splunk_container_name)
             assert self.wait_for_containers(1, name=splunk_container_name)
-            assert self.check_splunkd("admin", self.password)
+            assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -1106,7 +1105,6 @@ disabled = 1''' in std_out
         cid = None
         try:
             splunk_container_name = self.generate_random_string()
-            self.project_name = self.generate_random_string()
             cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8089, 8088], 
                                             name=splunk_container_name,
                                             environment={
@@ -1123,7 +1121,7 @@ disabled = 1''' in std_out
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", self.password)
+            assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check HEC
             hec_port = self.client.port(cid, 8088)[0]["HostPort"]
             url = "http://localhost:{}/services/collector/event".format(hec_port)
@@ -1139,7 +1137,6 @@ disabled = 1''' in std_out
 
     def test_adhoc_1so_splunkd_no_ssl(self):
         # Generate default.yml
-        self.project_name = self.generate_random_string()
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
@@ -1176,7 +1173,7 @@ disabled = 1''' in std_out
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", p, scheme="http")
+            assert self.check_splunkd("admin", p, name=splunk_container_name, scheme="http")
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/server.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -1201,7 +1198,6 @@ disabled = 1''' in std_out
     def test_adhoc_1so_web_ssl(self):
         # Create the container
         splunk_container_name = self.generate_random_string()
-        self.project_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
         cid = None
@@ -1227,7 +1223,7 @@ disabled = 1''' in std_out
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", self.password)
+            assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check splunkweb
             web_port = self.client.port(cid, 8000)[0]["HostPort"]
             url = "https://localhost:{}/".format(web_port)
@@ -1381,8 +1377,8 @@ disabled = 1''' in std_out
  
     def test_adhoc_1so_hec_custom_cert(self):
         # Generate default.yml
-        self.project_name = self.generate_random_string()
-        self.DIR = os.path.join(self.FIXTURES_DIR, self.project_name)
+        splunk_container_name = self.generate_random_string()
+        self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -1418,7 +1414,7 @@ disabled = 1''' in std_out
         try:
             password = "helloworld"
             cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8088, 8089], 
-                                               volumes=["/tmp/defaults/"], name=self.project_name,
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
                                                environment={"DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
                                                             "SPLUNK_PASSWORD": password},
@@ -1428,9 +1424,9 @@ disabled = 1''' in std_out
             cid = cid.get("Id")
             self.client.start(cid)
             # Poll for the container to be ready
-            assert self.wait_for_containers(1, name=self.project_name)
+            assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", password)
+            assert self.check_splunkd("admin", password, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -1456,8 +1452,8 @@ disabled = 1''' in std_out
 
     def test_adhoc_1so_splunktcp_ssl(self):
         # Generate default.yml
-        self.project_name = self.generate_random_string()
-        self.DIR = os.path.join(self.FIXTURES_DIR, self.project_name)
+        splunk_container_name = self.generate_random_string()
+        self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -1494,7 +1490,7 @@ disabled = 1''' in std_out
         cid = None
         try:
             cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8000, 8089], 
-                                               volumes=["/tmp/defaults/"], name=self.project_name,
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
                                                environment={"DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
                                                             "SPLUNK_PASSWORD": password},
@@ -1504,9 +1500,9 @@ disabled = 1''' in std_out
             cid = cid.get("Id")
             self.client.start(cid)
             # Poll for the container to be ready
-            assert self.wait_for_containers(1, name=self.project_name)
+            assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", password)
+            assert self.check_splunkd("admin", password, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/inputs.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -1525,8 +1521,8 @@ disabled = 1''' in std_out
 
     def test_adhoc_1so_splunkd_custom_ssl(self):
         # Generate default.yml
-        self.project_name = self.generate_random_string()
-        self.DIR = os.path.join(self.FIXTURES_DIR, self.project_name)
+        splunk_container_name = self.generate_random_string()
+        self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -1562,7 +1558,7 @@ disabled = 1''' in std_out
         cid = None
         try:
             cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, ports=[8000, 8089], 
-                                               volumes=["/tmp/defaults/"], name=self.project_name,
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
                                                environment={"DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
                                                             "SPLUNK_PASSWORD": password},
@@ -1572,9 +1568,9 @@ disabled = 1''' in std_out
             cid = cid.get("Id")
             self.client.start(cid)
             # Poll for the container to be ready
-            assert self.wait_for_containers(1, name=self.project_name)
+            assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", password)
+            assert self.check_splunkd("admin", password, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/server.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -1947,8 +1943,8 @@ disabled = 1''' in std_out
 
     def test_adhoc_1uf_splunktcp_ssl(self):
         # Generate default.yml
-        self.project_name = self.generate_random_string()
-        self.DIR = os.path.join(self.FIXTURES_DIR, self.project_name)
+        splunk_container_name = self.generate_random_string()
+        self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -1985,7 +1981,7 @@ disabled = 1''' in std_out
         cid = None
         try:
             cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8000, 8089], 
-                                               volumes=["/tmp/defaults/"], name=self.project_name,
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
                                                environment={"DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
                                                             "SPLUNK_PASSWORD": password},
@@ -1995,9 +1991,9 @@ disabled = 1''' in std_out
             cid = cid.get("Id")
             self.client.start(cid)
             # Poll for the container to be ready
-            assert self.wait_for_containers(1, name=self.project_name)
+            assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", password)
+            assert self.check_splunkd("admin", password, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/system/local/inputs.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -2016,8 +2012,8 @@ disabled = 1''' in std_out
 
     def test_adhoc_1uf_splunkd_custom_ssl(self):
         # Generate default.yml
-        self.project_name = self.generate_random_string()
-        self.DIR = os.path.join(self.FIXTURES_DIR, self.project_name)
+        splunk_container_name = self.generate_random_string()
+        self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -2053,7 +2049,7 @@ disabled = 1''' in std_out
         cid = None
         try:
             cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8000, 8089], 
-                                               volumes=["/tmp/defaults/"], name=self.project_name,
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
                                                environment={"DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
                                                             "SPLUNK_PASSWORD": password},
@@ -2063,7 +2059,7 @@ disabled = 1''' in std_out
             cid = cid.get("Id")
             self.client.start(cid)
             # Poll for the container to be ready
-            assert self.wait_for_containers(1, name=self.project_name)
+            assert self.wait_for_containers(1, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/system/local/server.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -2088,8 +2084,8 @@ disabled = 1''' in std_out
 
     def test_adhoc_1uf_hec_custom_cert(self):
         # Generate default.yml
-        self.project_name = self.generate_random_string()
-        self.DIR = os.path.join(self.FIXTURES_DIR, self.project_name)
+        splunk_container_name = self.generate_random_string()
+        self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -2125,7 +2121,7 @@ disabled = 1''' in std_out
         try:
             password = "helloworld"
             cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8088, 8089], 
-                                               volumes=["/tmp/defaults/"], name=self.project_name,
+                                               volumes=["/tmp/defaults/"], name=splunk_container_name,
                                                environment={"DEBUG": "true", 
                                                             "SPLUNK_START_ARGS": "--accept-license",
                                                             "SPLUNK_PASSWORD": password},
@@ -2135,9 +2131,9 @@ disabled = 1''' in std_out
             cid = cid.get("Id")
             self.client.start(cid)
             # Poll for the container to be ready
-            assert self.wait_for_containers(1, name=self.project_name)
+            assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", password)
+            assert self.check_splunkd("admin", password, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -2195,7 +2191,6 @@ disabled = 1''' in std_out
 
     def test_adhoc_1uf_splunkd_no_ssl(self):
         # Generate default.yml
-        self.project_name = self.generate_random_string()
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
@@ -2232,7 +2227,7 @@ disabled = 1''' in std_out
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", p, scheme="http")
+            assert self.check_splunkd("admin", p, name=splunk_container_name, scheme="http")
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/system/local/server.conf", user="splunk")
             std_out = self.client.exec_start(exec_command)
@@ -2369,7 +2364,6 @@ disabled = 1''' in std_out
         cid = None
         try:
             splunk_container_name = self.generate_random_string()
-            self.project_name = self.generate_random_string()
             cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, ports=[8089, 8088], 
                                             name=splunk_container_name,
                                             environment={
@@ -2386,7 +2380,7 @@ disabled = 1''' in std_out
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", self.password)
+            assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check HEC
             hec_port = self.client.port(cid, 8088)[0]["HostPort"]
             url = "http://localhost:{}/services/collector/event".format(hec_port)
@@ -2609,7 +2603,7 @@ disabled = 1''' in std_out
             # Poll for the container to be ready
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check splunkd
-            assert self.check_splunkd("admin", p)
+            assert self.check_splunkd("admin", p, name=splunk_container_name)
             # Check the app endpoint
             splunkd_port = self.client.port(cid, 8089)[0]["HostPort"]
             url = "https://localhost:{}/servicesNS/nobody/splunk_app_example/configs/conf-app/launcher?output_mode=json".format(splunkd_port)
