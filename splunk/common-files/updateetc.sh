@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2018 Splunk
+# Copyright 2018-2020 Splunk
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
 # limitations under the License.
 #
 
-if [[ -f "${SPLUNK_HOME}-etc/splunk.version" ]]; then
-	IMAGE_VERSION_SHA=`cat ${SPLUNK_HOME}-etc/splunk.version | sha512sum`
+SPLUNK_ETC_BAK="${SPLUNK_ETC_BAK:-/opt/splunk-etc}"
+
+if [[ -f "${SPLUNK_ETC_BAK}/splunk.version" ]]; then
+	IMAGE_VERSION_SHA=`cat ${SPLUNK_ETC_BAK}/splunk.version | sha512sum`
 
 	if [[ -f "${SPLUNK_HOME}/etc/splunk.version" ]]; then
 		ETC_VERSION_SHA=`cat ${SPLUNK_HOME}/etc/splunk.version | sha512sum`
@@ -24,6 +26,6 @@ if [[ -f "${SPLUNK_HOME}-etc/splunk.version" ]]; then
 
 	if [[ "x${IMAGE_VERSION_SHA}" != "x${ETC_VERSION_SHA}" ]]; then
     	echo Updating ${SPLUNK_HOME}/etc
-    	(cd ${SPLUNK_HOME}-etc; tar cf - *) | (cd ${SPLUNK_HOME}/etc; tar xf -)
+    	(cd ${SPLUNK_ETC_BAK}; tar cf - *) | (cd ${SPLUNK_HOME}/etc; tar xf -)
 	fi
 fi
