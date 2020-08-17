@@ -10,6 +10,7 @@
 * [8.0.2](#802)
 * [8.0.1](#801)
 * [8.0.0](#800)
+* [7.3.7](#737)
 * [7.3.6](#736)
 * [7.3.5](#735)
 * [7.3.4.2](#7342)
@@ -185,6 +186,17 @@
 * Increasing delay intervals to better handle different platforms
 * Adding vars needed for Ansible Galaxy
 * Bugfix for pre-playbook tasks not supporting URLs
+
+---
+
+## 7.3.7
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 7.3.7](https://docs.splunk.com/Documentation/Splunk/7.3.7/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.0.5](#805)
+
+#### Changes
+* See [8.0.5](#805) changes
 
 ---
 
