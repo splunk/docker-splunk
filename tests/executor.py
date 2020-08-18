@@ -166,7 +166,10 @@ class Executor(object):
             containers = self.client.containers(filters=filters)
             self.logger.info("Found {} containers, expected {}: {}".format(len(containers), count, [x["Names"][0] for x in containers]))
             if len(containers) != count:
-                return False
+                for container in [x["Names"][0] for x in containers]:
+                    output = self.get_container_logs("{}".format(container.split('/')[1]))
+                    self.logger.error("FAILED CONTAINER LOGS:\n\n {}".format(output))
+                    return False
             healthy_count = 0
             for container in containers:
                 # The healthcheck on our Splunk image is not reliable - resorting to checking logs
