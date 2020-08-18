@@ -154,22 +154,24 @@ class Executor(object):
         '''
         NOTE: This helper method can only be used for `compose up` scenarios where self.project_name is defined
         '''
+        filters = {}
+        if name:
+            filters["name"] = name
+        if label:
+            filters["label"] = label
+        containers = self.client.containers(filters=filters)
+        c = [x["Names"][0] for x in containers]
         start = time.time()
         end = start
         # Wait
         while end-start < timeout:
-            filters = {}
-            if name:
-                filters["name"] = name
-            if label:
-                filters["label"] = label
             containers = self.client.containers(filters=filters)
             self.logger.info("Found {} containers, expected {}: {}".format(len(containers), count, [x["Names"][0] for x in containers]))
             if len(containers) != count:
-                for container in [x["Names"][0] for x in containers]:
-                    output = self.get_container_logs("{}".format(container.split('/')[1]))
-                    self.logger.error("FAILED CONTAINER LOGS:\n\n {}".format(output))
-                    return False
+                for container in c:
+                    output = self.get_container_logs(container.split('/')[1])
+                    self.logger.error("{}".format(output))
+                return False
             healthy_count = 0
             for container in containers:
                 # The healthcheck on our Splunk image is not reliable - resorting to checking logs
