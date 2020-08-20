@@ -68,7 +68,7 @@ jobs:
       - run:
           name: Run large Debian 10 image tests
           command: make run_large_tests_debian10
-          no_output_timeout: 20m
+          no_output_timeout: 1h
       - store_artifacts:
           path: test-results
           destination: test-results
@@ -107,7 +107,7 @@ jobs:
       - run:
           name: Run large Redhat 8 image tests
           command: make run_large_tests_redhat8
-          no_output_timeout: 20m
+          no_output_timeout: 1h
       - store_artifacts:
           path: test-results
           destination: test-results
