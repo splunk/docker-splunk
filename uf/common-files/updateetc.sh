@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-SPLUNK_ETC_BAK="${SPLUNK_ETC_BAK:-/opt/splunk-etc}"
+SPLUNK_ETC_BAK="${SPLUNK_ETC_BAK:-/opt/splunkforwarder-etc}"
 
 if [[ -f "${SPLUNK_ETC_BAK}/splunk.version" ]]; then
 	IMAGE_VERSION_SHA=`cat ${SPLUNK_ETC_BAK}/splunk.version | sha512sum`
