@@ -95,7 +95,7 @@ Use the [GitHub issue tracker](https://github.com/splunk/docker-splunk/issues) t
 
 If you have additional questions or need more support, you can:
 * Post a question to [Splunk Answers](http://answers.splunk.com)
-* Join the [#docker](https://splunk-usergroups.slack.com/messages/C1RH09ERM/) room in the [Splunk Slack channel](http://splunk-usergroups.slack.com)
+* Join the [#docker](https://splunk-usergroups.slack.com/messages/C1RH09ERM/) room in the [Splunk Slack channel](http://splunk-usergroups.slack.com). If you're a new Splunk customer you can register for Slack [here](http://splk.it/slack)
 * If you are a Splunk Enterprise customer with a valid support entitlement contract and have a Splunk-related question, you can also open a support case on the https://www.splunk.com/ support portal
 
 See the official [support guidelines](docs/SUPPORT.md) for more detailed information.

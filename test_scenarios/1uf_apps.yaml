@@ -13,7 +13,6 @@ services:
           - appserver
     image: nwang92/nginx-mitm
     hostname: appserver
-    container_name: appserver
     ports:
       - 80
     volumes:
@@ -26,11 +25,10 @@ services:
           - uf1
     image: ${UF_IMAGE:-splunk/universalforwarder:latest}
     hostname: uf1
-    container_name: uf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_PASSWORD
-      - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
+      - SPLUNK_APPS_URL
       - DEBUG=true
     ports:
       - 8089

@@ -14,7 +14,6 @@ services:
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: cm1
-    container_name: cm1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
@@ -23,6 +22,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8000
       - 8089
@@ -37,7 +37,6 @@ services:
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx1
-    container_name: idx1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
@@ -46,6 +45,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8000
       - 8089
@@ -60,7 +60,6 @@ services:
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx2
-    container_name: idx2
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
@@ -69,6 +68,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8000
       - 8089
@@ -83,7 +83,6 @@ services:
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx3
-    container_name: idx3
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
@@ -92,6 +91,7 @@ services:
       - SPLUNK_LICENSE_URI
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8000
       - 8089

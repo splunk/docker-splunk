@@ -13,7 +13,6 @@ services:
           - uf1
     image: ${UF_IMAGE:-splunk/universalforwarder:latest}
     hostname: uf1
-    container_name: uf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_PASSWORD

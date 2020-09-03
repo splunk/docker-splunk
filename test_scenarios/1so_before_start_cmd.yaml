@@ -12,7 +12,6 @@ services:
         aliases:
           - so1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
-    container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_BEFORE_START_CMD=add user admin2 -password changemepls -role admin, add user admin3 -password changemepls -role admin

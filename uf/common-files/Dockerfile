@@ -47,7 +47,7 @@ ENV SPLUNK_HOME=/opt/splunkforwarder \
     SPLUNK_USER=splunk
 
 # Simple script used to populate/upgrade splunk/etc directory
-COPY [ "splunk/common-files/updateetc.sh", "/sbin/"]
+COPY [ "uf/common-files/updateetc.sh", "/sbin/"]
 
 # Setup users and groups
 RUN groupadd -r -g ${GID} ${SPLUNK_GROUP} \

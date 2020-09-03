@@ -12,7 +12,6 @@ services:
         aliases:
           - hf1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
-    container_name: hf1
     environment:
       - SPLUNK_ROLE=splunk_heavy_forwarder
       - SPLUNK_START_ARGS=--accept-license

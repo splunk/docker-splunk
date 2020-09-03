@@ -35,7 +35,7 @@ chmod +x /bin/busybox
 microdnf -y --nodocs update gnutls kernel-headers
 microdnf -y --nodocs install python2-pip python2-devel redhat-rpm-config gcc libffi-devel openssl-devel
 pip2 --no-cache-dir install requests ansible jmespath
-microdnf -y remove gcc openssl-devel redhat-rpm-config python2-devel device-mapper-libs device-mapper trousers systemd systemd-pam \
+microdnf -y remove gcc openssl-devel redhat-rpm-config python2-devel device-mapper-libs device-mapper trousers \
                    dwz dbus dbus-common dbus-daemon dbus-tools dbus-libs go-srpm-macros iptables-libs annobin cryptsetup-libs \
                    ocaml-srpm-macros openblas-srpm-macros qt5-srpm-macros perl-srpm-macros rust-srpm-macros ghc-srpm-macros \
                    efi-srpm-macros python-srpm-macros python-rpm-macros python3-rpm-macros python2-rpm-macros python3-rpm-generators \
@@ -50,6 +50,8 @@ tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
 rm /usr/bin/scloud.tar.gz
 
 cd /bin
+ln -s busybox clear || true
+ln -s busybox find || true
 ln -s python2 python || true
 ln -s busybox diff || true
 ln -s busybox hostname || true

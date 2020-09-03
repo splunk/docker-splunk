@@ -14,7 +14,6 @@ services:
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: sh1
-    container_name: sh1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1,idx2
@@ -36,7 +35,6 @@ services:
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: sh2
-    container_name: sh2
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1,idx2
@@ -58,7 +56,6 @@ services:
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: cm1
-    container_name: cm1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1,idx2
@@ -80,7 +77,6 @@ services:
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx1
-    container_name: idx1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1,idx2
@@ -102,7 +98,6 @@ services:
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     command: start
     hostname: idx2
-    container_name: idx2
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_INDEXER_URL=idx1,idx2
