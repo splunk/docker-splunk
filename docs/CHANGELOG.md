@@ -2,6 +2,8 @@
 
 ## Navigation
 
+* [8.0.6](#806)
+* [8.0.5.1](#8051)
 * [8.0.5](#805)
 * [8.0.4.1](#8041)
 * [8.0.4](#804)
@@ -31,6 +33,35 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.0.6
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise maintenance patch.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.0.6](https://docs.splunk.com/Documentation/Splunk/8.0.6/ReleaseNotes/Fixedissues)
+* Test rewrite for parallelization
+* Decouples `etc` backup directory from `SPLUNK_HOME`
+* Added tests and documentation for new features
+
+#### splunk-ansible changes:
+* Support for declarative admin password, enabling password updates and rotations. `splunk.password` will always be the password for the admin user and changes to `splunk.password` will drive password reconciliation.
+* Added flag to disable pop-ups and new user tour
+* Fixed default variable propagation order
+
+---
+
+## 8.0.5.1
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 8.0.5.1](https://docs.splunk.com/Documentation/Splunk/8.0.5/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.0.6](#806)
+
+#### Changes
+* See [8.0.6](#806) changes
 
 ---
 
