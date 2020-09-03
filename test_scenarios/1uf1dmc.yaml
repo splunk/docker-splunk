@@ -6,33 +6,30 @@ networks:
     attachable: true
 
 services:
-  sh1:
-    networks:
-      splunknet:
-        aliases:
-          - sh1
-    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
-    hostname: sh1
+  uf1:
+    image: ${UF_IMAGE:-splunk/universalforwarder:latest}
+    hostname: uf1
+    container_name: uf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
-      - SPLUNK_CLUSTER_MASTER_URL=cm1
-      - SPLUNK_ROLE=splunk_search_head
       - SPLUNK_PASSWORD
       - DEBUG=true
     ports:
-      - 8000
       - 8089
 
-  cm1:
+  dmc:
     networks:
       splunknet:
         aliases:
-          - cm1
+          - dmc
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
-    hostname: cm1
+    command: start
+    hostname: dmc
+    container_name: dmc
     environment:
       - SPLUNK_START_ARGS=--accept-license
-      - SPLUNK_ROLE=splunk_cluster_master
+      - SPLUNK_ROLE=splunk_monitor
+      - SPLUNK_LICENSE_URI
       - SPLUNK_PASSWORD
       - DEBUG=true
     ports:

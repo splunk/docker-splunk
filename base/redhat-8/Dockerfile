@@ -24,6 +24,9 @@ LABEL name="splunk" \
       summary="UBI 8 Docker image of Splunk Enterprise" \
       description="Splunk Enterprise is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results."
 
+ARG SCLOUD_URL
+ENV SCLOUD_URL ${SCLOUD_URL}
+
 COPY install.sh /install.sh
 
 RUN mkdir /licenses \

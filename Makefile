@@ -7,8 +7,8 @@ SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
-SPLUNK_VERSION := 8.0.4
-SPLUNK_BUILD := 767223ac207f
+SPLUNK_VERSION := 8.0.5
+SPLUNK_BUILD := a1a6394cc5ae
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
@@ -25,6 +25,8 @@ SPLUNK_WIN_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 SPLUNK_WIN_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/windows/${SPLUNK_WIN_FILENAME}
 UF_WIN_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/windows/${UF_WIN_FILENAME}
+# Splunk Cloud SDK binary
+SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.7.0/scloud_v4.0.0_linux_amd64.tar.gz
 
 # Security Scanner Variables
 SCANNER_DATE := `date +%Y-%m-%d`
@@ -59,19 +61,19 @@ ansible:
 base: base-debian-9 base-debian-10 base-centos-7 base-redhat-8 base-windows-2016
 
 base-debian-10:
-	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
+	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
 
 base-debian-10-systemd:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-10-systemd:${IMAGE_VERSION} ./base/debian-10-systemd
 
 base-debian-9:
-	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-9:${IMAGE_VERSION} ./base/debian-9
+	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-debian-9:${IMAGE_VERSION} ./base/debian-9
 
 base-centos-7:
-	docker build ${DOCKER_BUILD_FLAGS} -t base-centos-7:${IMAGE_VERSION} ./base/centos-7
+	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-centos-7:${IMAGE_VERSION} ./base/centos-7
 
 base-redhat-8:
-	docker build ${DOCKER_BUILD_FLAGS} --label version=${SPLUNK_VERSION} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
+	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} --label version=${SPLUNK_VERSION} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
 
 base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
@@ -298,23 +300,35 @@ sample-compose-up: sample-compose-down
 sample-compose-down:
 	docker-compose -f test_scenarios/${SPLUNK_COMPOSE} down --volumes --remove-orphans || true
 
-test: clean ansible test_setup all run_tests_centos7 run_tests_redhat8 run_tests_debian9
+test: clean ansible test_setup all run_small_tests run_large_tests
 
-test_centos7: clean ansible splunk-centos-7 uf-centos-7 test_setup run_tests_centos7
+run_small_tests: run_small_tests_centos7 run_small_tests_redhat8 run_small_tests_debian9 run_small_tests_debian10
 
-test_redhat8: clean ansible splunk-redhat-8 uf-redhat-8 test_setup run_tests_redhat8
+run_large_tests: run_large_tests_centos7 run_large_tests_redhat8 run_large_tests_debian9 run_large_tests_debian10
 
-test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_tests_debian9
+test_centos7: clean ansible splunk-centos-7 uf-centos-7 test_setup run_small_tests_centos7 run_large_tests_centos7
 
-test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_tests_debian10
+test_redhat8: clean ansible splunk-redhat-8 uf-redhat-8 test_setup run_small_tests_redhat8 run_large_tests_redhat8
 
-run_tests_centos7:
-	@echo 'Running the super awesome tests; CentOS 7'
-	pytest -sv tests/test_docker_splunk.py --platform centos-7 --junitxml test-results/centos7-result/testresults_centos7.xml
+test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_small_tests_debian9 run_large_tests_debian9
 
-run_tests_redhat8:
-	@echo 'Running the super awesome tests; RedHat 8'
-	pytest -sv tests/test_docker_splunk.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_redhat8.xml
+test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_small_tests_debian10 run_large_tests_debian10
+
+run_small_tests_centos7:
+	@echo 'Running the super awesome small tests; CentOS 7'
+	pytest -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform centos-7 --junitxml test-results/centos7-result/testresults_small_centos7.xml
+
+run_large_tests_centos7:
+	@echo 'Running the super awesome large tests; CentOS 7'
+	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform centos-7 --junitxml test-results/centos7-result/testresults_large_centos7.xml
+
+run_small_tests_redhat8:
+	@echo 'Running the super awesome small tests; RedHat 8'
+	pytest -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_small_redhat8.xml
+
+run_large_tests_redhat8:
+	@echo 'Running the super awesome large tests; RedHat 8'
+	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_large_redhat8.xml
 
 test_setup:
 	@echo 'Install test requirements'
@@ -325,13 +339,21 @@ test_setup:
 	mkdir test-results/debian10-result || true
 	mkdir test-results/redhat8-result || true
 
-run_tests_debian9:
-	@echo 'Running the super awesome tests; Debian 9'
-	pytest -sv tests/test_docker_splunk.py --platform debian-9 --junitxml test-results/debian9-result/testresults_debian9.xml
+run_small_tests_debian9:
+	@echo 'Running the super awesome small tests; Debian 9'
+	pytest -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform debian-9 --junitxml test-results/debian9-result/testresults_small_debian9.xml
 
-run_tests_debian10:
-	@echo 'Running the super awesome tests; Debian 10'
-	pytest -sv tests/test_docker_splunk.py --platform debian-10 --junitxml test-results/debian10-result/testresults_debian10.xml
+run_large_tests_debian9:
+	@echo 'Running the super awesome large tests; Debian 9'
+	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform debian-9 --junitxml test-results/debian9-result/testresults_large_debian9.xml
+
+run_small_tests_debian10:
+	@echo 'Running the super awesome small tests; Debian 10'
+	pytest -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform debian-10 --junitxml test-results/debian10-result/testresults_small_debian10.xml
+
+run_large_tests_debian10:
+	@echo 'Running the super awesome large tests; Debian 10'
+	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform debian-10 --junitxml test-results/debian10-result/testresults_large_debian10.xml
 
 save_containers:
 	@echo 'Saving the following containers:${CONTAINERS_TO_SAVE}'

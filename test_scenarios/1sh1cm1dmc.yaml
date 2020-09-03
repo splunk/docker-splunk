@@ -38,3 +38,23 @@ services:
     ports:
       - 8000
       - 8089
+
+  dmc:
+    networks:
+      splunknet:
+        aliases:
+          - dmc
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    command: start
+    hostname: dmc
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_CLUSTER_MASTER_URL=cm1
+      - SPLUNK_SEARCH_HEAD_URL=sh1
+      - SPLUNK_ROLE=splunk_monitor
+      - SPLUNK_LICENSE_URI
+      - SPLUNK_PASSWORD
+      - DEBUG=true
+    ports:
+      - 8000
+      - 8089
