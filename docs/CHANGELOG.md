@@ -2,6 +2,9 @@
 
 ## Navigation
 
+* [8.0.6](#806)
+* [8.0.5.1](#8051)
+* [8.0.5](#805)
 * [8.0.4.1](#8041)
 * [8.0.4](#804)
 * [8.0.3](#803)
@@ -9,6 +12,7 @@
 * [8.0.2](#802)
 * [8.0.1](#801)
 * [8.0.0](#800)
+* [7.3.7](#737)
 * [7.3.6](#736)
 * [7.3.5](#735)
 * [7.3.4.2](#7342)
@@ -30,6 +34,53 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.0.6
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise maintenance patch.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.0.6](https://docs.splunk.com/Documentation/Splunk/8.0.6/ReleaseNotes/Fixedissues)
+* Test rewrite for parallelization
+* Decouples `etc` backup directory from `SPLUNK_HOME`
+* Added tests and documentation for new features
+
+#### splunk-ansible changes:
+* Support for declarative admin password, enabling password updates and rotations. `splunk.password` will always be the password for the admin user and changes to `splunk.password` will drive password reconciliation.
+* Added flag to disable pop-ups and new user tour
+* Fixed default variable propagation order
+
+---
+
+## 8.0.5.1
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 8.0.5.1](https://docs.splunk.com/Documentation/Splunk/8.0.5/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.0.6](#806)
+
+#### Changes
+* See [8.0.6](#806) changes
+
+---
+
+## 8.0.5
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise maintenance patch.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.0.5](https://docs.splunk.com/Documentation/Splunk/8.0.5/ReleaseNotes/Fixedissues)
+* Support for Splunk Cloud
+* Added tests and documentation for new features
+
+#### splunk-ansible changes:
+* Support for Splunk Enterprise Security (ES)
+* Added a role for the Distributed Monitoring Console (DMC)
+* Support for forwarding from the Splunk Data Stream Processor (DSP)
+* `splunk.license_master_url` now allows scheme and port to be set along with the protocol
 
 ---
 
@@ -166,6 +217,17 @@
 * Increasing delay intervals to better handle different platforms
 * Adding vars needed for Ansible Galaxy
 * Bugfix for pre-playbook tasks not supporting URLs
+
+---
+
+## 7.3.7
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 7.3.7](https://docs.splunk.com/Documentation/Splunk/7.3.7/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.0.5](#805)
+
+#### Changes
+* See [8.0.5](#805) changes
 
 ---
 

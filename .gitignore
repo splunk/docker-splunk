@@ -8,5 +8,4 @@ splunk-ansible
 *.xml
 *clair-scanner*
 .env
-tests/fixtures/*
 venv

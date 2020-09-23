@@ -124,6 +124,7 @@ Environment Variables:
   * SPLUNK_GROUP - group under which to run Splunk (default: splunk)
   * SPLUNK_HOME - home directory where Splunk gets installed (default: /opt/splunk)
   * SPLUNK_START_ARGS - arguments to pass into the Splunk start command; you must include '--accept-license' to start Splunk (default: none)
+  * SPLUNK_PASSWORD - password to log into this Splunk instance, you must include a password (default: none)
   * SPLUNK_ROLE - the role of this Splunk instance (default: splunk_standalone)
       Acceptable values:
         - splunk_standalone
@@ -140,9 +141,9 @@ Environment Variables:
   * SPLUNK_APPS_URL - comma-separated list of URLs to Splunk apps which will be downloaded and installed
 
 Examples:
-  * docker run -it -p 8000:8000 splunk/splunk start
-  * docker run -it -e SPLUNK_START_ARGS=--accept-license -p 8000:8000 -p 8089:8089 splunk/splunk start
-  * docker run -it -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_LICENSE_URI=http://example.com/splunk.lic -p 8000:8000 splunk/splunk start
+  * docker run -it -e SPLUNK_PASSWORD=helloworld -p 8000:8000 splunk/splunk start
+  * docker run -it -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD=helloworld -p 8000:8000 -p 8089:8089 splunk/splunk start
+  * docker run -it -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_LICENSE_URI=http://example.com/splunk.lic -e SPLUNK_PASSWORD=helloworld -p 8000:8000 splunk/splunk start
   * docker run -it -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_INDEXER_URL=idx1,idx2 -e SPLUNK_SEARCH_HEAD_URL=sh1,sh2 -e SPLUNK_ROLE=splunk_search_head --hostname sh1 --network splunknet --network-alias sh1 -e SPLUNK_PASSWORD=helloworld -e SPLUNK_LICENSE_URI=http://example.com/splunk.lic splunk/splunk start
 
 EOF

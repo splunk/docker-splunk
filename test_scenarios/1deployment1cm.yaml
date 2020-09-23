@@ -13,7 +13,6 @@ services:
           - appserver
     image: nwang92/nginx-mitm
     hostname: appserver
-    container_name: appserver
     ports:
       - 80
     volumes:
@@ -26,13 +25,13 @@ services:
           - depserver1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: depserver1
-    container_name: depserver1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_ROLE=splunk_deployment_server
-      - SPLUNK_APPS_URL=http://appserver/splunk_app_example.tgz
+      - SPLUNK_APPS_URL
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8089
     volumes:
@@ -45,7 +44,6 @@ services:
           - cm1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: cm1
-    container_name: cm1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_DEPLOYMENT_SERVER=depserver1
@@ -53,6 +51,7 @@ services:
       - SPLUNK_CLUSTER_MASTER_URL=cm1
       - DEBUG=true
       - SPLUNK_PASSWORD
+      - SPLUNK_DEFAULTS_URL
     ports:
       - 8000
       - 8089

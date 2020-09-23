@@ -13,7 +13,6 @@ services:
           - so1
     image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
     hostname: so1
-    container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_BUILD_URL=https://download.splunk.com/products/splunk/releases/7.1.1/linux/splunk-7.1.1-8f0ead9ec3db-Linux-x86_64.tgz
