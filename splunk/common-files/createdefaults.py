@@ -1,5 +1,5 @@
 #! /usr/bin/python
-# Copyright 2018 Splunk
+# Copyright 2018-2020 Splunk
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import six
 import sys
 import uuid
 import random
@@ -32,10 +33,14 @@ splunk_shc_pass4SymmKey = os.environ.get("SPLUNK_SHC_PASS4SYMMKEY", None)
 def random_generator(size=24):
     # Use System Random for
     rng = random.SystemRandom()
-    bytes = [chr(rng.randrange(256)) for i in range(size)]
-    s = ''.join(bytes)
+    b = [chr(rng.randrange(256)) for i in range(size)]
+    s = ''.join(b)
+    if six.PY2:
+        s = base64.b64encode(s)
+    else:
+        s = base64.b64encode(s.encode()).decode()
+    return s
 
-    return base64.b64encode(s)
 
 # if there are no environment vars set, lets make some safe defaults
 if not splunk_hec_token:
