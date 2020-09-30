@@ -27,4 +27,4 @@ RUN yum remove -y --setopt=tsflags=noscripts gcc openssl-devel bzip2-devel libff
     && yum autoremove -y \
     && yum clean all
 RUN pip3 --no-cache-dir install ansible requests
-RUN pip --no-cache-dir install pyyaml
+RUN pip --no-cache-dir install pyyaml requests
