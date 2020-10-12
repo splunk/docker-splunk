@@ -20,6 +20,7 @@ services:
       - SPLUNK_SEARCH_HEAD_URL=sh1,sh2
       - SPLUNK_CLUSTER_MASTER_URL=cm1
       - SPLUNK_ROLE=splunk_indexer
+      - SPLUNK_IDXC_PASS4SYMMKEY=asdf1234
       - SPLUNK_LICENSE_URI
       - SPLUNK_PASSWORD
       - DEBUG=true
