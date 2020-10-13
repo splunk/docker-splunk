@@ -552,7 +552,7 @@ class TestDockerSplunk(Executor):
         container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=900)
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         self.check_dmc(containers, 4, 3, 2, 1, 5)
 
@@ -642,7 +642,7 @@ class TestDockerSplunk(Executor):
         container_count, rc = self.compose_up()
         assert rc == 0
         # Wait for containers to come up
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
         # Get container logs
         container_mapping = {"sh1": "sh", "sh2": "sh", "idx1": "idx", "idx2": "idx", "cm1": "cm"}
         for container in container_mapping:
@@ -687,25 +687,31 @@ class TestDockerSplunk(Executor):
                 assert len(idx_list) == 0 and len(sh_list) == 0
                 # Add one more indexer
                 self.compose_file_name = "2idx2sh1cm_idx3.yaml"
-                container_count, rc = self.compose_up()
+                _, rc = self.compose_up()
                 assert rc == 0
                 # Wait for containers to come up
-                assert self.wait_for_containers(container_count, name="idx3")
+                assert self.wait_for_containers(container_count+1, label="com.docker.compose.project={}".format(self.project_name), timeout=600)
 
                 retries = 10
                 for n in range(retries):
-                    status, content = self.handle_request_retry("GET", "https://localhost:{}/services/cluster/master/peers?output_mode=json".format(splunkd_port), 
+                    try:
+                        status, content = self.handle_request_retry("GET", "https://localhost:{}/services/cluster/master/peers?output_mode=json".format(splunkd_port), 
                                                         {"auth": ("admin", self.password), "verify": False})
-                    assert status == 200
-                    output = json.loads(content)
-                    for idx in output["entry"]:
-                        if idx["content"]["label"] == "idx3" and idx["content"]["status"] == "Up":
-                            break
-                    else:
+                        assert status == 200
+                        output = json.loads(content)
+                        assert len(output["entry"]) == 3
+                        indexers = []
+                        for idx in output["entry"]:
+                            indexers.append(idx["content"]["label"])
+                        assert "idx1" in indexers
+                        assert "idx2" in indexers
+                        assert "idx3" in indexers
+                        break
+                    except Exception as err:
                         time.sleep(10)
                         if n < retries-1:
                             continue
-                        assert False
+                        raise err
 
     def test_compose_1deployment1cm(self):
         self.project_name = self.generate_random_string()
