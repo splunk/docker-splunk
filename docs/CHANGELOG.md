@@ -2,6 +2,7 @@
 
 ## Navigation
 
+* [8.1.0](#810)
 * [8.0.6](#806)
 * [8.0.5.1](#8051)
 * [8.0.5](#805)
@@ -37,6 +38,26 @@
 
 ---
 
+## 8.1.0
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.1.0](https://docs.splunk.com/Documentation/Splunk/8.1.0/ReleaseNotes/Fixedissues)
+* Set bash as the default shell
+* CI bugfixes
+
+#### splunk-ansible changes:
+* Added environment variables to configure HTTPS on Splunkd. See [Supported environment variables](https://github.com/splunk/splunk-ansible/blob/develop/docs/ADVANCED.md#supported-environment-variables) for details.
+    * `SPLUNKD_SSL_` prefixed environment variables
+    * `splunk.ssl` section in `default.yml`
+* Enabled multisite for the `splunk_monitor` role
+* Enabled local indexing on the license master
+* Bugfixes and cleanup
+
+---
+
 ## 8.0.6
 
 #### What's New?
@@ -45,7 +66,7 @@
 #### docker-splunk changes:
 * Bumping Splunk version. For details, see [Fixed issues for 8.0.6](https://docs.splunk.com/Documentation/Splunk/8.0.6/ReleaseNotes/Fixedissues)
 * Test rewrite for parallelization
-* Decouples `etc` backup directory from `SPLUNK_HOME`
+* Decoupled `etc` backup directory from `SPLUNK_HOME`
 * Added tests and documentation for new features
 
 #### splunk-ansible changes:
@@ -97,7 +118,7 @@
 #### splunk-ansible changes:
 * Support for setting the [deployer push mode](https://docs.splunk.com/Documentation/Splunk/latest/DistSearch/PropagateSHCconfigurationchanges#Choose_a_deployer_push_mode) to control how apps are bundled and distributed to cluster members:
     * `shc.deployer_push_mode` in `default.yml`
-* Added the config variable `auxiliary_cluster_masters` to support enabling a search head to search across multiple indexer clusters. See [Multi-Cluster Search](advanced/MULTICLUSTERSEARCH.md) for details on configuration.
+* Added the config variable `auxiliary_cluster_masters` to support enabling a search head to search across multiple indexer clusters. See [Multi-Cluster Search](https://github.com/splunk/splunk-ansible/blob/develop/docs/advanced/MULTICLUSTERSEARCH.md) for details on configuration.
 * Documentation on executing `splunk-ansible` remotely, through a controller node such as Ansible Tower/AWX
 * Set custom Splunkd connection timeout using either:
     * `splunk.connection_timeout` in `default.yml`
