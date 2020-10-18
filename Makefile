@@ -7,8 +7,8 @@ SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
-SPLUNK_VERSION := 8.0.6
-SPLUNK_BUILD := 152fb4b2bb96
+SPLUNK_VERSION := 8.1.0
+SPLUNK_BUILD := f57c09e87251
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
@@ -58,7 +58,7 @@ ansible:
 	@cat splunk-ansible/version.txt
 
 ##### Base images #####
-base: base-debian-9 base-debian-10 base-centos-7 base-redhat-8 base-windows-2016
+base: base-debian-9 base-debian-10 base-centos-7 base-centos-8 base-redhat-8 base-windows-2016
 
 base-debian-10:
 	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
@@ -69,6 +69,9 @@ base-debian-9:
 base-centos-7:
 	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-centos-7:${IMAGE_VERSION} ./base/centos-7
 
+base-centos-8:
+	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-centos-8:${IMAGE_VERSION} ./base/centos-8
+
 base-redhat-8:
 	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} --label version=${SPLUNK_VERSION} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
 
@@ -76,7 +79,7 @@ base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
 
 ##### Minimal images #####
-minimal: minimal-debian-9 minimal-debian-10 minimal-centos-7 minimal-redhat-8
+minimal: minimal-debian-9 minimal-debian-10 minimal-centos-7 minimal-centos-8 minimal-redhat-8
 
 minimal-debian-9: base-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -99,6 +102,13 @@ minimal-centos-7: base-centos-7
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target minimal -t minimal-centos-7:${IMAGE_VERSION} .	
 
+minimal-centos-8: base-centos-8
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-centos-8 \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		--target minimal -t minimal-centos-8:${IMAGE_VERSION} .
+
 minimal-redhat-8: base-redhat-8
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
@@ -107,7 +117,7 @@ minimal-redhat-8: base-redhat-8
 		--target minimal -t minimal-redhat-8:${IMAGE_VERSION} .
 
 ##### Bare images #####
-bare: bare-debian-9 bare-debian-10 bare-centos-7 bare-redhat-8
+bare: bare-debian-9 bare-debian-10 bare-centos-7 bare-centos-8 bare-redhat-8
 
 bare-debian-9: base-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -128,7 +138,14 @@ bare-centos-7: base-centos-7
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-centos-7 \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
-		--target bare -t bare-centos-7:${IMAGE_VERSION} .	
+		--target bare -t bare-centos-7:${IMAGE_VERSION} .
+
+bare-centos-8: base-centos-7
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-centos-8 \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		--target bare -t bare-centos-8:${IMAGE_VERSION} .	
 
 bare-redhat-8: base-redhat-8
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -138,7 +155,7 @@ bare-redhat-8: base-redhat-8
 		--target bare -t bare-redhat-8:${IMAGE_VERSION} .
 
 ##### Splunk images #####
-splunk: ansible splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8
+splunk: ansible splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-centos-8 splunk-redhat-8
 
 splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -161,6 +178,13 @@ splunk-centos-7: base-centos-7 ansible
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		-t splunk-centos-7:${IMAGE_VERSION} .
 
+splunk-centos-8: base-centos-8 ansible 
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-centos-8 \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
+		-t splunk-centos-8:${IMAGE_VERSION} .
+
 splunk-redhat-8: base-redhat-8 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
@@ -176,7 +200,7 @@ splunk-windows-2016: base-windows-2016 ansible
 		-t splunk-windows-2016:${IMAGE_VERSION} .
 
 ##### UF images #####
-uf: ansible uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8
+uf: ansible uf-debian-9 uf-debian-10 uf-centos-7 uf-centos-8 uf-redhat-8
 
 ufbare-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -213,6 +237,13 @@ uf-centos-7: base-centos-7 ansible
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-centos-7:${IMAGE_VERSION} .
 
+uf-centos-8: base-centos-8 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f uf/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-centos-8 \
+		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
+		-t uf-centos-8:${IMAGE_VERSION} .
+
 uf-redhat-8: base-redhat-8 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
@@ -229,7 +260,7 @@ uf-windows-2016: base-windows-2016 ansible
 
 
 ##### Python 3 support #####
-splunk-py23: splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8
+splunk-py23: splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-centos-8 splunk-py23-redhat-8
 
 splunk-py23-debian-9: splunk-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -248,6 +279,12 @@ splunk-py23-centos-7: splunk-centos-7
 		-f py23-image/centos-7/Dockerfile \
 		--build-arg SPLUNK_PRODUCT=splunk \
 		-t splunk-py23-centos-7:${IMAGE_VERSION} .
+
+splunk-py23-centos-8: splunk-centos-8
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/centos-8/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=splunk \
+		-t splunk-py23-centos-8:${IMAGE_VERSION} .
 
 splunk-py23-redhat-8: splunk-redhat-8
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -274,6 +311,12 @@ uf-py23-centos-7: uf-centos-7
 		-f py23-image/centos-7/Dockerfile \
 		--build-arg SPLUNK_PRODUCT=uf \
 		-t uf-py23-centos-7:${IMAGE_VERSION} .
+
+uf-py23-centos-8: uf-centos-8
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/centos-8/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=uf \
+		-t uf-py23-centos-8:${IMAGE_VERSION} .
 
 uf-py23-redhat-8: uf-redhat-8
 	docker build ${DOCKER_BUILD_FLAGS} \
