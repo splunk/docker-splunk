@@ -17,7 +17,7 @@ The following prerequisites and dependencies must be installed on each node you 
 * Chipset:
     * `splunk/splunk` image supports x86-64 chipsets
     * `splunk/universalforwarder` image supports both x86-64 and s390x chipsets
-* Kernel version 4.0 or higher
+* Kernel version 4.x
 * Docker engine:
     * Docker Enterprise Engine 17.06.2 or higher
     * Docker Community Engine 17.06.2 or higher
