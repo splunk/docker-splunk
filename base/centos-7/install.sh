@@ -41,6 +41,9 @@ echo "
 ## Allows people in group sudo to run all commands
 %sudo  ALL=(ALL)       ALL" >> /etc/sudoers
 
+# Remove nproc limits
+rm -rf /etc/security/limits.d/20-nproc.conf
+
 # Clean
 yum clean all
 rm -rf /install.sh /anaconda-post.log /var/log/anaconda/*

@@ -1,43 +1,82 @@
-version: 2
-jobs:
-  security-scanning:
+version: 2.1
+
+executors:
+  py3:
+    docker:
+      - image: cimg/python:3.7
+  circleci_medium:
     machine:
-      image: circleci/classic:latest
-    steps:
-      - checkout
-      - run:
-          name: Setup python3
-          command: |
-            pyenv global 2.7.12 3.5.2
-            python --version
-            pip --version
-            python3 --version
-            pip3 --version
-      - run:
-          name: Setup Tests / Scanner Requirements
-          command: |
-            make test_setup
-      - run:
-          name: Build Container
-          command: |
-            make all
-      - run:
-          name: Run Vulnerability Scanner
-          command: |
-            make setup_and_run_clair
-      - store_artifacts:
-          name: Store Scanner Logs
-          path: clair-scanner-logs
-          destintation: clair-scanner-logs
-      - store_artifacts:
-          path: test-results
-          destination: test-results
-  debian10-testing:
+      image: ubuntu-1604:201903-01
+    resource_class: medium
+  circleci_xlarge:
     machine:
-      image: circleci/classic:latest
+      image: ubuntu-1604:201903-01
     resource_class: xlarge
+
+orbs:
+  clair: ovotech/clair-scanner@1.6.0
+
+jobs:
+
+  build_debian_10:
+    executor: py3
     steps:
       - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: workspace_cache
+      - run:
+          name: Build images
+          command: make splunk-debian-10 uf-debian-10
+      - run:
+          name: Save images
+          command: |
+            docker save -o workspace_cache/splunk-debian-10.tar splunk-debian-10:latest
+            docker save -o workspace_cache/uf-debian-10.tar uf-debian-10:latest
+      - persist_to_workspace:
+          root: workspace_cache
+          paths:
+            - splunk-debian-10.tar
+            - uf-debian-10.tar
+
+  build_redhat_8:
+    executor: py3
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: workspace_cache
+      - run:
+          name: Build images
+          command: make splunk-redhat-8 uf-redhat-8
+      - run:
+          name: Save images
+          command: |
+            docker save -o workspace_cache/splunk-redhat-8.tar splunk-redhat-8:latest
+            docker save -o workspace_cache/uf-redhat-8.tar uf-redhat-8:latest
+      - persist_to_workspace:
+          root: workspace_cache
+          paths:
+            - splunk-redhat-8.tar
+            - uf-redhat-8.tar
+
+  scan_images:
+    executor: clair/default
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: workspace_cache
+      - modified-clair-scan:
+          docker_tar_dir: /root/project/workspace_cache/
+          whitelist: /root/project/clair-whitelist.yml
+
+  test_redhat_8_small:
+    executor: circleci_medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: workspace_cache
       - run:
           name: Setup python3
           command: |
@@ -47,39 +86,29 @@ jobs:
             python3 --version
             pip3 --version
       - run:
-          name: Setup Tests / Scanner Requirements
+          name: Load images
           command: |
-            make test_setup
+            docker load -i workspace_cache/splunk-redhat-8.tar
+            docker load -i workspace_cache/uf-redhat-8.tar
       - run:
-          name: Build Debian 10 Splunk
-          command: |
-            make splunk-debian-10
+          name: Setup
+          command: make test_setup
       - run:
-          name: Build Debian 10 UF
-          command: |
-            make uf-debian-10
-      - run:
-          name: Test if image size increase
-          command: make test_debian10_image_size
-      - run:
-          name: Run small Debian 10 image tests
-          command: make run_small_tests_debian10
+          name: Run small tests
+          command: make run_small_tests_redhat8
           no_output_timeout: 20m
-      - run:
-          name: Run large Debian 10 image tests
-          command: make run_large_tests_debian10
-          no_output_timeout: 1h
       - store_artifacts:
           path: test-results
           destination: test-results
       - store_test_results:
           path: test-results
-  redhat8-testing:
-    machine:
-      image: circleci/classic:latest
-    resource_class: xlarge
+
+  test_redhat_8_large:
+    executor: circleci_xlarge
     steps:
       - checkout
+      - attach_workspace:
+          at: workspace_cache
       - run:
           name: Setup python3
           command: |
@@ -89,23 +118,15 @@ jobs:
             python3 --version
             pip3 --version
       - run:
-          name: Setup Tests / Scanner Requirements
+          name: Load images
           command: |
-            make test_setup
+            docker load -i workspace_cache/splunk-redhat-8.tar
+            docker load -i workspace_cache/uf-redhat-8.tar
       - run:
-          name: Build Redhat 8 Splunk
-          command: |
-            make splunk-redhat-8
+          name: Setup
+          command: make test_setup
       - run:
-          name: Build Redhat 8 UF
-          command: |
-            make uf-redhat-8
-      - run:
-          name: Run small Redhat 8 image tests
-          command: make run_small_tests_redhat8
-          no_output_timeout: 20m
-      - run:
-          name: Run large Redhat 8 image tests
+          name: Run large tests
           command: make run_large_tests_redhat8
           no_output_timeout: 1h
       - store_artifacts:
@@ -113,11 +134,13 @@ jobs:
           destination: test-results
       - store_test_results:
           path: test-results
-  container-validation:
-    machine:
-      image: circleci/classic:latest
+
+  test_debian_10_small:
+    executor: circleci_medium
     steps:
       - checkout
+      - attach_workspace:
+          at: workspace_cache
       - run:
           name: Setup python3
           command: |
@@ -127,31 +150,216 @@ jobs:
             python3 --version
             pip3 --version
       - run:
-          name: Setup Tests / Scanner Requirements
+          name: Load images
           command: |
-            make test_setup
+            docker load -i workspace_cache/splunk-debian-10.tar
+            docker load -i workspace_cache/uf-debian-10.tar
       - run:
-          name: Build Container
-          command: |
-            make all
+          name: Setup
+          command: make test_setup
       - run:
-          name: Export Build Images for Artifacts
-          command: |
-            make save_containers
+          name: Check image size
+          command: make test_debian10_image_size
       - run:
-          name: Test Python3 installation
-          command: make test_python3_all
-      - run:
-          name: Test Python2 as the default
-          command: make test_python2_all
+          name: Run small tests
+          command: make run_small_tests_debian10
+          no_output_timeout: 20m
       - store_artifacts:
           path: test-results
           destination: test-results
+      - store_test_results:
+          path: test-results
+
+  test_debian_10_large:
+    executor: circleci_xlarge
+    steps:
+      - checkout
+      - attach_workspace:
+          at: workspace_cache
+      - run:
+          name: Setup python3
+          command: |
+            pyenv global 2.7.12 3.5.2
+            python --version
+            pip --version
+            python3 --version
+            pip3 --version
+      - run:
+          name: Load images
+          command: |
+            docker load -i workspace_cache/splunk-debian-10.tar
+            docker load -i workspace_cache/uf-debian-10.tar
+      - run:
+          name: Setup
+          command: make test_setup
+      - run:
+          name: Run large tests
+          command: make run_large_tests_debian10
+          no_output_timeout: 1h
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+      - store_test_results:
+          path: test-results
+
 workflows:
   version: 2
-  build:
+  pipeline:
     jobs:
-      - security-scanning
-      - debian10-testing
-      - container-validation
-      - redhat8-testing
+      - build_debian_10
+      - build_redhat_8
+      - scan_images:
+          requires:
+            - build_debian_10
+            - build_redhat_8
+      - test_redhat_8_small:
+          requires:
+            - build_debian_10
+            - build_redhat_8
+      - test_redhat_8_large:
+          requires:
+            - build_debian_10
+            - build_redhat_8
+      - test_debian_10_small:
+          requires:
+            - build_debian_10
+            - build_redhat_8
+      - test_debian_10_large:
+          requires:
+            - build_debian_10
+            - build_redhat_8
+
+commands:
+  modified-clair-scan:
+    description: "Scan an image for vulnerabilities"
+    parameters:
+      image:
+        type: "string"
+        description: "Name of the image to scan"
+        default: ""
+      image_file:
+        type: "string"
+        description: "Path to a file of images to scan"
+        default: ""
+      whitelist:
+        type: "string"
+        description: "Path to a CVE whitelist"
+        default: ""
+      severity_threshold:
+        type: "string"
+        description: "The threshold (equal and above) at which discovered vulnerabilities are reported. May be 'Defcon1', 'Critical', 'High', 'Medium', 'Low', 'Negligible' or 'Unknown'"
+        default: "High"
+      fail_on_discovered_vulnerabilities:
+        type: "boolean"
+        description: "Fail command when vulnerabilities at severity equal to or above the threshold are discovered"
+        default: true
+      fail_on_unsupported_images:
+        type: "boolean"
+        description: "Fail command when image cannot be scanned for vulnerabilities"
+        default: true
+      disable_verbose_console_output:
+        type: "boolean"
+        description: "Disable verbose console output"
+        default: false
+      docker_tar_dir:
+        type: "string"
+        description: "Path of directory that Docker tarballs are stored"
+        default: "/docker-tars"
+    steps:
+      - run:
+          name: "Vulnerability scan"
+          command: |
+            #!/usr/bin/env bash
+
+            set -xe
+
+            DOCKER_TAR_DIR="<< parameters.docker_tar_dir >>"
+
+            if [ -z "<< parameters.image_file >><< parameters.image >>" ] && [ -z "$(ls -A "$DOCKER_TAR_DIR" 2>/dev/null)" ]; then
+                echo "image_file or image parameters or docker tarballs must be present"
+                exit 255
+            fi
+
+            REPORT_DIR=/clair-reports
+            mkdir $REPORT_DIR
+
+            DB=$(docker run -p 5432:5432 -d arminc/clair-db:latest)
+            CLAIR=$(docker run -p 6060:6060 --link "$DB":postgres -d arminc/clair-local-scan:latest)
+            CLAIR_SCANNER=$(docker run -v /var/run/docker.sock:/var/run/docker.sock -d ovotech/clair-scanner@sha256:8a4f920b4e7e40dbcec4a6168263d45d3385f2970ee33e5135dd0e3b75d39c75 tail -f /dev/null)
+
+            clair_ip=$(docker exec -it "$CLAIR" hostname -i | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+            scanner_ip=$(docker exec -it "$CLAIR_SCANNER" hostname -i | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+
+            if [ -n "<< parameters.whitelist >>" ]; then
+                cat "<< parameters.whitelist >>"
+                docker cp "<< parameters.whitelist >>" "$CLAIR_SCANNER:/whitelist.yml"
+
+                WHITELIST="-w /whitelist.yml"
+            fi
+
+            function scan() {
+                local image=$1
+                # replace forward-slashes and colons with underscores
+                munged_image=$(echo "$image" | sed 's/\//_/g' | sed 's/:/_/g')
+                sanitised_image_filename="${munged_image}.json"
+                local ret=0
+                local docker_cmd=(docker exec -it "$CLAIR_SCANNER" clair-scanner \
+                    --ip "$scanner_ip" \
+                    --clair=http://"$clair_ip":6060 \
+                    -t "<< parameters.severity_threshold >>" \
+                    --report "/$sanitised_image_filename" \
+                    --log "/log.json" $WHITELIST \
+                    --reportAll=true \
+                    --exit-when-no-features=false \
+                    "$image")
+
+                # if verbose output is disabled, analyse status code for more fine-grained output
+                if [ "<< parameters.disable_verbose_console_output >>" == "true" ];then
+                    "${docker_cmd[@]}" > /dev/null 2>&1 || ret=$?
+                else
+                    "${docker_cmd[@]}" 2>&1 || ret=$?
+                fi
+                if [ $ret -eq 0 ]; then
+                    echo "No unapproved vulnerabilities"
+                elif [ $ret -eq 1 ]; then
+                    echo "Unapproved vulnerabilities found"
+                    if [ "<< parameters.fail_on_discovered_vulnerabilities >>" == "true" ];then
+                        EXIT_STATUS=1
+                    fi
+                elif [ $ret -eq 5 ]; then
+                    echo "Image was not scanned, not supported."
+                    if [ "<< parameters.fail_on_unsupported_images >>" == "true" ];then
+                        EXIT_STATUS=1
+                    fi
+                else
+                    echo "Unknown clair-scanner return code $ret."
+                    EXIT_STATUS=1
+                fi
+
+                docker cp "$CLAIR_SCANNER:/$sanitised_image_filename" "$REPORT_DIR/$sanitised_image_filename" || true
+            }
+
+            EXIT_STATUS=0
+
+            for entry in "$DOCKER_TAR_DIR"/*.tar; do
+                [ -e "$entry" ] || continue
+                images=$(docker load -i "$entry" | sed -e 's/Loaded image: //g')
+                for image in $images; do
+                    scan "$image"
+                done
+            done
+
+            if [ -n "<< parameters.image_file >>" ]; then
+                images=$(cat "<< parameters.image_file >>")
+                for image in $images; do
+                    scan "$image"
+                done
+            fi
+            if [ -n "<< parameters.image >>" ]; then
+                image="<< parameters.image >>"
+                scan "$image"
+            fi
+
+            exit $EXIT_STATUS
+      - store_artifacts:
+          path: /clair-reports
