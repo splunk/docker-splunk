@@ -32,7 +32,7 @@ microdnf -y --nodocs install wget sudo shadow-utils procps tar tzdata
 #install busybox direct from the multiarch since epel isn't availible yet for redhat8
 wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
 chmod +x /bin/busybox
-microdnf -y --nodocs update gnutls kernel-headers
+microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2
 microdnf -y --nodocs install python2-pip python2-devel redhat-rpm-config gcc libffi-devel openssl-devel
 pip2 --no-cache-dir install requests ansible jmespath
 microdnf -y remove gcc openssl-devel redhat-rpm-config python2-devel device-mapper-libs device-mapper trousers \
