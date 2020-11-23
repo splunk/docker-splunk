@@ -2,6 +2,7 @@
 
 ## Navigation
 
+* [8.1.0.1](#8101)
 * [8.1.0](#810)
 * [8.0.7](#807)
 * [8.0.6](#806)
@@ -14,6 +15,7 @@
 * [8.0.2](#802)
 * [8.0.1](#801)
 * [8.0.0](#800)
+* [7.3.8](#738)
 * [7.3.7](#737)
 * [7.3.6](#736)
 * [7.3.5](#735)
@@ -36,6 +38,20 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.1.0.1
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise maintenance patch.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.1.0.1](https://docs.splunk.com/Documentation/Splunk/8.1.0/ReleaseNotes/Fixedissues)
+* Updated RH8 packages per vulnerability scan
+
+#### splunk-ansible changes:
+* Bugfixes and cleanup
 
 ---
 
@@ -250,6 +266,17 @@
 * Increasing delay intervals to better handle different platforms
 * Adding vars needed for Ansible Galaxy
 * Bugfix for pre-playbook tasks not supporting URLs
+
+---
+
+## 7.3.8
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 7.3.8](https://docs.splunk.com/Documentation/Splunk/7.3.8/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.1.0.1](#8101)
+
+#### Changes
+* See [8.1.0.1](#8101) changes
 
 ---
 
