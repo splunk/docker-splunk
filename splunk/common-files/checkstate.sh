@@ -27,7 +27,10 @@ if [[ "" == "$NO_HEALTHCHECK" ]]; then
 
 	case "$state" in
 	running|started)
-	    curl -m 30 -f -k https://localhost:8089/
+	    if [[ "false" != "$SPLUNKD_SSL_ENABLE" ]]; then
+		    curl -m 30 -f -k https://localhost:8089/
+	    else
+		curl -m 30 -f -k http://localhost:8089/	    
 	    exit $?
 	;;
 	*)
