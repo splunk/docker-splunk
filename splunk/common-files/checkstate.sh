@@ -23,11 +23,11 @@
 # health results
 
 if [[ "" == "$NO_HEALTHCHECK" ]]; then
-        if [[ "false" == "$SPLUNKD_SSL_ENABLE" ]]; then
-          SCHEME="http"
+    if [[ "false" == "$SPLUNKD_SSL_ENABLE" ]]; then
+      SCHEME="http"
 	else
-	  SCHEME="https"
-        fi
+      SCHEME="https"
+    fi
 	#If NO_HEALTHCHECK is NOT defined, then we want the healthcheck
 	state="$(< $CONTAINER_ARTIFACT_DIR/splunk-container.state)"
 
