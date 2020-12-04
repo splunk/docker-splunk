@@ -94,6 +94,10 @@ ENV SPLUNK_ROLE=splunk_standalone \
 
 USER root
 
+ARG GOSS_VER=v0.3.15
+RUN curl -fsSL https://goss.rocks/install | sh
+COPY [ "splunk/common-files/goss.yml", "/etc/" ]
+
 COPY [ "splunk/common-files/entrypoint.sh", "splunk/common-files/createdefaults.py", "splunk/common-files/checkstate.sh", "/sbin/" ]
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
 
@@ -115,6 +119,6 @@ RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL\nans
     && chmod 755 /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh
 
 USER ${ANSIBLE_USER}
-HEALTHCHECK --interval=30s --timeout=30s --start-period=3m --retries=5 CMD /sbin/checkstate.sh || exit 1
+HEALTHCHECK --interval=30s --timeout=30s --start-period=3m --retries=5  CMD curl -s --fail http://localhost:9000/healthz || exit 1
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]
 CMD [ "start-service" ]

@@ -1,0 +1,35 @@
+http:
+  {{getEnv "SPLUNK_CERT_PREFIX" "https"}}://127.0.0.1:8089:
+    status: 200
+    allow-insecure: true
+{{if .Env.SPLUNK_ROLE | regexMatch "splunk_standalone|splunk_search_head|splunk_deployer|splunk_license_master|splunk_cluster_master|splunk_heavy_forwarder"}}
+{{if getEnv "SPLUNK_HTTP_ENABLESSL" "false" | regexMatch "true"}}
+  https://127.0.0.1:8000:
+    allow-insecure: true    
+{{else}}
+  http://127.0.0.1:8000:
+{{end}}
+    no-follow-redirects: true
+    status: 303
+{{end}}
+{{if .Env.SPLUNK_ROLE | regexMatch "splunk_standalone|splunk_indexer"}}
+{{if getEnv "SPLUNK_HEC_SSL" "true" | regexMatch "false"}}
+  http://127.0.0.1:8088/services/collector/health:
+{{else}}
+  https://127.0.0.1:8088/services/collector/health:
+    allow-insecure: true    
+{{end}}
+    status: 200
+{{end}}
+{{if .Env.SPLUNK_ROLE | regexMatch "splunk_indexer"}}
+port:
+  tcp:9997:
+    listening: true
+    ip:
+    - 0.0.0.0    
+{{end}}
+file:
+  {{.Env.CONTAINER_ARTIFACT_DIR}}/splunk-container.state:
+    exists: true
+    contains:
+        - "/running|started/"

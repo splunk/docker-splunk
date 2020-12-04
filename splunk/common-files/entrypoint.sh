@@ -76,7 +76,15 @@ start_and_exit() {
 	then
 		echo "WARNING: No password ENV var.  Stack may fail to provision if splunk.password is not set in ENV or a default.yml"
 	fi
+	: ${SPLUNK_CERT_PREFIX:=https}
 	sh -c "echo 'starting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
+	if command -v goss &> /dev/null
+	then
+		if [[ "" == "$NO_HEALTHCHECK" ]]
+			echo starting goss
+			goss -g /etc/goss.yml serve --format json --listen-addr 0.0.0.0:9000 >/dev/null 2>/dev/null &
+		fi
+	fi
 	setup
 	prep_ansible
 	ansible-playbook $ANSIBLE_EXTRA_FLAGS -i inventory/environ.py -l localhost site.yml

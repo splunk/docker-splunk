@@ -15,6 +15,9 @@
 # limitations under the License.
 #
 
+#NOTE: This script is no longer the prefered way of validation of container health
+#And remains as it is referenced by splunk-operator until the dependency can be removed
+
 #This script is used to retrieve and report the state of the container
 #Although not actively in the container, it can be used to check the health
 #of the splunk instance
@@ -23,22 +26,8 @@
 # health results
 
 if [[ "" == "$NO_HEALTHCHECK" ]]; then
-    if [[ "false" == "$SPLUNKD_SSL_ENABLE" ]]; then
-      SCHEME="http"
-	else
-      SCHEME="https"
-    fi
-	#If NO_HEALTHCHECK is NOT defined, then we want the healthcheck
-	state="$(< $CONTAINER_ARTIFACT_DIR/splunk-container.state)"
-
-	case "$state" in
-	running|started)
-	    curl -m 30 -f -k $SCHEME://localhost:8089/
-	    exit $?
-	;;
-	*)
-	    exit 1
-	esac
+	goss -g /etc/goss.yml v
+	exit $?
 else
 	#If NO_HEALTHCHECK is defined, ignore the healthcheck
 	exit 0
