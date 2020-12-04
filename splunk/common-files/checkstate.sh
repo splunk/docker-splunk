@@ -21,16 +21,19 @@
 #NOTE: If you plan on running the splunk container while keeping Splunk
 # inactive for long periods of time, this script may give misleading
 # health results
+
 if [[ "" == "$NO_HEALTHCHECK" ]]; then
+    if [[ "false" == "$SPLUNKD_SSL_ENABLE" ]]; then
+      SCHEME="http"
+	else
+      SCHEME="https"
+    fi
 	#If NO_HEALTHCHECK is NOT defined, then we want the healthcheck
 	state="$(< $CONTAINER_ARTIFACT_DIR/splunk-container.state)"
 
 	case "$state" in
 	running|started)
-	    if [[ "false" != "$SPLUNKD_SSL_ENABLE" ]]; then
-		    curl -m 30 -f -k https://localhost:8089/
-	    else
-		curl -m 30 -f -k http://localhost:8089/	    
+	    curl -m 30 -f -k $SCHEME://localhost:8089/
 	    exit $?
 	;;
 	*)
