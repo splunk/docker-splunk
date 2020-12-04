@@ -81,6 +81,7 @@ start_and_exit() {
 	if command -v goss &> /dev/null
 	then
 		if [[ "" == "$NO_HEALTHCHECK" ]]
+		then
 			echo starting goss
 			goss -g /etc/goss.yml serve --format json --listen-addr 0.0.0.0:9000 >/dev/null 2>/dev/null &
 		fi
