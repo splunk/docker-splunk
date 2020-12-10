@@ -12,10 +12,3 @@ generalwhitelist:
   CVE-2010-4052: False Positive.  Being flagged even though glibc is > 2.12
   CVE-2010-4756: There is no ftp daemon running in the container.
   CVE-2010-4051: False Positive.  Installed libc is > 2.12
-images:
-  splunk-debian-9:
-  splunk-debian-10:
-  splunk-centos-7:
-  splunkforwarder-debian-9:
-  splunkforwarder-debian-10:
-  splunkforwarder-centos-7:
