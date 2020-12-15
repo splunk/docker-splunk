@@ -104,7 +104,6 @@ services:
     hostname: dmc
     environment:
       - SPLUNK_START_ARGS=--accept-license
-      - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_CLUSTER_MASTER_URL=cm1
       - SPLUNK_ROLE=splunk_monitor
       - SPLUNK_LICENSE_URI
