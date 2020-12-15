@@ -2,9 +2,11 @@
 
 ## Navigation
 
+* [8.1.1](#811)
 * [8.1.0.1](#8101)
 * [8.1.0](#810)
 * [8.0.7](#807)
+* [8.0.6.1](#8061)
 * [8.0.6](#806)
 * [8.0.5.1](#8051)
 * [8.0.5](#805)
@@ -38,6 +40,22 @@
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.1.1
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.1.1](https://docs.splunk.com/Documentation/Splunk/8.1.1/ReleaseNotes/Fixedissues)
+* CI pipeline refactor + optimizations
+* Bugfixes
+
+#### splunk-ansible changes:
+* Fetches peer node data for DMC
+* Bugfixes and documentation updates
 
 ---
 
@@ -83,6 +101,17 @@
 
 #### Changes
 * See [8.1.0](#810) changes
+
+---
+
+## 8.0.6.1
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 8.0.6.1](https://docs.splunk.com/Documentation/Splunk/8.0.6/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.1.1](#811)
+
+#### Changes
+* See [8.1.1](#811) changes
 
 ---
 
