@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2018 Splunk
+# Copyright 2018-2021 Splunk
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
 # limitations under the License.
 
 set -e
-apt update
-apt install -y locales wget gnupg
+
+# Generate UTF-8 char map and locale
+apt-get update -y
+apt-get install -y --no-install-recommends locales wget gnupg
 echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
 rm -f /usr/share/locale/locale.alias
 ln -s /etc/locale.alias /usr/share/locale/locale.alias
@@ -27,35 +29,59 @@ export LANG=en_US.utf8
 ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 /usr/sbin/dpkg-reconfigure -f noninteractive tzdata
 
-# Install additional dependencies
-apt update
+# Install utility packages
+apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl gcc make \
+                                           libffi-dev libssl-dev make build-essential libbz2-dev \
+                                           wget xz-utils ca-certificates zlib1g-dev python3-apt
 
-# put back tools for customer support
-apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl gcc libpython-dev libffi-dev libssl-dev
-apt-get install -y --no-install-recommends python-pip python-setuptools python-requests python-yaml
-pip --no-cache-dir install ansible jmespath
-apt-get remove -y gcc libffi-dev libssl-dev libpython-dev
-apt-get autoremove -y
+# Install Python and necessary packages
+PY_SHORT=${PYTHON_VERSION%.*}
+wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+mkdir -p /tmp/pyinstall
+tar -xzC /tmp/pyinstall/ --strip-components=1 -f /tmp/python.tgz
+rm /tmp/python.tgz
+cd /tmp/pyinstall
+./configure --enable-optimizations --prefix=/usr --with-ensurepip=install
+make altinstall LDFLAGS="-Wl,--strip-all"
+rm -rf /tmp/pyinstall
+ln -sf /usr/bin/python${PY_SHORT} /usr/bin/python
+ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
+# For ansible apt module
+cd /tmp
+apt-get download python3-apt=1.8.4.2
+dpkg -x python3-apt_1.8.4.2_amd64.deb python3-apt
+rm python3-apt_1.8.4.2_amd64.deb
+cp -r /tmp/python3-apt/usr/lib/python3/dist-packages/* /usr/lib/python${PY_SHORT}/site-packages/
+cd /usr/lib/python${PY_SHORT}/site-packages/
+cp apt_pkg.cpython-37m-x86_64-linux-gnu.so apt_pkg.so
+cp apt_inst.cpython-37m-x86_64-linux-gnu.so apt_inst.so
+rm -rf /tmp/python3-apt
+# Install splunk-ansible dependencies
+cd /
+pip -q --no-cache-dir install wheel requests ansible jmespath --upgrade
+# Remove tests packaged in python libs
+find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
+find /usr/lib/ -depth \( -type f -a -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) -exec rm -rf '{}' \;
+find /usr/lib/ -depth \( -type f -a -name 'wininst-*.exe' \) -exec rm -rf '{}' \;
+ldconfig
+
+apt-get remove -y --allow-remove-essential gcc libffi-dev libssl-dev make build-essential libbz2-dev xz-utils zlib1g-dev
+apt-get autoremove -y --allow-remove-essential
 
 # Install scloud
 wget -O /usr/bin/scloud.tar.gz ${SCLOUD_URL}
 tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
 rm /usr/bin/scloud.tar.gz
 
+# Enable busybox symlinks
 cd /bin
-ln -s busybox clear
-ln -s busybox find
-ln -s busybox killall
-ln -s busybox netstat
-ln -s busybox nslookup
-ln -s busybox ping
-ln -s busybox ping6
-ln -s busybox readline
-ln -s busybox route
-ln -s busybox syslogd
-ln -s busybox traceroute
-ln -s busybox vi
+BBOX_LINKS=( clear find diff hostname killall netstat nslookup ping ping6 readline route syslogd tail traceroute vi )
+for item in "${BBOX_LINKS[@]}"
+do
+  ln -s busybox $item || true
+done
 chmod u+s /bin/ping
 
+# Clean
 apt clean autoclean
 rm -rf /var/lib/apt/lists/*

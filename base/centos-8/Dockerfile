@@ -1,4 +1,4 @@
-# Copyright 2018-2020 Splunk
+# Copyright 2018-2021 Splunk
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ FROM centos:8
 LABEL maintainer="support@splunk.com"
 
 ARG SCLOUD_URL
-ENV SCLOUD_URL ${SCLOUD_URL}
+ENV SCLOUD_URL=${SCLOUD_URL}
 
 COPY install.sh /install.sh
 RUN /install.sh && rm -rf /install.sh
