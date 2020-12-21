@@ -78,9 +78,9 @@ jobs:
           name: Scan images
           command: |
             ls
-            ls /root/project/workspace_cache/
-            for image in /root/project/workspace_cache/*.tar; do
-              [ -e "$filename" ] || continue
+            for image in ./workspace_cache/*.tar; do
+              echo "$image"
+              [ -e "$image" ] || continue
               ./trivy --severity HIGH,CRITICAL --exit-code 1 --no-progress -f "$image"
             done
 
