@@ -72,14 +72,16 @@ jobs:
                 grep '"tag_name":' | \
                 sed -E 's/.*"v([^"]+)".*/\1/'
             )
-
             wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
             tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
       - run:
           name: Scan images
           command: |
+            ls
+            ls /root/project/workspace_cache/
             for image in /root/project/workspace_cache/*.tar; do
-              ./trivy --severity HIGH,CRITICAL --exit-code 1 --no-progress "$image"
+              [ -e "$filename" ] || continue
+              ./trivy --severity HIGH,CRITICAL --exit-code 1 --no-progress -f "$image"
             done
 
   test_redhat_8_small:
