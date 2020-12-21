@@ -75,12 +75,11 @@ jobs:
 
             wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
             tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
-            mv trivy /usr/local/bin
       - run:
           name: Scan images
           command: |
             for image in /root/project/workspace_cache/*.tar; do
-              trivy --severity HIGH,CRITICAL --exit-code 1 --no-progress "$image"
+              ./trivy --severity HIGH,CRITICAL --exit-code 1 --no-progress "$image"
             done
 
   test_redhat_8_small:
