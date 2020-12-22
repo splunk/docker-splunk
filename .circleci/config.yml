@@ -30,6 +30,7 @@ jobs:
           command: |
             docker save -o workspace_cache/splunk-debian-10.tar splunk-debian-10:latest
             docker save -o workspace_cache/uf-debian-10.tar uf-debian-10:latest
+            docker save -o workspace_cache/uf-debian-10.tar base-debian-10:latest
       - persist_to_workspace:
           root: workspace_cache
           paths:
@@ -51,6 +52,7 @@ jobs:
           command: |
             docker save -o workspace_cache/splunk-redhat-8.tar splunk-redhat-8:latest
             docker save -o workspace_cache/uf-redhat-8.tar uf-redhat-8:latest
+            docker save -o workspace_cache/uf-debian-10.tar base-redhat-8:latest
       - persist_to_workspace:
           root: workspace_cache
           paths:
@@ -77,11 +79,9 @@ jobs:
       - run:
           name: Scan images
           command: |
-            ls
             for image in ./workspace_cache/*.tar; do
-              echo "$image"
               [ -e "$image" ] || continue
-              ./trivy image --exit-code 0 --no-progress -i "$image"
+              ./trivy image --exit-code 0 --severity "HIGH,CRITICAL" --no-progress -i "$image"
             done
 
   test_redhat_8_small:
