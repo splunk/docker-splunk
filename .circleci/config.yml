@@ -107,6 +107,7 @@ jobs:
               [ -e "$image" ] || continue
               ./grype "$image"
             done
+          no_output_timeout: 1h
 
   scan_images_anchore:
     executor: anchore/anchore_engine
