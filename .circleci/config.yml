@@ -39,6 +39,7 @@ jobs:
           paths:
             - splunk-debian-10.tar
             - uf-debian-10.tar
+            - base-debian-10.tar
 
   build_redhat_8:
     executor: py3
@@ -55,12 +56,13 @@ jobs:
           command: |
             docker save -o workspace_cache/splunk-redhat-8.tar splunk-redhat-8:latest
             docker save -o workspace_cache/uf-redhat-8.tar uf-redhat-8:latest
-            docker save -o workspace_cache/base-debian-10.tar base-redhat-8:latest
+            docker save -o workspace_cache/base-redhat-8.tar base-redhat-8:latest
       - persist_to_workspace:
           root: workspace_cache
           paths:
             - splunk-redhat-8.tar
             - uf-redhat-8.tar
+            - base-redhat-8.tar
 
   scan_images_trivy:
     executor: py3
