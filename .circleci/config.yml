@@ -14,7 +14,7 @@ executors:
     resource_class: xlarge
 
 orbs:
-  anchore-engine: anchore/anchore-engine@1.8.2
+  anchore: anchore/anchore-engine@1.8.2
 
 jobs:
 
