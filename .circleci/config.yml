@@ -81,7 +81,7 @@ jobs:
             for image in ./workspace_cache/*.tar; do
               echo "$image"
               [ -e "$image" ] || continue
-              ./trivy image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 0 --no-progress -i "$image"
+              ./trivy image --exit-code 0 --no-progress -i "$image"
             done
 
   test_redhat_8_small:
