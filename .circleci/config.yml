@@ -103,13 +103,16 @@ jobs:
             chmod +x ./grype
             ls
       - run:
-          name: Scan images
+          name: Load images
           command: |
             for image in ./workspace_cache/*.tar; do
-              echo "Scanning $image"
               [ -e "$image" ] || continue
-              ./grype "$image" --scope all-layers
+              docker load --input "$image"
             done
+      - run:
+          name: Scan images
+          command: |
+            ./grype base-redhat-8:latest --scope all-layers
           no_output_timeout: 1h
 
   scan_images_anchore:
