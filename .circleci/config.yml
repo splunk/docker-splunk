@@ -89,6 +89,25 @@ jobs:
               ./trivy image --exit-code 0 --ignore-unfixed --severity "HIGH,CRITICAL" --no-progress -i "$image"
             done
 
+  scan_images_grype:
+    executor: py3
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: workspace_cache
+      - run:
+          name: Install grype
+          command: |
+            curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b ./
+      - run:
+          name: Scan images
+          command: |
+            for image in ./workspace_cache/*.tar; do
+              [ -e "$image" ] || continue
+              ./grype "$image"
+            done
+
   scan_images_anchore:
     executor: anchore/anchore_engine
     steps:
@@ -248,6 +267,10 @@ workflows:
     jobs:
       - build_debian_10
       - build_redhat_8
+      - scan_images_grype:
+          requires:
+            - build_debian_10
+            - build_redhat_8
       - scan_images_trivy:
           requires:
             - build_debian_10
