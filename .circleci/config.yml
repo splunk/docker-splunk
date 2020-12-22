@@ -99,13 +99,16 @@ jobs:
       - run:
           name: Install grype
           command: |
-            curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b ./
+            curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b .
+            chmod +x ./grype
+            ls
       - run:
           name: Scan images
           command: |
             for image in ./workspace_cache/*.tar; do
+              echo "Scanning $image"
               [ -e "$image" ] || continue
-              ./grype "$image"
+              ./grype "$image" --scope all-layers
             done
           no_output_timeout: 1h
 
