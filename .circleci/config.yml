@@ -106,6 +106,7 @@ jobs:
       - anchore/analyze_local_image:
           image_name: 'splunk-redhat-8 uf-redhat-8 base-redhat-8 splunk-debian-10 uf-debian-10 base-debian-10'
           policy_failure: true
+          policy_bundle_file_path: .circleci/anchore-policy.json
           timeout: '600'
       - anchore/parse_reports
       - store_artifacts:
