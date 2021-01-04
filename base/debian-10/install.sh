@@ -32,7 +32,8 @@ ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 # Install utility packages
 apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl gcc make \
                                            libffi-dev libssl-dev make build-essential libbz2-dev \
-                                           wget xz-utils ca-certificates zlib1g-dev python3-apt
+                                           wget xz-utils ca-certificates zlib1g-dev python3-apt \
+                                           p11-kit
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
