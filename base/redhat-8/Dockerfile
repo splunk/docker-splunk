@@ -16,7 +16,7 @@
 # the container catalog moved from registry.access.redhat.com to registry.redhat.io
 # So at some point before they deprecate the old registry we have to make sure that
 # we have access to the new registry and change where we pull the ubi image from.
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.3-201
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.3-230
 
 LABEL name="splunk" \
       maintainer="support@splunk.com" \

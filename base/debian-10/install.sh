@@ -32,7 +32,8 @@ ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 # Install utility packages
 apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl gcc make \
                                            libffi-dev libssl-dev make build-essential libbz2-dev \
-                                           wget xz-utils ca-certificates zlib1g-dev python3-apt
+                                           wget xz-utils ca-certificates zlib1g-dev python3-apt \
+                                           p11-kit
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
@@ -48,9 +49,9 @@ ln -sf /usr/bin/python${PY_SHORT} /usr/bin/python
 ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 # For ansible apt module
 cd /tmp
-apt-get download python3-apt=1.8.4.2
-dpkg -x python3-apt_1.8.4.2_amd64.deb python3-apt
-rm python3-apt_1.8.4.2_amd64.deb
+apt-get download python3-apt=1.8.4.3
+dpkg -x python3-apt_1.8.4.3_amd64.deb python3-apt
+rm python3-apt_1.8.4.3_amd64.deb
 cp -r /tmp/python3-apt/usr/lib/python3/dist-packages/* /usr/lib/python${PY_SHORT}/site-packages/
 cd /usr/lib/python${PY_SHORT}/site-packages/
 cp apt_pkg.cpython-37m-x86_64-linux-gnu.so apt_pkg.so
