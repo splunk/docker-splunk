@@ -49,7 +49,7 @@ services:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_PASSWORD
     ports:
-      - 8000
+      - 8000:8000
 ```
 </details><p></p>
 
@@ -75,7 +75,7 @@ services:
       - SPLUNK_LICENSE_URI=http://company.com/path/to/splunk.lic
       - SPLUNK_PASSWORD
     ports:
-      - 8000
+      - 8000:8000
 ```
 </details><p></p>
 
@@ -93,7 +93,7 @@ services:
       - SPLUNK_LICENSE_URI=/tmp/license/splunk.lic
       - SPLUNK_PASSWORD
     ports:
-      - 8000
+      - 8000:8000
     volumes:
       - ./splunk.lic:/tmp/license/splunk.lic
 ```
@@ -121,7 +121,8 @@ services:
       - SPLUNK_HEC_TOKEN=abcd1234
       - SPLUNK_PASSWORD
     ports:
-      - 8000
+      - 8000:8000
+      - 8088:8088
 ```
 </details><p></p>
 
@@ -153,7 +154,7 @@ services:
       - SPLUNK_APPS_URL=http://company.com/path/to/app.tgz
       - SPLUNK_PASSWORD
     ports:
-      - 8000
+      - 8000:8000
 ```
 </details><p></p>
 
@@ -181,7 +182,7 @@ services:
       - SPLUNKBASE_PASSWORD
       - SPLUNK_PASSWORD
     ports:
-      - 8000
+      - 8000:8000
 ```
 </details><p></p>
 
