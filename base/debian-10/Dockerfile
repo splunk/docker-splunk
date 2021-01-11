@@ -1,4 +1,4 @@
-# Copyright 2018 Splunk
+# Copyright 2018-2021 Splunk
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@ FROM debian:buster-slim
 LABEL maintainer="support@splunk.com"
 
 ARG SCLOUD_URL
-ENV SCLOUD_URL ${SCLOUD_URL}
-
-ENV DEBIAN_FRONTEND=noninteractive
+ENV SCLOUD_URL=${SCLOUD_URL} \
+    DEBIAN_FRONTEND=noninteractive \
+    PYTHON_VERSION=3.7.9
 
 COPY install.sh /install.sh
 RUN /install.sh && rm -rf /install.sh

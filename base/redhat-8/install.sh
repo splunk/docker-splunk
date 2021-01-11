@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2018-2020 Splunk
+# Copyright 2018-2021 Splunk
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,55 +15,63 @@
 
 set -e
 
-# Per: https://github.com/rpm-software-management/microdnf/issues/50
-mkdir -p /run/user/$UID
+# Generate UTF-8 char map and locale
 # reinstalling local en def for now, removed in minimal image https://bugzilla.redhat.com/show_bug.cgi?id=1665251
 microdnf -y --nodocs install glibc-langpack-en
 
 #Currently there is no access to the UTF-8 char map, the following command is commented out until
 #the base container can generate the locale
 #localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
-
 #We get around the gen above by forcing the language install, and then point to it.
 export LANG=en_US.utf8
 
-rpm -e --nodeps tzdata
-microdnf -y --nodocs install wget sudo shadow-utils procps tar tzdata
-#install busybox direct from the multiarch since epel isn't availible yet for redhat8
-wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
-chmod +x /bin/busybox
+# Install utility packages
+microdnf -y --nodocs install wget sudo shadow-utils procps tar tzdata make gcc \
+                             openssl-devel bzip2-devel libffi-devel findutils
+# Patch security updates
 microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2
-microdnf -y --nodocs install python2-pip python2-devel redhat-rpm-config gcc libffi-devel openssl-devel
-pip2 --no-cache-dir install requests ansible jmespath
-microdnf -y remove gcc openssl-devel redhat-rpm-config python2-devel device-mapper-libs device-mapper trousers \
-                   dwz dbus dbus-common dbus-daemon dbus-tools dbus-libs go-srpm-macros iptables-libs annobin cryptsetup-libs \
-                   ocaml-srpm-macros openblas-srpm-macros qt5-srpm-macros perl-srpm-macros rust-srpm-macros ghc-srpm-macros \
-                   efi-srpm-macros python-srpm-macros python-rpm-macros python3-rpm-macros python2-rpm-macros python3-rpm-generators \
-                   zip unzip xkeyboard-config file file-libs findutils diffutils kmod-libs util-linux libxkbcommon libffi-devel \
-                   elfutils-libs elfutils-debuginfod-client elfutils-default-yama-scope pcre2-devel pcre2-utf16 pcre2-utf32 \
-                   libfdisk libpcap libseccomp libselinux-devel libutempter binutils libxcrypt-devel cpp glibc-devel glibc-headers \
-                   krb5-devel libkadm5 platform-python-pip
+
+# Install Python and necessary packages
+PY_SHORT=${PYTHON_VERSION%.*}
+wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+mkdir -p /tmp/pyinstall
+tar -xzC /tmp/pyinstall/ --strip-components=1 -f /tmp/python.tgz
+rm /tmp/python.tgz
+cd /tmp/pyinstall
+./configure --enable-optimizations --prefix=/usr --with-ensurepip=install
+make altinstall LDFLAGS="-Wl,--strip-all"
+rm -rf /tmp/pyinstall
+ln -sf /usr/bin/python${PY_SHORT} /usr/bin/python
+ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
+# Install splunk-ansible dependencies
+cd /
+pip -q --no-cache-dir install wheel requests ansible jmespath --upgrade
+# Remove tests packaged in python libs
+find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
+find /usr/lib/ -depth \( -type f -a -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) -exec rm -rf '{}' \;
+find /usr/lib/ -depth \( -type f -a -name 'wininst-*.exe' \) -exec rm -rf '{}' \;
+ldconfig
+
+microdnf remove -y make gcc openssl-devel bzip2-devel libffi-devel findutils cpp binutils \
+                   glibc-devel keyutils-libs-devel krb5-devel libcom_err-devel libselinux-devel \
+                   libsepol-devel libverto-devel libxcrypt-devel pcre2-devel zlib-devel cracklib-dicts
+microdnf clean all
 
 # Install scloud
 wget -O /usr/bin/scloud.tar.gz ${SCLOUD_URL}
 tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
 rm /usr/bin/scloud.tar.gz
 
+# Install busybox direct from the multiarch since epel isn't availible yet for redhat8
+wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
+chmod +x /bin/busybox
+# Enable busybox symlinks
 cd /bin
-ln -s busybox clear || true
-ln -s busybox find || true
-ln -s python2 python || true
-ln -s busybox diff || true
-ln -s busybox hostname || true
-ln -s busybox killall || true
-ln -s busybox netstat || true
-ln -s busybox nslookup || true
-ln -s busybox ping || true
-ln -s busybox ping6 || true
-ln -s busybox readline || true
-ln -s busybox route || true
-ln -s busybox syslogd || true
-ln -s busybox traceroute || true
+BBOX_LINKS=( clear find diff hostname killall netstat nslookup ping ping6 readline route syslogd tail traceroute vi )
+for item in "${BBOX_LINKS[@]}"
+do
+  ln -s busybox $item || true
+done
 chmod u+s /bin/ping
 groupadd sudo
 
