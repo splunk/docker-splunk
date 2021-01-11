@@ -12,3 +12,6 @@ generalwhitelist:
   CVE-2010-4052: False Positive.  Being flagged even though glibc is > 2.12
   CVE-2010-4756: There is no ftp daemon running in the container.
   CVE-2010-4051: False Positive.  Installed libc is > 2.12
+  CVE-2020-29361: Fixed in 0.23.15-2+deb10u1 per https://security-tracker.debian.org/tracker/CVE-2020-29361
+  CVE-2020-29362: Fixed in 0.23.15-2+deb10u1 per https://security-tracker.debian.org/tracker/CVE-2020-29362
+  CVE-2020-29363: Fixed in 0.23.15-2+deb10u1 per https://security-tracker.debian.org/tracker/CVE-2020-29363

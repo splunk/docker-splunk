@@ -4,10 +4,10 @@ executors:
   py3:
     docker:
       - image: cimg/python:3.7
-  circleci_medium:
+  circleci_large:
     machine:
       image: ubuntu-1604:201903-01
-    resource_class: medium
+    resource_class: large
   circleci_xlarge:
     machine:
       image: ubuntu-1604:201903-01
@@ -112,7 +112,7 @@ jobs:
           path: anchore-reports
 
   test_redhat_8_small:
-    executor: circleci_medium
+    executor: circleci_large
     steps:
       - checkout
       - attach_workspace:
@@ -176,7 +176,7 @@ jobs:
           path: test-results
 
   test_debian_10_small:
-    executor: circleci_medium
+    executor: circleci_large
     steps:
       - checkout
       - attach_workspace:
