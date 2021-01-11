@@ -7,5 +7,5 @@ RUN microdnf -y --nodocs update \
     && pip2 --no-cache-dir install requests ansible jmespath \
     && ln -sf /usr/bin/python3.7 /usr/bin/python3 \
     && ln -sf /usr/bin/pip3.7 /usr/bin/pip3 \
-    && ln -sf /usr/bin/python2 /usr/bin/python \
-    && ln -sf /usr/bin/pip2 /usr/bin/pip
+    && ln -sf /usr/bin/python3.7 /usr/bin/python \
+    && ln -sf /usr/bin/pip3.7 /usr/bin/pip
