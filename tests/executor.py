@@ -83,30 +83,6 @@ class Executor(object):
     def generate_random_string():
         return ''.join(choice(ascii_lowercase) for b in range(10))
 
-    @classmethod
-    def _run_cmd(cls, cmd, cwd=REPO_DIR):
-        if isinstance(cmd, list):
-            sh = command
-        elif isinstance(command, str):
-            sh = shlex.split(command)
-        cls.logger.info("CALL: {}".format(sh))
-        proc = subprocess.Popen(sh, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
-        lines = []
-        err_lines = []
-        for line in iter(proc.stdout.readline, ''):
-            lines.append(line)
-        for line in iter(proc.stderr.readline, ''):
-            err_lines.append(line)
-        proc.stdout.close()
-        proc.stderr.close()
-        proc.wait()
-        out = "".join(lines)
-        self.logger.info("STDOUT: {}".format(out))
-        err = "".join(err_lines)
-        self.logger.info("STDERR: {}".format(err))
-        self.logger.info("RC: {}".format(proc.returncode))
-        return out, err, proc.returncode
-
     def handle_request_retry(self, method, url, kwargs):
         for n in range(Executor.RETRY_COUNT):
             try:
@@ -186,22 +162,6 @@ class Executor(object):
             time.sleep(5)
             end = time.time()
         return True
-
-    def handle_request_retry(self, method, url, kwargs):
-        RETRIES = 10
-        IMPLICIT_WAIT = 6
-        for n in range(RETRIES):
-            try:
-                self.logger.info("Attempt #{}: running {} against {} with kwargs {}".format(n+1, method, url, kwargs))
-                resp = requests.request(method, url, **kwargs)
-                resp.raise_for_status()
-                return (resp.status_code, resp.content)
-            except Exception as e:
-                self.logger.error("Attempt #{} error: {}".format(n+1, str(e)))
-                if n < RETRIES-1:
-                    time.sleep(IMPLICIT_WAIT)
-                    continue
-                raise e
 
     def check_splunkd(self, username, password, name=None, scheme="https"):
         '''
@@ -330,8 +290,8 @@ class Executor(object):
     def check_common_keys(self, log_output, role):
         try:
             assert log_output["all"]["vars"]["ansible_ssh_user"] == "splunk"
-            assert log_output["all"]["vars"]["ansible_pre_tasks"] == None
-            assert log_output["all"]["vars"]["ansible_post_tasks"] == None
+            assert log_output["all"]["vars"]["ansible_pre_tasks"] == []
+            assert log_output["all"]["vars"]["ansible_post_tasks"] == []
             assert log_output["all"]["vars"]["retry_num"] == 60
             assert log_output["all"]["vars"]["retry_delay"] == 6
             assert log_output["all"]["vars"]["wait_for_splunk_retry_num"] == 60
