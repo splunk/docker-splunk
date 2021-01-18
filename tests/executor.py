@@ -89,7 +89,7 @@ class Executor(object):
                 self.logger.info("Attempt #{}: running {} against {} with kwargs {}".format(n+1, method, url, kwargs))
                 resp = requests.request(method, url, **kwargs)
                 resp.raise_for_status()
-                return resp
+                return resp.status_code, resp.content
             except Exception as e:
                 self.logger.error("Attempt #{} error: {}".format(n+1, str(e)))
                 if n < Executor.RETRY_COUNT-1:
