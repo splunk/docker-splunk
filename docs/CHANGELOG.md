@@ -5,6 +5,7 @@
 * [8.1.1](#811)
 * [8.1.0.1](#8101)
 * [8.1.0](#810)
+* [8.0.8](#808)
 * [8.0.7](#807)
 * [8.0.6.1](#8061)
 * [8.0.6](#806)
@@ -90,6 +91,17 @@
 * Enabled multisite for the `splunk_monitor` role
 * Enabled local indexing on the license master
 * Bugfixes and cleanup
+
+---
+
+## 8.0.8
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 8.0.8](https://docs.splunk.com/Documentation/Splunk/8.0.8/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.1.1](#811)
+
+#### Changes
+* See [8.1.1](#811) changes
 
 ---
 
