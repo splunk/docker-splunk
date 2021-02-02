@@ -44,6 +44,22 @@
 
 ---
 
+## 8.1.2
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.1.2](https://docs.splunk.com/Documentation/Splunk/8.1.2/ReleaseNotes/Fixedissues)
+* Updated Red Hat and Debian base images to only use Python 3
+* Switched vulnerability scanner from Clair to Trivy + Anchore
+* Bugfixes and documentation updates
+
+#### splunk-ansible changes:
+* Bugfixes and documentation updates
+
+---
+
 ## 8.1.1
 
 #### What's New?

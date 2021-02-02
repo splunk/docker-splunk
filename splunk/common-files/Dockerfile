@@ -1,4 +1,4 @@
-# Copyright 2018-2020 Splunk
+# Copyright 2018-2021 Splunk
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,16 +20,19 @@ ARG SPLUNK_BASE_IMAGE=base-debian-10
 FROM ${SPLUNK_BASE_IMAGE}:latest as package
 ARG SPLUNK_BUILD_URL
 COPY splunk/common-files/make-minimal-exclude.py /tmp
-RUN python /tmp/make-minimal-exclude.py ${SPLUNK_BUILD_URL} > /tmp/splunk-minimal-exclude.list
-RUN wget -qO /tmp/splunk.tgz ${SPLUNK_BUILD_URL}
-RUN wget -qO /tmp/splunk.tgz.md5 ${SPLUNK_BUILD_URL}.md5
-RUN test $(md5sum /tmp/splunk.tgz | sed 's,\([a-z0-9]*\).*,\1,') = $(cat /tmp/splunk.tgz.md5 | sed 's,MD5.*=.\([a-z0-9]*\).*,\1,')
-RUN mkdir -p /minimal/splunk/var /extras/splunk/var
-RUN tar -C /minimal/splunk --strip 1 --exclude-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/splunk.tgz
-RUN tar -C /extras/splunk --strip 1 --wildcards --files-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/splunk.tgz
-RUN mv /minimal/splunk/etc /minimal/splunk-etc
-RUN mv /extras/splunk/etc /extras/splunk-etc
-RUN mkdir -p /minimal/splunk/etc /minimal/splunk/share/splunk/search_mrsparkle/modules.new
+RUN python /tmp/make-minimal-exclude.py ${SPLUNK_BUILD_URL} > /tmp/splunk-minimal-exclude.list \
+    && echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}" \
+    && wget -qO /tmp/`basename ${SPLUNK_BUILD_URL}` ${SPLUNK_BUILD_URL} \
+    && wget -qO /tmp/splunk.tgz.sha512 ${SPLUNK_BUILD_URL}.sha512 \
+    && cd /tmp \
+    && echo "$(cat /tmp/splunk.tgz.sha512)" | sha512sum --check  --status \
+    && rm /tmp/splunk.tgz.sha512 \
+    && mkdir -p /minimal/splunk/var /extras/splunk/var \
+    && tar -C /minimal/splunk --strip 1 --exclude-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/`basename ${SPLUNK_BUILD_URL}` \
+    && tar -C /extras/splunk --strip 1 --wildcards --files-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/`basename ${SPLUNK_BUILD_URL}` \
+    && mv /minimal/splunk/etc /minimal/splunk-etc \
+    && mv /extras/splunk/etc /extras/splunk-etc \
+    && mkdir -p /minimal/splunk/etc /minimal/splunk/share/splunk/search_mrsparkle/modules.new
 COPY splunk/common-files/apps /extras/splunk-etc/apps/
 
 

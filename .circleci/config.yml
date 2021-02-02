@@ -4,20 +4,19 @@ executors:
   py3:
     docker:
       - image: cimg/python:3.7
-  circleci_medium:
+  circleci_large:
     machine:
-      image: ubuntu-1604:201903-01
-    resource_class: medium
+      image: ubuntu-1604:202007-01
+    resource_class: large
   circleci_xlarge:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-1604:202007-01
     resource_class: xlarge
 
 orbs:
-  clair: ovotech/clair-scanner@1.6.0
+  anchore: anchore/anchore-engine@1.8.2
 
 jobs:
-
   build_debian_10:
     executor: py3
     steps:
@@ -33,11 +32,13 @@ jobs:
           command: |
             docker save -o workspace_cache/splunk-debian-10.tar splunk-debian-10:latest
             docker save -o workspace_cache/uf-debian-10.tar uf-debian-10:latest
+            docker save -o workspace_cache/base-debian-10.tar base-debian-10:latest
       - persist_to_workspace:
           root: workspace_cache
           paths:
             - splunk-debian-10.tar
             - uf-debian-10.tar
+            - base-debian-10.tar
 
   build_redhat_8:
     executor: py3
@@ -54,25 +55,63 @@ jobs:
           command: |
             docker save -o workspace_cache/splunk-redhat-8.tar splunk-redhat-8:latest
             docker save -o workspace_cache/uf-redhat-8.tar uf-redhat-8:latest
+            docker save -o workspace_cache/base-redhat-8.tar base-redhat-8:latest
       - persist_to_workspace:
           root: workspace_cache
           paths:
             - splunk-redhat-8.tar
             - uf-redhat-8.tar
+            - base-redhat-8.tar
 
-  scan_images:
-    executor: clair/default
+  scan_images_trivy:
+    executor: py3
     steps:
       - checkout
       - setup_remote_docker
       - attach_workspace:
           at: workspace_cache
-      - modified-clair-scan:
-          docker_tar_dir: /root/project/workspace_cache/
-          whitelist: /root/project/clair-whitelist.yml
+      - run:
+          name: Install trivy
+          command: |
+            VERSION=$(
+                curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | \
+                grep '"tag_name":' | \
+                sed -E 's/.*"v([^"]+)".*/\1/'
+            )
+            wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+            tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+      - run:
+          name: Scan images
+          command: |
+            for image in ./workspace_cache/*.tar; do
+              [ -e "$image" ] || continue
+              ./trivy image --exit-code 0 --ignore-unfixed --severity "HIGH,CRITICAL" --no-progress -i "$image"
+            done
+
+  scan_images_anchore:
+    executor: anchore/anchore_engine
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: workspace_cache
+      - run:
+          name: Load images
+          command: |
+            for image in ./workspace_cache/*.tar; do
+              [ -e "$image" ] || continue
+              docker load --input "$image"
+            done
+      - anchore/analyze_local_image:
+          image_name: 'splunk-redhat-8 uf-redhat-8 base-redhat-8 splunk-debian-10 uf-debian-10 base-debian-10'
+          policy_bundle_file_path: .circleci/anchore-policy.json
+          timeout: '600'
+      - anchore/parse_reports
+      - store_artifacts:
+          path: anchore-reports
 
   test_redhat_8_small:
-    executor: circleci_medium
+    executor: circleci_large
     steps:
       - checkout
       - attach_workspace:
@@ -80,7 +119,7 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            pyenv global 2.7.12 3.5.2
+            pyenv global 2.7.18 3.7.8
             python --version
             pip --version
             python3 --version
@@ -112,7 +151,7 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            pyenv global 2.7.12 3.5.2
+            pyenv global 2.7.18 3.7.8
             python --version
             pip --version
             python3 --version
@@ -136,7 +175,7 @@ jobs:
           path: test-results
 
   test_debian_10_small:
-    executor: circleci_medium
+    executor: circleci_large
     steps:
       - checkout
       - attach_workspace:
@@ -144,7 +183,7 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            pyenv global 2.7.12 3.5.2
+            pyenv global 2.7.18 3.7.8
             python --version
             pip --version
             python3 --version
@@ -179,7 +218,7 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            pyenv global 2.7.12 3.5.2
+            pyenv global 2.7.18 3.7.8
             python --version
             pip --version
             python3 --version
@@ -208,7 +247,11 @@ workflows:
     jobs:
       - build_debian_10
       - build_redhat_8
-      - scan_images:
+      - scan_images_trivy:
+          requires:
+            - build_debian_10
+            - build_redhat_8
+      - scan_images_anchore:
           requires:
             - build_debian_10
             - build_redhat_8
@@ -228,138 +271,3 @@ workflows:
           requires:
             - build_debian_10
             - build_redhat_8
-
-commands:
-  modified-clair-scan:
-    description: "Scan an image for vulnerabilities"
-    parameters:
-      image:
-        type: "string"
-        description: "Name of the image to scan"
-        default: ""
-      image_file:
-        type: "string"
-        description: "Path to a file of images to scan"
-        default: ""
-      whitelist:
-        type: "string"
-        description: "Path to a CVE whitelist"
-        default: ""
-      severity_threshold:
-        type: "string"
-        description: "The threshold (equal and above) at which discovered vulnerabilities are reported. May be 'Defcon1', 'Critical', 'High', 'Medium', 'Low', 'Negligible' or 'Unknown'"
-        default: "High"
-      fail_on_discovered_vulnerabilities:
-        type: "boolean"
-        description: "Fail command when vulnerabilities at severity equal to or above the threshold are discovered"
-        default: true
-      fail_on_unsupported_images:
-        type: "boolean"
-        description: "Fail command when image cannot be scanned for vulnerabilities"
-        default: true
-      disable_verbose_console_output:
-        type: "boolean"
-        description: "Disable verbose console output"
-        default: false
-      docker_tar_dir:
-        type: "string"
-        description: "Path of directory that Docker tarballs are stored"
-        default: "/docker-tars"
-    steps:
-      - run:
-          name: "Vulnerability scan"
-          command: |
-            #!/usr/bin/env bash
-
-            set -xe
-
-            DOCKER_TAR_DIR="<< parameters.docker_tar_dir >>"
-
-            if [ -z "<< parameters.image_file >><< parameters.image >>" ] && [ -z "$(ls -A "$DOCKER_TAR_DIR" 2>/dev/null)" ]; then
-                echo "image_file or image parameters or docker tarballs must be present"
-                exit 255
-            fi
-
-            REPORT_DIR=/clair-reports
-            mkdir $REPORT_DIR
-
-            DB=$(docker run -p 5432:5432 -d arminc/clair-db:latest)
-            CLAIR=$(docker run -p 6060:6060 --link "$DB":postgres -d arminc/clair-local-scan:latest)
-            CLAIR_SCANNER=$(docker run -v /var/run/docker.sock:/var/run/docker.sock -d ovotech/clair-scanner@sha256:8a4f920b4e7e40dbcec4a6168263d45d3385f2970ee33e5135dd0e3b75d39c75 tail -f /dev/null)
-
-            clair_ip=$(docker exec -it "$CLAIR" hostname -i | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
-            scanner_ip=$(docker exec -it "$CLAIR_SCANNER" hostname -i | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
-
-            if [ -n "<< parameters.whitelist >>" ]; then
-                cat "<< parameters.whitelist >>"
-                docker cp "<< parameters.whitelist >>" "$CLAIR_SCANNER:/whitelist.yml"
-
-                WHITELIST="-w /whitelist.yml"
-            fi
-
-            function scan() {
-                local image=$1
-                # replace forward-slashes and colons with underscores
-                munged_image=$(echo "$image" | sed 's/\//_/g' | sed 's/:/_/g')
-                sanitised_image_filename="${munged_image}.json"
-                local ret=0
-                local docker_cmd=(docker exec -it "$CLAIR_SCANNER" clair-scanner \
-                    --ip "$scanner_ip" \
-                    --clair=http://"$clair_ip":6060 \
-                    -t "<< parameters.severity_threshold >>" \
-                    --report "/$sanitised_image_filename" \
-                    --log "/log.json" $WHITELIST \
-                    --reportAll=true \
-                    --exit-when-no-features=false \
-                    "$image")
-
-                # if verbose output is disabled, analyse status code for more fine-grained output
-                if [ "<< parameters.disable_verbose_console_output >>" == "true" ];then
-                    "${docker_cmd[@]}" > /dev/null 2>&1 || ret=$?
-                else
-                    "${docker_cmd[@]}" 2>&1 || ret=$?
-                fi
-                if [ $ret -eq 0 ]; then
-                    echo "No unapproved vulnerabilities"
-                elif [ $ret -eq 1 ]; then
-                    echo "Unapproved vulnerabilities found"
-                    if [ "<< parameters.fail_on_discovered_vulnerabilities >>" == "true" ];then
-                        EXIT_STATUS=1
-                    fi
-                elif [ $ret -eq 5 ]; then
-                    echo "Image was not scanned, not supported."
-                    if [ "<< parameters.fail_on_unsupported_images >>" == "true" ];then
-                        EXIT_STATUS=1
-                    fi
-                else
-                    echo "Unknown clair-scanner return code $ret."
-                    EXIT_STATUS=1
-                fi
-
-                docker cp "$CLAIR_SCANNER:/$sanitised_image_filename" "$REPORT_DIR/$sanitised_image_filename" || true
-            }
-
-            EXIT_STATUS=0
-
-            for entry in "$DOCKER_TAR_DIR"/*.tar; do
-                [ -e "$entry" ] || continue
-                images=$(docker load -i "$entry" | sed -e 's/Loaded image: //g')
-                for image in $images; do
-                    scan "$image"
-                done
-            done
-
-            if [ -n "<< parameters.image_file >>" ]; then
-                images=$(cat "<< parameters.image_file >>")
-                for image in $images; do
-                    scan "$image"
-                done
-            fi
-            if [ -n "<< parameters.image >>" ]; then
-                image="<< parameters.image >>"
-                scan "$image"
-            fi
-
-            exit $EXIT_STATUS
-      - store_artifacts:
-          path: /clair-reports
