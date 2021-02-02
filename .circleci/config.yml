@@ -6,18 +6,17 @@ executors:
       - image: cimg/python:3.7
   circleci_large:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-1604:202007-01
     resource_class: large
   circleci_xlarge:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-1604:202007-01
     resource_class: xlarge
 
 orbs:
   anchore: anchore/anchore-engine@1.8.2
 
 jobs:
-
   build_debian_10:
     executor: py3
     steps:
@@ -120,7 +119,7 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            pyenv global 2.7.12 3.5.2
+            pyenv global 2.7.18 3.7.8
             python --version
             pip --version
             python3 --version
@@ -152,7 +151,7 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            pyenv global 2.7.12 3.5.2
+            pyenv global 2.7.18 3.7.8
             python --version
             pip --version
             python3 --version
@@ -184,7 +183,7 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            pyenv global 2.7.12 3.5.2
+            pyenv global 2.7.18 3.7.8
             python --version
             pip --version
             python3 --version
@@ -219,7 +218,7 @@ jobs:
       - run:
           name: Setup python3
           command: |
-            pyenv global 2.7.12 3.5.2
+            pyenv global 2.7.18 3.7.8
             python --version
             pip --version
             python3 --version
