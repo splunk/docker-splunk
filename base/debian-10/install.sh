@@ -50,12 +50,14 @@ ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 # For ansible apt module
 cd /tmp
 apt-get download python3-apt=1.8.4.3
-dpkg -x python3-apt_1.8.4.3_amd64.deb python3-apt
-rm python3-apt_1.8.4.3_amd64.deb
+ARCH=`arch`
+PKG_ARCH=`dpkg --print-architecture`
+dpkg -x python3-apt_1.8.4.3_${PKG_ARCH}.deb python3-apt
+rm python3-apt_1.8.4.3_${PKG_ARCH}.deb
 cp -r /tmp/python3-apt/usr/lib/python3/dist-packages/* /usr/lib/python${PY_SHORT}/site-packages/
 cd /usr/lib/python${PY_SHORT}/site-packages/
-cp apt_pkg.cpython-37m-x86_64-linux-gnu.so apt_pkg.so
-cp apt_inst.cpython-37m-x86_64-linux-gnu.so apt_inst.so
+cp apt_pkg.cpython-37m-${ARCH}-linux-gnu.so apt_pkg.so
+cp apt_inst.cpython-37m-${ARCH}-linux-gnu.so apt_inst.so
 rm -rf /tmp/python3-apt
 # Install splunk-ansible dependencies
 cd /
