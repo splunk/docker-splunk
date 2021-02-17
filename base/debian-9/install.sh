@@ -48,9 +48,9 @@ ln -sf /usr/bin/python${PY_SHORT} /usr/bin/python
 ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 # For ansible apt module
 cd /tmp
-apt-get download python3-apt=1.4.2
-dpkg -x python3-apt_1.4.2_amd64.deb python3-apt
-rm python3-apt_1.4.2_amd64.deb
+apt-get download python3-apt=1.4.3
+dpkg -x python3-apt_1.4.3_amd64.deb python3-apt
+rm python3-apt_1.4.3_amd64.deb
 cp -r /tmp/python3-apt/usr/lib/python3/dist-packages/* /usr/lib/python${PY_SHORT}/site-packages/
 cd /usr/lib/python${PY_SHORT}/site-packages/
 cp apt_pkg.cpython-35m-x86_64-linux-gnu.so apt_pkg.so
