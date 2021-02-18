@@ -61,7 +61,7 @@ cp apt_inst.cpython-37m-${ARCH}-linux-gnu.so apt_inst.so
 rm -rf /tmp/python3-apt
 # Install splunk-ansible dependencies
 cd /
-pip -q --no-cache-dir install wheel requests ansible jmespath --upgrade
+pip -q --no-cache-dir install wheel requests cryptography==3.3.2 ansible jmespath --upgrade
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
 find /usr/lib/ -depth \( -type f -a -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) -exec rm -rf '{}' \;
