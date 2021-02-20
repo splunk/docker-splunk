@@ -48,9 +48,9 @@ ln -sf /usr/bin/python${PY_SHORT} /usr/bin/python
 ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 # For ansible apt module
 cd /tmp
-apt-get download python3-apt=1.4.2
-dpkg -x python3-apt_1.4.2_amd64.deb python3-apt
-rm python3-apt_1.4.2_amd64.deb
+apt-get download python3-apt=1.4.3
+dpkg -x python3-apt_1.4.3_amd64.deb python3-apt
+rm python3-apt_1.4.3_amd64.deb
 cp -r /tmp/python3-apt/usr/lib/python3/dist-packages/* /usr/lib/python${PY_SHORT}/site-packages/
 cd /usr/lib/python${PY_SHORT}/site-packages/
 cp apt_pkg.cpython-35m-x86_64-linux-gnu.so apt_pkg.so
@@ -58,7 +58,7 @@ cp apt_inst.cpython-35m-x86_64-linux-gnu.so apt_inst.so
 rm -rf /tmp/python3-apt
 # Install splunk-ansible dependencies
 cd /
-pip -q --no-cache-dir install wheel requests cryptography==3.3.2 ansible jmespath --upgrade
+pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible jmespath --upgrade
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
 find /usr/lib/ -depth \( -type f -a -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) -exec rm -rf '{}' \;
