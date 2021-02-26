@@ -38,6 +38,7 @@ apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox pr
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
 wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+echo "$PYTHON_MD5  /tmp/python.tgz" | md5sum --check
 mkdir -p /tmp/pyinstall
 tar -xzC /tmp/pyinstall/ --strip-components=1 -f /tmp/python.tgz
 rm /tmp/python.tgz

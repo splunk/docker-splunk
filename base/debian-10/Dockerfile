@@ -18,7 +18,8 @@ LABEL maintainer="support@splunk.com"
 ARG SCLOUD_URL
 ENV SCLOUD_URL=${SCLOUD_URL} \
     DEBIAN_FRONTEND=noninteractive \
-    PYTHON_VERSION=3.7.9
+    PYTHON_VERSION=3.7.10 \
+    PYTHON_MD5=0b19e34a6dabc4bf15fdcdf9e77e9856
 
 COPY install.sh /install.sh
 RUN /install.sh && rm -rf /install.sh
