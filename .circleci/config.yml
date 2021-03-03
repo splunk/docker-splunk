@@ -86,7 +86,7 @@ jobs:
             mkdir -p trivy-results
             for image in ./workspace_cache/*.tar; do
               [ -e "$image" ] || continue
-              ./trivy image --format template --template "@contrib/junit.tpl" -o trivy-results/`basename $image`.xml --ignore-unfixed --severity "HIGH,CRITICAL" --no-progress -i "$image"
+              ./trivy image --exit-code 1 --format template --template "@contrib/junit.tpl" -o trivy-results/`basename $image`.xml --ignore-unfixed --severity "HIGH,CRITICAL" --no-progress -i "$image"
             done
       - store_test_results:
           path: trivy-results
