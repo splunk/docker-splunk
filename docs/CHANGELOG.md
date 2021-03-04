@@ -1,5 +1,12 @@
 ## Changelog
 
+----
+
+> :warning: **DEPRECATION NOTICE**  
+We will no longer be releasing Debian images on Docker Hub after Spring of 2021.
+
+----
+
 ## Navigation
 
 * [8.1.2](#812)
