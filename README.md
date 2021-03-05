@@ -8,7 +8,7 @@ Welcome to the official Splunk repository of Dockerfiles for building Splunk Ent
 
 ----
 
-> :warning: **DEPRECATION NOTICE**  
+> :warning:&ensp;**DEPRECATION NOTICE**  
 We will no longer be releasing Debian images on Docker Hub after Spring of 2021.
 
 ----
