@@ -29,11 +29,12 @@ export LANG=en_US.utf8
 microdnf -y --nodocs install wget sudo shadow-utils procps tar tzdata make gcc \
                              openssl-devel bzip2-devel libffi-devel findutils
 # Patch security updates
-microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2
+microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
 wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+echo "$PYTHON_MD5  /tmp/python.tgz" | md5sum --check
 mkdir -p /tmp/pyinstall
 tar -xzC /tmp/pyinstall/ --strip-components=1 -f /tmp/python.tgz
 rm /tmp/python.tgz
@@ -45,7 +46,7 @@ ln -sf /usr/bin/python${PY_SHORT} /usr/bin/python
 ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 # Install splunk-ansible dependencies
 cd /
-pip -q --no-cache-dir install six wheel requests ansible jmespath --upgrade
+pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible jmespath --upgrade
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
 find /usr/lib/ -depth \( -type f -a -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) -exec rm -rf '{}' \;

@@ -16,7 +16,7 @@
 # the container catalog moved from registry.access.redhat.com to registry.redhat.io
 # So at some point before they deprecate the old registry we have to make sure that
 # we have access to the new registry and change where we pull the ubi image from.
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.3-230
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.3-291
 
 LABEL name="splunk" \
       maintainer="support@splunk.com" \
@@ -27,7 +27,8 @@ LABEL name="splunk" \
 
 ARG SCLOUD_URL
 ENV SCLOUD_URL=${SCLOUD_URL} \
-    PYTHON_VERSION=3.7.9
+    PYTHON_VERSION=3.7.10 \
+    PYTHON_MD5=0b19e34a6dabc4bf15fdcdf9e77e9856
 
 COPY install.sh /install.sh
 

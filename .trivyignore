@@ -1,0 +1,4 @@
+# Both of these are coming from this file, but it's not actually installed in the container
+# /usr/lib/python3.7/site-packages/ansible_collections/netbox/netbox/poetry.lock
+CVE-2020-36242
+CVE-2020-14343

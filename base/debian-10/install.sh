@@ -38,6 +38,7 @@ apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox pr
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
 wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+echo "$PYTHON_MD5  /tmp/python.tgz" | md5sum --check
 mkdir -p /tmp/pyinstall
 tar -xzC /tmp/pyinstall/ --strip-components=1 -f /tmp/python.tgz
 rm /tmp/python.tgz
@@ -50,16 +51,18 @@ ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 # For ansible apt module
 cd /tmp
 apt-get download python3-apt=1.8.4.3
-dpkg -x python3-apt_1.8.4.3_amd64.deb python3-apt
-rm python3-apt_1.8.4.3_amd64.deb
+ARCH=`arch`
+PKG_ARCH=`dpkg --print-architecture`
+dpkg -x python3-apt_1.8.4.3_${PKG_ARCH}.deb python3-apt
+rm python3-apt_1.8.4.3_${PKG_ARCH}.deb
 cp -r /tmp/python3-apt/usr/lib/python3/dist-packages/* /usr/lib/python${PY_SHORT}/site-packages/
 cd /usr/lib/python${PY_SHORT}/site-packages/
-cp apt_pkg.cpython-37m-x86_64-linux-gnu.so apt_pkg.so
-cp apt_inst.cpython-37m-x86_64-linux-gnu.so apt_inst.so
+cp apt_pkg.cpython-37m-${ARCH}-linux-gnu.so apt_pkg.so
+cp apt_inst.cpython-37m-${ARCH}-linux-gnu.so apt_inst.so
 rm -rf /tmp/python3-apt
 # Install splunk-ansible dependencies
 cd /
-pip -q --no-cache-dir install six wheel requests ansible jmespath --upgrade
+pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible jmespath --upgrade
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
 find /usr/lib/ -depth \( -type f -a -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) -exec rm -rf '{}' \;

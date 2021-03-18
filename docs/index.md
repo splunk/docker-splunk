@@ -39,4 +39,5 @@ The provisioning of these disjoint containers is handled by the [Splunk-Ansible]
 * [Troubleshooting](TROUBLESHOOTING.md)
 * [Contributing](CONTRIBUTING.md)
 * [Support](SUPPORT.md)
+* [Changelog](CHANGELOG.md)
 * [License](LICENSE.md)
