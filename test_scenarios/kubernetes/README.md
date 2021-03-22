@@ -305,7 +305,7 @@ show pods in the splunk name space with wide output - ```kubectl -n splunk get p
 
 show your deployments - ```kubectl -n splunk get deployments```
 
-sho your statefulsets - ``` kubectl -n splunk get statefulsets```
+show your statefulsets - ``` kubectl -n splunk get statefulsets```
 
 get service endpoints and external ip when using load balancers - ```kubectl -n splunk get svc -o wide```
 

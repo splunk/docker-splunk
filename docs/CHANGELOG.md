@@ -9,6 +9,7 @@ We will no longer be releasing Debian images on Docker Hub after Spring of 2021.
 
 ## Navigation
 
+* [8.1.3](#813)
 * [8.1.2](#812)
 * [8.1.1](#811)
 * [8.1.0.1](#8101)
@@ -50,6 +51,23 @@ We will no longer be releasing Debian images on Docker Hub after Spring of 2021.
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.1.3
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.1.3](https://docs.splunk.com/Documentation/Splunk/8.1.3/ReleaseNotes/Fixedissues)
+* Updated Python version to 3.7.10
+* Bugfixes
+
+
+#### splunk-ansible changes:
+* Bugfixes
+* Documentation and CI updates
 
 ---
 
