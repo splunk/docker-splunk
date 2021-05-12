@@ -35,7 +35,9 @@ microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata
 PY_SHORT=${PYTHON_VERSION%.*}
 wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
 wget -O /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz.asc
-gpg --keyserver pool.sks-keyservers.net --recv-keys $PYTHON_GPG_KEY_ID
+gpg --keyserver pool.sks-keyservers.net --recv-keys $PYTHON_GPG_KEY_ID \
+    || gpg --keyserver pgp.mit.edu --recv-keys $PYTHON_GPG_KEY_ID \
+    || gpg --keyserver keyserver.pgp.com --recv-keys $PYTHON_GPG_KEY_ID
 gpg --verify /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc /tmp/python.tgz
 rm /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc
 mkdir -p /tmp/pyinstall
