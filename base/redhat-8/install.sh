@@ -29,7 +29,7 @@ export LANG=en_US.utf8
 microdnf -y --nodocs install wget sudo shadow-utils procps tar tzdata make gcc \
                              openssl-devel bzip2-devel libffi-devel findutils
 # Patch security updates
-microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata
+microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata nettle
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
