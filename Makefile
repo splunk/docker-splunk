@@ -7,8 +7,8 @@ SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
-SPLUNK_VERSION := 8.1.3
-SPLUNK_BUILD := 63079c59e632
+SPLUNK_VERSION := 8.2.0
+SPLUNK_BUILD := e053ef3c985f
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
@@ -26,7 +26,7 @@ SPLUNK_WIN_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/r
 UF_WIN_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/windows/${UF_WIN_FILENAME}
 # Splunk Cloud SDK binary
-SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.7.0/scloud_v4.0.0_linux_amd64.tar.gz
+SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.11.1/scloud_v7.1.0_linux_amd64.tar.gz
 
 # Security Scanner Variables
 SCANNER_DATE := `date +%Y-%m-%d`
