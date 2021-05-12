@@ -29,12 +29,15 @@ export LANG=en_US.utf8
 microdnf -y --nodocs install wget sudo shadow-utils procps tar tzdata make gcc \
                              openssl-devel bzip2-devel libffi-devel findutils
 # Patch security updates
-microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata
+microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata nettle
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
 wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
-echo "$PYTHON_MD5  /tmp/python.tgz" | md5sum --check
+wget -O /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz.asc
+gpg --keyserver pool.sks-keyservers.net --recv-keys $PYTHON_GPG_KEY_ID
+gpg --verify /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc /tmp/python.tgz
+rm /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc
 mkdir -p /tmp/pyinstall
 tar -xzC /tmp/pyinstall/ --strip-components=1 -f /tmp/python.tgz
 rm /tmp/python.tgz

@@ -9,11 +9,14 @@ We will no longer be releasing Debian images on Docker Hub after Spring of 2021.
 
 ## Navigation
 
+* [8.2.0](#820)
+* [8.1.4](#814)
 * [8.1.3](#813)
 * [8.1.2](#812)
 * [8.1.1](#811)
 * [8.1.0.1](#8101)
 * [8.1.0](#810)
+* [8.0.9](#809)
 * [8.0.8](#808)
 * [8.0.7](#807)
 * [8.0.6.1](#8061)
@@ -54,6 +57,33 @@ We will no longer be releasing Debian images on Docker Hub after Spring of 2021.
 
 ---
 
+## 8.2.0
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Release Notes for 8.2.0](https://docs.splunk.com/Documentation/Splunk/8.2.0/ReleaseNotes/)
+* Switched Python integrity check from MD5 checksum to GPG signature
+
+#### splunk-ansible changes:
+* Added support for setting `clientName` in `deploymentclient.conf`
+    * `splunk.deployment_client.name` in `default.yml`
+    * `SPLUNK_DEPLOYMENT_CLIENT_NAME` environment variable
+
+---
+
+## 8.1.4
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 8.1.4](https://docs.splunk.com/Documentation/Splunk/8.1.4/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.2.0](#820)
+
+#### Changes
+* See [8.2.0](#820) changes
+
+---
+
 ## 8.1.3
 
 #### What's New?
@@ -63,7 +93,6 @@ We will no longer be releasing Debian images on Docker Hub after Spring of 2021.
 * Bumping Splunk version. For details, see [Fixed issues for 8.1.3](https://docs.splunk.com/Documentation/Splunk/8.1.3/ReleaseNotes/Fixedissues)
 * Updated Python version to 3.7.10
 * Bugfixes
-
 
 #### splunk-ansible changes:
 * Bugfixes
@@ -123,7 +152,7 @@ We will no longer be releasing Debian images on Docker Hub after Spring of 2021.
 * Releasing new images to support Splunk Enterprise release.
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see [Fixed issues for 8.1.0](https://docs.splunk.com/Documentation/Splunk/8.1.0/ReleaseNotes/Fixedissues)
+* Bumping Splunk version. For details, see [Release Notes for 8.1.0](https://docs.splunk.com/Documentation/Splunk/8.1.0/ReleaseNotes/)
 * Set bash as the default shell
 * CI bugfixes
 
@@ -134,6 +163,17 @@ We will no longer be releasing Debian images on Docker Hub after Spring of 2021.
 * Enabled multisite for the `splunk_monitor` role
 * Enabled local indexing on the license master
 * Bugfixes and cleanup
+
+---
+
+## 8.0.9
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 8.0.9](https://docs.splunk.com/Documentation/Splunk/8.0.9/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.2.0](#820)
+
+#### Changes
+* See [8.2.0](#820) changes
 
 ---
 

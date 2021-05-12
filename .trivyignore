@@ -2,3 +2,24 @@
 # /usr/lib/python3.7/site-packages/ansible_collections/netbox/netbox/poetry.lock
 CVE-2020-36242
 CVE-2020-14343
+
+# Downgraded to LOW severity by the Product Security team as the packages are not actually
+# shipped with the release.
+# SPL-203200
+CVE-2021-28092
+# SPL-203205
+CVE-2021-27290
+# SPL-196809
+CVE-2018-11777
+CVE-2016-3083
+CVE-2015-7521
+CVE-2016-3083
+
+# Marked as fixed in the next Splunk release
+CVE-2021-23358
+CVE-2020-25649
+
+# Fixed by Apache Spark in versions 3.0.3, 3.1.2, 3.2.0
+CVE-2020-27216
+CVE-2021-28165
+CVE-2020-27216
