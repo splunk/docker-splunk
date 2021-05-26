@@ -1,7 +1,8 @@
-# Both of these are coming from this file, but it's not actually installed in the container
+# These are coming from the file below, but it's not actually installed in the container
 # /usr/lib/python3.7/site-packages/ansible_collections/netbox/netbox/poetry.lock
 CVE-2020-36242
 CVE-2020-14343
+CVE-2021-29510
 
 # Downgraded to LOW severity by the Product Security team as the packages are not actually
 # shipped with the release.
@@ -23,3 +24,6 @@ CVE-2020-25649
 CVE-2020-27216
 CVE-2021-28165
 CVE-2020-27216
+
+# Ignoring for now -- escalated to ProdSec
+CVE-2021-27568
