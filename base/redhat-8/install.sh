@@ -29,7 +29,7 @@ export LANG=en_US.utf8
 microdnf -y --nodocs install wget sudo shadow-utils procps tar tzdata make gcc \
                              openssl-devel bzip2-devel libffi-devel findutils
 # Patch security updates
-microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata nettle
+microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata nettle libpwquality
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
@@ -60,7 +60,7 @@ ldconfig
 
 microdnf remove -y make gcc openssl-devel bzip2-devel libffi-devel findutils cpp binutils \
                    glibc-devel keyutils-libs-devel krb5-devel libcom_err-devel libselinux-devel \
-                   libsepol-devel libverto-devel libxcrypt-devel pcre2-devel zlib-devel cracklib-dicts
+                   libsepol-devel libverto-devel libxcrypt-devel pcre2-devel zlib-devel
 microdnf clean all
 
 # Install scloud
