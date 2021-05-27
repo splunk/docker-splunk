@@ -29,13 +29,15 @@ export LANG=en_US.utf8
 microdnf -y --nodocs install wget sudo shadow-utils procps tar tzdata make gcc \
                              openssl-devel bzip2-devel libffi-devel findutils
 # Patch security updates
-microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata nettle
+microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata nettle libpwquality
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
 wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
 wget -O /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz.asc
-gpg --keyserver pool.sks-keyservers.net --recv-keys $PYTHON_GPG_KEY_ID
+gpg --keyserver pool.sks-keyservers.net --recv-keys $PYTHON_GPG_KEY_ID \
+    || gpg --keyserver pgp.mit.edu --recv-keys $PYTHON_GPG_KEY_ID \
+    || gpg --keyserver keyserver.pgp.com --recv-keys $PYTHON_GPG_KEY_ID
 gpg --verify /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc /tmp/python.tgz
 rm /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc
 mkdir -p /tmp/pyinstall
@@ -49,7 +51,7 @@ ln -sf /usr/bin/python${PY_SHORT} /usr/bin/python
 ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 # Install splunk-ansible dependencies
 cd /
-pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible jmespath --upgrade
+pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible==3.4.0 jmespath --upgrade
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
 find /usr/lib/ -depth \( -type f -a -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) -exec rm -rf '{}' \;
@@ -58,7 +60,7 @@ ldconfig
 
 microdnf remove -y make gcc openssl-devel bzip2-devel libffi-devel findutils cpp binutils \
                    glibc-devel keyutils-libs-devel krb5-devel libcom_err-devel libselinux-devel \
-                   libsepol-devel libverto-devel libxcrypt-devel pcre2-devel zlib-devel cracklib-dicts
+                   libsepol-devel libverto-devel libxcrypt-devel pcre2-devel zlib-devel
 microdnf clean all
 
 # Install scloud
