@@ -23,7 +23,7 @@
 # health results
 
 if [[ "" == "$NO_HEALTHCHECK" ]]; then
-    if [[ "false" == "$SPLUNKD_SSL_ENABLE" ]]; then
+    if [[ "false" == "$SPLUNKD_SSL_ENABLE" || "false" == "$(/opt/splunk/bin/splunk btool server list | grep enableSplunkdSSL | cut -d\  -f 3)" ]]; then
       SCHEME="http"
 	else
       SCHEME="https"
