@@ -3,7 +3,7 @@
 ----
 
 > :warning:&ensp;**DEPRECATION NOTICE**  
-We will no longer be releasing Debian images on Docker Hub after Spring of 2021.
+We are no longer releasing Debian images on Docker Hub as of May 2021 (Splunk Enterprise v8.2.0+).
 
 ----
 
@@ -61,6 +61,7 @@ We will no longer be releasing Debian images on Docker Hub after Spring of 2021.
 
 #### What's New?
 * Releasing new images to support Splunk Enterprise release.
+* Deprecated Debian image releases. Red Hat images will continue to be published to Docker Hub and the Red Hat Container Catalog.
 
 #### docker-splunk changes:
 * Bumping Splunk version. For details, see [Release Notes for 8.2.0](https://docs.splunk.com/Documentation/Splunk/8.2.0/ReleaseNotes/)
