@@ -4,8 +4,9 @@ USER root
 
 RUN microdnf -y --nodocs update \
     && microdnf -y --nodocs install python2-pip python2-devel \
-    && pip2 --no-cache-dir install requests ansible jmespath \
+    && pip2 --no-cache-dir install requests jmespath \
     && ln -sf /usr/bin/python3.7 /usr/bin/python3 \
     && ln -sf /usr/bin/pip3.7 /usr/bin/pip3 \
     && ln -sf /usr/bin/python3.7 /usr/bin/python \
-    && ln -sf /usr/bin/pip3.7 /usr/bin/pip
+    && ln -sf /usr/bin/pip3.7 /usr/bin/pip \
+    && pip3 install --upgrade ansible==3.4.0
