@@ -852,7 +852,6 @@ class TestDockerSplunk(Executor):
         finally:
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
-     
 
     def test_adhoc_1so_declarative_password(self):
         """
@@ -1014,6 +1013,9 @@ EOL'
             self.client.exec_start(exec_command)
             # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
             self.client.restart(splunk_container_name)
+            # After restart, a container's logs are preserved. So, sleep in order for the self.wait_for_containers()
+            # to avoid seeing the prior entrypoint's "Ansible playbook complete" string 
+            time.sleep(15)
             assert self.wait_for_containers(1, name=splunk_container_name)
             assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
@@ -1047,6 +1049,9 @@ EOL'
             self.client.exec_start(exec_command)
             # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
             self.client.restart(splunk_container_name)
+            # After restart, a container's logs are preserved. So, sleep in order for the self.wait_for_containers()
+            # to avoid seeing the prior entrypoint's "Ansible playbook complete" string 
+            time.sleep(15)
             assert self.wait_for_containers(1, name=splunk_container_name)
             assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
@@ -1078,6 +1083,9 @@ EOL'
             self.client.exec_start(exec_command)
             # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
             self.client.restart(splunk_container_name)
+            # After restart, a container's logs are preserved. So, sleep in order for the self.wait_for_containers()
+            # to avoid seeing the prior entrypoint's "Ansible playbook complete" string 
+            time.sleep(15)
             assert self.wait_for_containers(1, name=splunk_container_name)
             assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
@@ -1102,6 +1110,9 @@ EOL'
             self.client.exec_start(exec_command)
             # Restart the container - it should pick up the new HEC settings in /tmp/defaults/default.yml
             self.client.restart(splunk_container_name)
+            # After restart, a container's logs are preserved. So, sleep in order for the self.wait_for_containers()
+            # to avoid seeing the prior entrypoint's "Ansible playbook complete" string 
+            time.sleep(15)
             assert self.wait_for_containers(1, name=splunk_container_name)
             assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
@@ -1288,13 +1299,15 @@ disabled = 1''' in std_out
         assert "java version \"1.8.0" in std_out
         # Restart the container and make sure java is still installed
         self.client.restart("{}_so1_1".format(self.project_name))
+        # After restart, a container's logs are preserved. So, sleep in order for the self.wait_for_containers()
+        # to avoid seeing the prior entrypoint's "Ansible playbook complete" string 
+        time.sleep(15)
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
         exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command)
         assert "java version \"1.8.0" in std_out
  
-
     def test_compose_1so_java_openjdk8(self):
         # Standup deployment
         self.compose_file_name = "1so_java_openjdk8.yaml"
@@ -1322,6 +1335,9 @@ disabled = 1''' in std_out
         assert "openjdk version \"1.8.0" in std_out
         # Restart the container and make sure java is still installed
         self.client.restart("{}_so1_1".format(self.project_name))
+        # After restart, a container's logs are preserved. So, sleep in order for the self.wait_for_containers()
+        # to avoid seeing the prior entrypoint's "Ansible playbook complete" string 
+        time.sleep(15)
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
         exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
@@ -1356,6 +1372,9 @@ disabled = 1''' in std_out
         assert "openjdk version \"11.0.2" in std_out
         # Restart the container and make sure java is still installed
         self.client.restart("{}_so1_1".format(self.project_name))
+        # After restart, a container's logs are preserved. So, sleep in order for the self.wait_for_containers()
+        # to avoid seeing the prior entrypoint's "Ansible playbook complete" string 
+        time.sleep(15)
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
         exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
