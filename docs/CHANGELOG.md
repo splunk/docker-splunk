@@ -4,11 +4,13 @@
 
 > :warning:&ensp;**DEPRECATION NOTICE**  
 We are no longer releasing Debian images on Docker Hub as of May 2021 (Splunk Enterprise v8.2.0+).
+Red Hat images will continue to be published.
 
 ----
 
 ## Navigation
 
+* [8.2.1](#821)
 * [8.2.0](#820)
 * [8.1.4](#814)
 * [8.1.3](#813)
@@ -54,6 +56,21 @@ We are no longer releasing Debian images on Docker Hub as of May 2021 (Splunk En
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.2.1
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.2.1](https://docs.splunk.com/Documentation/Splunk/8.2.1/ReleaseNotes/Fixedissues)
+* Updated teardown for more graceful shutdown
+* Bugfixes and documentation updates
+
+#### splunk-ansible changes:
+* Added support for installing apps locally on a Cluster Manager or Deployer instance using `apps_location_local`
 
 ---
 
