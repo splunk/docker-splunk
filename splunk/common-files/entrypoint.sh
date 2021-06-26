@@ -27,7 +27,10 @@ setup() {
 
 teardown() {
 	# Always run the stop command on termination
-	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
+	if [ `whoami` != "${SPLUNK_USER}" ]; then
+		RUN_AS_SPLUNK="sudo -u ${SPLUNK_USER}"
+	fi
+	${RUN_AS_SPLUNK} ${SPLUNK_HOME}/bin/splunk stop || true
 }
 
 trap teardown SIGINT SIGTERM
@@ -83,7 +86,6 @@ start_and_exit() {
 }
 
 start() {
-	trap teardown EXIT
 	start_and_exit
 	watch_for_failure
 }
@@ -94,7 +96,6 @@ configure_multisite() {
 }
 
 restart(){
-	trap teardown EXIT
 	sh -c "echo 'restarting' > ${CONTAINER_ARTIFACT_DIR}/splunk-container.state"
 	prep_ansible
 	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true

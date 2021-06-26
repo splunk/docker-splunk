@@ -23,7 +23,7 @@
 # health results
 
 if [[ "" == "$NO_HEALTHCHECK" ]]; then
-    if [[ "false" == "$SPLUNKD_SSL_ENABLE" ]]; then
+    if [[ "false" == "$SPLUNKD_SSL_ENABLE" || "false" == "$(/opt/splunk/bin/splunk btool server list | grep enableSplunkdSSL | cut -d\  -f 3)" ]]; then
       SCHEME="http"
 	else
       SCHEME="https"
@@ -33,7 +33,7 @@ if [[ "" == "$NO_HEALTHCHECK" ]]; then
 
 	case "$state" in
 	running|started)
-	    curl -m 30 -f -k $SCHEME://localhost:8089/
+	    curl --max-time 30 --fail --insecure $SCHEME://localhost:8089/
 	    exit $?
 	;;
 	*)

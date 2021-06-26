@@ -32,8 +32,8 @@ ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 # Install utility packages
 apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl gcc make \
                                            libffi-dev libssl-dev make build-essential libbz2-dev \
-                                           wget xz-utils ca-certificates zlib1g-dev python3-apt \
-                                           p11-kit lz4
+                                           wget xz-utils ca-certificates zlib1g-dev python3-apt p11-kit lz4 \
+                                           libhogweed4=3.4.1-1+deb10u1 libgnutls30=3.6.7-4+deb10u7 libgcrypt20=1.8.4-5+deb10u1
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
@@ -65,7 +65,7 @@ cp apt_inst.cpython-37m-${ARCH}-linux-gnu.so apt_inst.so
 rm -rf /tmp/python3-apt
 # Install splunk-ansible dependencies
 cd /
-pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible jmespath --upgrade
+pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible==3.4.0 urllib3==1.26.5 jmespath --upgrade
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
 find /usr/lib/ -depth \( -type f -a -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) -exec rm -rf '{}' \;

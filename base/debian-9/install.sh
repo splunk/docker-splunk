@@ -32,14 +32,15 @@ ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 # Install utility packages
 apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl gcc make \
                                            libffi-dev libssl-dev make build-essential libbz2-dev \
-                                           wget xz-utils ca-certificates zlib1g-dev lz4
+                                           wget xz-utils ca-certificates zlib1g-dev liblz4-dev
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
 wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
 wget -O /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz.asc
 apt-get install dirmngr -y
-gpg --keyserver pool.sks-keyservers.net --recv-keys $PYTHON_GPG_KEY_ID \
+gpg --keyserver keys.openpgp.org --recv-keys $PYTHON_GPG_KEY_ID \
+    || gpg --keyserver pool.sks-keyservers.net --recv-keys $PYTHON_GPG_KEY_ID \
     || gpg --keyserver pgp.mit.edu --recv-keys $PYTHON_GPG_KEY_ID \
     || gpg --keyserver keyserver.pgp.com --recv-keys $PYTHON_GPG_KEY_ID
 gpg --verify /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc /tmp/python.tgz
@@ -65,7 +66,7 @@ cp apt_inst.cpython-35m-x86_64-linux-gnu.so apt_inst.so
 rm -rf /tmp/python3-apt
 # Install splunk-ansible dependencies
 cd /
-pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible jmespath --upgrade
+pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible==3.4.0 urllib3==1.26.5 jmespath --upgrade
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
 find /usr/lib/ -depth \( -type f -a -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) -exec rm -rf '{}' \;
