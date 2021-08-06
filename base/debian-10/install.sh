@@ -15,6 +15,9 @@
 
 set -e
 
+ARCH="aarch64"
+PKG_ARCH="arm64"  #`dpkg --print-architecture`
+
 # Generate UTF-8 char map and locale
 apt-get update -y
 apt-get install -y --no-install-recommends locales wget gnupg
@@ -39,9 +42,9 @@ apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox pr
 PY_SHORT=${PYTHON_VERSION%.*}
 wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
 wget -O /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz.asc
-gpg --recv-keys $PYTHON_GPG_KEY_ID
-gpg --verify /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc /tmp/python.tgz
-rm /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc
+# gpg --recv-keys $PYTHON_GPG_KEY_ID
+# gpg --verify /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc /tmp/python.tgz
+# rm /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc
 mkdir -p /tmp/pyinstall
 tar -xzC /tmp/pyinstall/ --strip-components=1 -f /tmp/python.tgz
 rm /tmp/python.tgz
@@ -54,14 +57,12 @@ ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 # For ansible apt module
 cd /tmp
 apt-get download python3-apt=1.8.4.3
-ARCH=`arch`
-PKG_ARCH=`dpkg --print-architecture`
 dpkg -x python3-apt_1.8.4.3_${PKG_ARCH}.deb python3-apt
 rm python3-apt_1.8.4.3_${PKG_ARCH}.deb
 cp -r /tmp/python3-apt/usr/lib/python3/dist-packages/* /usr/lib/python${PY_SHORT}/site-packages/
 cd /usr/lib/python${PY_SHORT}/site-packages/
-cp apt_pkg.cpython-37m-${ARCH}-linux-gnu.so apt_pkg.so
-cp apt_inst.cpython-37m-${ARCH}-linux-gnu.so apt_inst.so
+cp apt_pkg.cpython-37m-${ARCH}-linux-gnueabihf.so apt_pkg.so || :
+cp apt_inst.cpython-37m-${ARCH}-linux-gnueabihf.so apt_inst.so || :
 rm -rf /tmp/python3-apt
 # Install splunk-ansible dependencies
 cd /

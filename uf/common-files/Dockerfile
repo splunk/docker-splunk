@@ -106,6 +106,9 @@ RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL\nans
     && chmod 664 ${SPLUNK_ANSIBLE_HOME}/ansible.cfg \
     && chmod 755 /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh
 
+# RUN sudo usermod -a -G root ${ANSIBLE_USER}
+# RUN sudo usermod -a -G root ${SPLUNK_USER}
+
 USER ${ANSIBLE_USER}
 HEALTHCHECK --interval=30s --timeout=30s --start-period=3m --retries=5 CMD /sbin/checkstate.sh || exit 1
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]

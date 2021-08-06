@@ -9,11 +9,7 @@ SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 SPLUNK_PRODUCT := splunk
 SPLUNK_VERSION := 8.2.1
 SPLUNK_BUILD := ddff1c41e5cf
-ifeq ($(shell arch), s390x)
-	SPLUNK_ARCH = s390x
-else
-	SPLUNK_ARCH = x86_64
-endif
+SPLUNK_ARCH := armv8# s390x, x86_64
 
 # Linux Splunk arguments
 SPLUNK_LINUX_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz
@@ -257,6 +253,23 @@ uf-windows-2016: base-windows-2016 ansible
 		--build-arg SPLUNK_BASE_IMAGE=base-windows-2016 \
 		--build-arg SPLUNK_BUILD_URL=${UF_WIN_BUILD_URL} \
 		-t uf-windows-2016:${IMAGE_VERSION} .
+
+
+###### Build custom for ARM/RPi
+base-debian-10-custom: ansible
+	docker buildx build ${DOCKER_BUILD_FLAGS} \
+		--platform linux/arm64 \
+		--build-arg SCLOUD_URL=${SCLOUD_URL} \
+		-t timberhill/splunk-base-debian-10 \
+		--push ./base/debian-10
+		
+uf-arm64: ansible
+	docker buildx build ${DOCKER_BUILD_FLAGS} \
+		-f uf/common-files/Dockerfile \
+		--platform linux/arm64 \
+		--build-arg SPLUNK_BASE_IMAGE=timberhill/splunk-base-debian-10 \
+		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
+		-t timberhill/splunkuf:${SPLUNK_VERSION} --push .
 
 
 ##### Python 3 support #####
