@@ -12,12 +12,14 @@ Red Hat images will continue to be published.
 
 * [8.2.1](#821)
 * [8.2.0](#820)
+* [8.1.5](#815)
 * [8.1.4](#814)
 * [8.1.3](#813)
 * [8.1.2](#812)
 * [8.1.1](#811)
 * [8.1.0.1](#8101)
 * [8.1.0](#810)
+* [8.0.10](#8010)
 * [8.0.9](#809)
 * [8.0.8](#808)
 * [8.0.7](#807)
@@ -88,6 +90,17 @@ Red Hat images will continue to be published.
 * Added support for setting `clientName` in `deploymentclient.conf`
     * `splunk.deployment_client.name` in `default.yml`
     * `SPLUNK_DEPLOYMENT_CLIENT_NAME` environment variable
+
+---
+
+## 8.1.5
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 8.1.5](https://docs.splunk.com/Documentation/Splunk/8.1.5/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.2.1](#821)
+
+#### Changes
+* See [8.2.1](#821) changes
 
 ---
 
@@ -181,6 +194,17 @@ Red Hat images will continue to be published.
 * Enabled multisite for the `splunk_monitor` role
 * Enabled local indexing on the license master
 * Bugfixes and cleanup
+
+---
+
+## 8.0.10
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 8.0.10](https://docs.splunk.com/Documentation/Splunk/8.0.10/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.2.1](#821)
+
+#### Changes
+* See [8.2.1](#821) changes
 
 ---
 
