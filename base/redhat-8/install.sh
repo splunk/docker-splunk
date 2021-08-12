@@ -27,9 +27,10 @@ export LANG=en_US.utf8
 
 # Install utility packages
 microdnf -y --nodocs install wget sudo shadow-utils procps tar tzdata make gcc \
-                             openssl-devel bzip2-devel libffi-devel findutils systemd
+                             openssl-devel bzip2-devel libffi-devel findutils
 # Patch security updates
-microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata nettle libpwquality
+microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 tzdata nettle \
+                            libpwquality libxml2 systemd-libs glib2 lz4-libs rpm rpm-libs
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
