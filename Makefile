@@ -33,8 +33,8 @@ SCANNER_DATE := `date +%Y-%m-%d`
 SCANNER_DATE_YEST := `TZ=GMT+24 +%Y:%m:%d`
 SCANNER_VERSION := v8
 SCANNER_LOCALIP := $(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $1}' | head -n 1)
-SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
-CONTAINERS_TO_SAVE := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
+SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunkcloud-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
+CONTAINERS_TO_SAVE := splunk-debian-9 splunk-debian-10 splunkcloud-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
 ifeq ($(shell uname), Linux)
 	SCANNER_FILE = clair-scanner_linux_amd64
 else ifeq ($(shell uname), Darwin)
@@ -155,7 +155,7 @@ bare-redhat-8: base-redhat-8
 		--target bare -t bare-redhat-8:${IMAGE_VERSION} .
 
 ##### Splunk images #####
-splunk: ansible splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-centos-8 splunk-redhat-8
+splunk: ansible splunk-debian-9 splunk-debian-10 splunkcloud-debian-10 splunk-centos-7 splunk-centos-8 splunk-redhat-8
 
 splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -170,6 +170,13 @@ splunk-debian-10: base-debian-10 ansible
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-10 \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		-t splunk-debian-10:${IMAGE_VERSION} .
+
+splunkcloud-debian-10: base-debian-10 
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-debian-10 \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_CLOUD_LINUX_BUILD_URL} \
+		-t splunkcloud-debian-10:${IMAGE_VERSION} .
 
 splunk-centos-7: base-centos-7 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -344,7 +351,7 @@ test_redhat8: clean ansible splunk-redhat-8 uf-redhat-8 test_setup run_small_tes
 
 test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_small_tests_debian9 run_large_tests_debian9
 
-test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_small_tests_debian10 run_large_tests_debian10
+test_debian10: clean ansible splunkcloud-debian-10 splunk-debian-10 uf-debian-10 test_setup run_small_tests_debian10 run_large_tests_debian10
 
 run_small_tests_centos7:
 	@echo 'Running the super awesome small tests; CentOS 7'
@@ -466,7 +473,7 @@ docker kill $1
 endef
 
 test_debian10_image_size:
-	$(call test_image_size,splunk-debian-10)
+	$(call test_image_size,splunk-debian-10,splunkcloud-debian-10)
 
 define test_image_size
 docker pull splunk/splunk:edge
