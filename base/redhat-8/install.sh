@@ -95,6 +95,11 @@ echo "
 ## Allows people in group sudo to run all commands
 %sudo  ALL=(ALL)       ALL" >> /etc/sudoers
 
+echo 'alias ll="ls --color -al"' >> /etc/bashrc
+echo 'alias cs="clear;ls -lsh"' >> /etc/bashrc
+echo 'alias ..="cd .."' >> /etc/bashrc
+echo 'alias ...="cd ../.."' /etc/bashrc
+
 # Clean
 microdnf clean all
 rm -rf /install.sh /anaconda-post.log /var/log/anaconda/*
