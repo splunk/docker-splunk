@@ -16,7 +16,7 @@ on:
 
 jobs:
   makefile:
-    name: makefile
+    name: base_image
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
