@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG SPLUNK_BASE_IMAGE=base-debian-10
+ARG SPLUNK_BASE_IMAGE=redhat-8
 
 #
 # Download and unpack Splunk Enterprise
