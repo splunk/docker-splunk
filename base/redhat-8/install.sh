@@ -89,7 +89,7 @@ do
   ln -s busybox $item || true
 done
 chmod u+s /bin/ping
-groupadd sudo
+groupadd -g 0815 sudo
 
 echo "
 ## Allows people in group sudo to run all commands
