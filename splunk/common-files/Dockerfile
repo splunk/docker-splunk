@@ -61,7 +61,6 @@ COPY [ "splunk/common-files/updateetc.sh", "/sbin/" ]
 RUN groupadd -r -g ${GID} ${SPLUNK_GROUP} \
     && useradd -r -m -u ${UID} -g ${GID} -s /bin/bash ${SPLUNK_USER} \
     && chmod 755 /sbin/updateetc.sh \
-    && echo 'alias ll="ls --color -al"' >> /etc/bashrc \
     && echo "source ${SPLUNK_HOME}/bin/setSplunkEnv" >> /etc/bashrc
 
 COPY --from=package --chown=splunk:splunk /minimal /opt
