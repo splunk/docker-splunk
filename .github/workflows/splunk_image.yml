@@ -35,6 +35,7 @@ jobs:
           echo $(grep "SPLUNK_BUILD " Makefile | cut -d " " -f3) > tag_splunk_build
           echo $(grep "SPLUNK_PRODUCT " Makefile | cut -d " " -f3) > tag_splunk_product
           echo $(grep "IMAGE_VERSION ?" Makefile | cut -d " " -f3 | cut -d "\"" -f2) > tag_image_version
+          echo $(grep "SPLUNK_LINUX_BUILD_URL ?=" Makefile | cut -d "/" -f3) > tag_splunk_url_domain
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
@@ -45,7 +46,7 @@ jobs:
       - name: Build splunk image
         run: docker build --file splunk/common-files/Dockerfile 
           --build-arg SPLUNK_BASE_IMAGE=8lex/redhat-8 
-          --build-arg SPLUNK_BUILD_URL=https://download.splunk.com/products/$(cat tag_splunk_product)/releases/$(cat tag_splunk_version)/linux/$(cat tag_splunk_product)-$(cat tag_splunk_version)-$(cat tag_splunk_build)-Linux-x86_64.tgz 
+          --build-arg SPLUNK_BUILD_URL=https://$(cat tag_splunk_url_domain)/$(cat tag_splunk_product)/releases/$(cat tag_splunk_version)/linux/$(cat tag_splunk_product)-$(cat tag_splunk_version)-$(cat tag_splunk_build)-Linux-x86_64.tgz 
           --tag ${{ secrets.DOCKER_HUB_USERNAME }}/$(cat tag_splunk_product):$(cat tag_image_version) 
           --tag ${{ secrets.DOCKER_HUB_USERNAME }}/$(cat tag_splunk_product):$(cat tag_splunk_version) .
 
