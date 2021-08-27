@@ -13,7 +13,7 @@
 # limitations under the License.
 
 ARG SPLUNK_BASE_IMAGE=redhat-8
-
+#
 #
 # Download and unpack Splunk Enterprise
 #

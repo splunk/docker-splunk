@@ -11,7 +11,7 @@ on:
       - develop
     paths:
       - Makefile
-      - splunk/Dockerfile
+      - splunk/common-files/*
 
 jobs:
   splunk_image:
