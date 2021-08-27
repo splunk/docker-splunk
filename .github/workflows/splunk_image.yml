@@ -14,8 +14,8 @@ on:
       - splunk/*
 
 jobs:
-  makefile:
-    name: makefile
+  splunk_image:
+    name: splunk_image
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
