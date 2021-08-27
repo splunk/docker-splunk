@@ -1,0 +1,53 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: latest splunk image
+
+on:
+  push:
+    branches:    
+      - develop
+    paths:
+      - Makefile
+      - splunk/*
+
+jobs:
+  makefile:
+    name: makefile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Check out splunk-ansible
+        uses: actions/checkout@v2
+        with:
+          repository: splunk/splunk-ansible
+          path: splunk-ansible
+
+      - name: set env files ;)
+        run: |
+          echo $(grep "SPLUNK_VERSION " Makefile | cut -d " " -f3) > tag_splunk_version
+          echo $(grep "SPLUNK_BUILD " Makefile | cut -d " " -f3) > tag_splunk_build
+          echo $(grep "SPLUNK_PRODUCT " Makefile | cut -d " " -f3) > tag_splunk_product
+          echo $(grep "IMAGE_VERSION ?" Makefile | cut -d " " -f3 | cut -d "\"" -f2) > tag_image_version
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      
+      - name: Build splunk image
+        run: docker build --file splunk/common-files/Dockerfile 
+          --build-arg SPLUNK_BASE_IMAGE=8lex/base-redhat-8 
+          --build-arg SPLUNK_BUILD_URL=https://download.splunk.com/products/$(cat tag_splunk_product)/releases/$(cat tag_splunk_version)/linux/$(cat tag_splunk_product)-$(cat tag_splunk_version)-$(cat tag_splunk_build)-Linux-x86_64.tgz 
+          --tag ${{ secrets.DOCKER_HUB_USERNAME }}/$(cat tag_splunk_product):$(cat tag_image_version) 
+          --tag ${{ secrets.DOCKER_HUB_USERNAME }}/$(cat tag_splunk_product):$(cat tag_splunk_version) .
+
+      - name: push splunk image to docker
+        run: docker push --all-tags ${{ secrets.DOCKER_HUB_USERNAME }}/$(cat tag_splunk_product)

@@ -1,0 +1,48 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: base_image
+
+on:
+  push:
+  # Sequence of patterns matched against refs/heads
+    branches:    
+      # Push events on main branch
+      - develop
+    # paths:
+    #   - base/*
+
+jobs:
+  makefile:
+    name: makefile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: set some envs
+        run: |
+          echo $(grep "SPLUNK_VERSION " Makefile | cut -d " " -f3) > tag_splunk_version
+          echo $(grep "SCLOUD_URL " Makefile | cut -d " " -f3) > tag_scloud_url
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build base image
+        run: |
+          docker build \
+          --build-arg SCLOUD_URL=$(cat tag_scloud_url) \
+          --label version=$(cat tag_splunk_version) \
+          --tag ${{ secrets.DOCKER_HUB_USERNAME }}/redhat-8:latest \
+          ./base/redhat-8
+
+      - name: push splunk image to docker
+        # uses: docker/build-push-action@v2
+        run: docker push --all-tags ${{ secrets.DOCKER_HUB_USERNAME }}/redhat-8
