@@ -12,24 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG SPLUNK_BASE_IMAGE=base-debian-10
+ARG SPLUNK_BASE_IMAGE=base-debian-10:latest
 
 #
 # Download and unpack Splunk Enterprise
 #
-FROM ${SPLUNK_BASE_IMAGE}:latest as package
-ARG SPLUNK_BUILD_URL
+FROM ${SPLUNK_BASE_IMAGE} as package
+ARG SPLUNK_VERSION
+ARG SPLUNK_BUILD
+ARG SPLUNK_URL_BASE=https://d7wz6hmoaavd0.cloudfront.net/products
 COPY splunk/common-files/make-minimal-exclude.py /tmp
-RUN python /tmp/make-minimal-exclude.py ${SPLUNK_BUILD_URL} > /tmp/splunk-minimal-exclude.list \
-    && echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}" \
-    && wget -qO /tmp/`basename ${SPLUNK_BUILD_URL}` ${SPLUNK_BUILD_URL} \
-    && wget -qO /tmp/splunk.tgz.sha512 ${SPLUNK_BUILD_URL}.sha512 \
-    && cd /tmp \
+RUN export SPLUNK_ARCH=$(if [ "$(arch)" = "s390x"  ]; then echo s390x; elif [ "$(arch)" = "aarch64"  ]; then echo armv8 ;else echo x86_64 ;fi) \
+    && echo SPLUNK_VERSION=${SPLUNK_VERSION} SPLUNK_BUILD=${SPLUNK_BUILD} SPLUNK_ARCH=${SPLUNK_ARCH} CONTAINER_ARCH=$(arch) \
+    && python /tmp/make-minimal-exclude.py ${SPLUNK_URL_BASE}/splunk/releases/${SPLUNK_VERSION}/linux/splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz > /tmp/splunk-minimal-exclude.list \
+    && echo "Downloading Splunk and validating the checksum at: ${SPLUNK_URL_BASE}/splunk/releases/${SPLUNK_VERSION}/linux/splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz" \
+    && wget -qO /tmp/`basename ${SPLUNK_URL_BASE}/splunk/releases/${SPLUNK_VERSION}/linux/splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz` ${SPLUNK_URL_BASE}/splunk/releases/${SPLUNK_VERSION}/linux/splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz \
+    && wget -qO /tmp/splunk.tgz.sha512 ${SPLUNK_URL_BASE}/splunk/releases/${SPLUNK_VERSION}/linux/splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz.sha512 \
+    && cd /tmp ;ls -l;cat /tmp/splunk.tgz.sha512\
     && echo "$(cat /tmp/splunk.tgz.sha512)" | sha512sum --check  --status \
     && rm /tmp/splunk.tgz.sha512 \
     && mkdir -p /minimal/splunk/var /extras/splunk/var \
-    && tar -C /minimal/splunk --strip 1 --exclude-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/`basename ${SPLUNK_BUILD_URL}` \
-    && tar -C /extras/splunk --strip 1 --wildcards --files-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/`basename ${SPLUNK_BUILD_URL}` \
+    && tar -C /minimal/splunk --strip 1 --exclude-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/`basename ${SPLUNK_URL_BASE}/splunk/releases/${SPLUNK_VERSION}/linux/splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz` \
+    && tar -C /extras/splunk --strip 1 --wildcards --files-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/`basename ${SPLUNK_URL_BASE}/splunk/releases/${SPLUNK_VERSION}/linux/splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz` \
     && mv /minimal/splunk/etc /minimal/splunk-etc \
     && mv /extras/splunk/etc /extras/splunk-etc \
     && mkdir -p /minimal/splunk/etc /minimal/splunk/share/splunk/search_mrsparkle/modules.new
@@ -39,7 +43,7 @@ COPY splunk/common-files/apps /extras/splunk-etc/apps/
 #
 # Minimal Splunk base image with many files excluded, intended for internal and experimental use
 #
-FROM ${SPLUNK_BASE_IMAGE}:latest as minimal
+FROM ${SPLUNK_BASE_IMAGE} as minimal
 LABEL maintainer="support@splunk.com"
 ENV SPLUNK_HOME=/opt/splunk \
     SPLUNK_GROUP=splunk \
@@ -83,7 +87,8 @@ VOLUME [ "/opt/splunk/etc", "/opt/splunk/var" ]
 #
 FROM bare
 
-ARG SPLUNK_DEFAULTS_URL
+ARG SPLUNK_VERSION
+ARG SPLUNK_BUILD
 
 ENV SPLUNK_ROLE=splunk_standalone \
     SPLUNK_DEFAULTS_URL=${SPLUNK_DEFAULTS_URL} \

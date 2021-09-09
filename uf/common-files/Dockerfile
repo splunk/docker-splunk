@@ -12,21 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG SPLUNK_BASE_IMAGE=base-debian-10
+ARG SPLUNK_BASE_IMAGE=base-debian-10:latest
 
 #
 # Download and unpack Splunk Universal Forwarder
 #
-FROM ${SPLUNK_BASE_IMAGE}:latest as package
-ARG SPLUNK_BUILD_URL
+FROM ${SPLUNK_BASE_IMAGE} as package
+ARG SPLUNK_VERSION
+ARG SPLUNK_BUILD
+ARG SPLUNK_URL_BASE=https://d7wz6hmoaavd0.cloudfront.net/products
 ENV SPLUNK_HOME=/opt/splunkforwarder
-RUN echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}" \
-    && wget -qO /tmp/`basename ${SPLUNK_BUILD_URL}` ${SPLUNK_BUILD_URL} \
-    && wget -qO /tmp/splunk.tgz.sha512 ${SPLUNK_BUILD_URL}.sha512 \
+RUN export SPLUNK_ARCH=$(if [ "$(arch)" = "s390x"  ]; then echo s390x; elif [ "$(arch)" = "aarch64"  ]; then echo armv8wge ;else echo x86_64 ;fi) \
+    && echo SPLUNK_VERSION=${SPLUNK_VERSION} SPLUNK_BUILD=${SPLUNK_BUILD} SPLUNK_ARCH=${SPLUNK_ARCH} CONTAINER_ARCH=$(arch) \
+    && echo "Downloading Splunk and validating the checksum at: ${SPLUNK_URL_BASE}/universalforwarder/releases/${SPLUNK_VERSION}/linux/splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz" \
+    && wget -qO /tmp/`basename ${SPLUNK_URL_BASE}/universalforwarder/releases/${SPLUNK_VERSION}/linux/splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz` ${SPLUNK_URL_BASE}/universalforwarder/releases/${SPLUNK_VERSION}/linux/splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz \
+    && wget -qO /tmp/splunk.tgz.sha512 ${SPLUNK_URL_BASE}/universalforwarder/releases/${SPLUNK_VERSION}/linux/splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz.sha512 \
     && cd /tmp \
     && echo "$(cat /tmp/splunk.tgz.sha512)" | sha512sum --check  --status \
     && rm /tmp/splunk.tgz.sha512 \
-    && tar -C /opt -zxf /tmp/`basename ${SPLUNK_BUILD_URL}` \ 
+    && tar -C /opt -zxf /tmp/`basename ${SPLUNK_URL_BASE}/universalforwarder/releases/${SPLUNK_VERSION}/linux/splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz` \ 
     && mv ${SPLUNK_HOME}/etc ${SPLUNK_HOME}-etc \
     && mkdir -p ${SPLUNK_HOME}/etc ${SPLUNK_HOME}/var
 COPY uf/common-files/apps ${SPLUNK_HOME}-etc/apps/
@@ -35,7 +39,7 @@ COPY uf/common-files/apps ${SPLUNK_HOME}-etc/apps/
 #
 # Bare Splunk Universal Forwarder Image without Ansible (BYO entrypoint)
 #
-FROM ${SPLUNK_BASE_IMAGE}:latest as bare
+FROM ${SPLUNK_BASE_IMAGE} as bare
 LABEL maintainer="support@splunk.com"
 
 # Currently kubernetes only accepts UID and not USER field to

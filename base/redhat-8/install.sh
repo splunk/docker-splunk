@@ -27,7 +27,8 @@ export LANG=en_US.utf8
 
 # Install utility packages
 microdnf -y --nodocs install wget sudo shadow-utils procps tar make gcc \
-                             openssl-devel bzip2-devel libffi-devel findutils
+                             openssl-devel bzip2-devel libffi-devel \
+                             ncurses findutils diffutils psmisc bind-utils which hostname net-tools iputils readline vim-minimal
 # Patch security updates
 microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 nettle \
                             libpwquality libxml2 systemd-libs glib2 lz4-libs \
@@ -69,7 +70,7 @@ ldconfig
 # Cleanup
 microdnf remove -y make gcc openssl-devel bzip2-devel libffi-devel findutils cpp binutils \
                    glibc-devel keyutils-libs-devel krb5-devel libcom_err-devel libselinux-devel \
-                   libsepol-devel libverto-devel libxcrypt-devel pcre2-devel zlib-devel
+                   libsepol-devel libverto-devel libxcrypt-devel pcre2-devel zlib-devel 
 microdnf clean all
 
 # Install scloud
@@ -77,17 +78,6 @@ wget -O /usr/bin/scloud.tar.gz ${SCLOUD_URL}
 tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
 rm /usr/bin/scloud.tar.gz
 
-# Install busybox direct from the multiarch since EPEL isn't available yet for redhat8
-wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
-chmod +x /bin/busybox
-
-# Enable busybox symlinks
-cd /bin
-BBOX_LINKS=( clear find diff hostname killall netstat nslookup ping ping6 readline route syslogd tail traceroute vi )
-for item in "${BBOX_LINKS[@]}"
-do
-  ln -s busybox $item || true
-done
 chmod u+s /bin/ping
 groupadd sudo
 
