@@ -11,7 +11,8 @@ SPLUNK_VERSION := 8.2.2
 SPLUNK_BUILD := 87344edfcdb4
 # Graviton manual build
 SPLUNK_ARM_VERSION := 8.2.2109
-SPLUNK_ARM_BUILD := 20210910-1125
+SPLUNK_ARM_VERSION_LONG := ${SPLUNK_ARM_VERSION}-20210910-1125
+SPLUNK_ARM_BUILD := c3d8af223173
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
@@ -32,9 +33,9 @@ UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/rele
 SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.11.1/scloud_v7.1.0_linux_amd64.tar.gz
 # Graviton build arguments
 SPLUNK_ARM_FILENAME ?= splunk-${SPLUNK_ARM_VERSION}-${SPLUNK_ARM_BUILD}-Linux-aarch64.tgz
-SPLUNK_ARM_BUILD_URL ?= https://releases.splunk.com/dl/manual-build_builds/${SPLUNK_ARM_VERSION}-${SPLUNK_ARM_BUILD}/${SPLUNK_ARM_FILENAME}
+SPLUNK_ARM_BUILD_URL ?= https://releases.splunk.com/dl/manual-build_builds/${SPLUNK_ARM_VERSION_LONG}/${SPLUNK_ARM_FILENAME}
 UF_ARM_FILENAME ?= splunkforwarder-${SPLUNK_ARM_VERSION}-${SPLUNK_ARM_BUILD}-Linux-aarch64.tgz
-UF_ARM_BUILD_URL ?= https://releases.splunk.com/dl/manual-build_builds/${SPLUNK_ARM_VERSION}-${SPLUNK_ARM_BUILD}/${UF_ARM_FILENAME}
+UF_ARM_BUILD_URL ?= https://releases.splunk.com/dl/manual-build_builds/${SPLUNK_ARM_VERSION_LONG}/${UF_ARM_FILENAME}
 
 # Security Scanner Variables
 SCANNER_DATE := `date +%Y-%m-%d`
