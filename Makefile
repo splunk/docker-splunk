@@ -9,6 +9,9 @@ SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 SPLUNK_PRODUCT := splunk
 SPLUNK_VERSION := 8.2.2
 SPLUNK_BUILD := 87344edfcdb4
+# Graviton manual build
+SPLUNK_ARM_VERSION := 8.2.2109
+SPLUNK_ARM_BUILD := 20210910-1125
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
@@ -27,6 +30,11 @@ UF_WIN_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release
 UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/windows/${UF_WIN_FILENAME}
 # Splunk Cloud SDK binary
 SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.11.1/scloud_v7.1.0_linux_amd64.tar.gz
+# Graviton build arguments
+SPLUNK_ARM_FILENAME ?= splunk-${SPLUNK_ARM_VERSION}-${SPLUNK_ARM_BUILD}-Linux-aarch64.tgz
+SPLUNK_ARM_BUILD_URL ?= https://releases.splunk.com/dl/manual-build_builds/${SPLUNK_ARM_VERSION}-${SPLUNK_ARM_BUILD}/${SPLUNK_ARM_FILENAME}
+UF_ARM_FILENAME ?= splunkforwarder-${SPLUNK_ARM_VERSION}-${SPLUNK_ARM_BUILD}-Linux-aarch64.tgz
+UF_ARM_BUILD_URL ?= https://releases.splunk.com/dl/manual-build_builds/${SPLUNK_ARM_VERSION}-${SPLUNK_ARM_BUILD}/${UF_ARM_FILENAME}
 
 # Security Scanner Variables
 SCANNER_DATE := `date +%Y-%m-%d`
@@ -58,7 +66,7 @@ ansible:
 	@cat splunk-ansible/version.txt
 
 ##### Base images #####
-base: base-debian-9 base-debian-10 base-centos-7 base-centos-8 base-redhat-8 base-windows-2016
+base: base-debian-9 base-debian-10 base-centos-7 base-centos-8 base-redhat-8 base-windows-2016 base-ubuntu-18
 
 base-debian-10:
 	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
@@ -71,6 +79,9 @@ base-centos-7:
 
 base-centos-8:
 	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-centos-8:${IMAGE_VERSION} ./base/centos-8
+
+base-ubuntu-18:
+	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-ubuntu-18:${IMAGE_VERSION} ./base/ubuntu-18
 
 base-redhat-8:
 	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} --label version=${SPLUNK_VERSION} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
@@ -117,7 +128,7 @@ minimal-redhat-8: base-redhat-8
 		--target minimal -t minimal-redhat-8:${IMAGE_VERSION} .
 
 ##### Bare images #####
-bare: bare-debian-9 bare-debian-10 bare-centos-7 bare-centos-8 bare-redhat-8
+bare: bare-debian-9 bare-debian-10 bare-centos-7 bare-centos-8 bare-redhat-8 bare-ubuntu-18
 
 bare-debian-9: base-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -154,8 +165,15 @@ bare-redhat-8: base-redhat-8
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target bare -t bare-redhat-8:${IMAGE_VERSION} .
 
+bare-ubuntu-18: base-ubuntu-18
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-ubuntu-18 \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_ARM_BUILD_URL} \
+		--target bare -t bare-ubuntu-18:${IMAGE_VERSION} .
+
 ##### Splunk images #####
-splunk: ansible splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-centos-8 splunk-redhat-8
+splunk: ansible splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-centos-8 splunk-redhat-8 splunk-ubuntu-18
 
 splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -199,8 +217,15 @@ splunk-windows-2016: base-windows-2016 ansible
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_WIN_BUILD_URL} \
 		-t splunk-windows-2016:${IMAGE_VERSION} .
 
+splunk-ubuntu-18: base-ubuntu-18 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-ubuntu-18 \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_ARM_BUILD_URL} \
+		-t splunk-ubuntu-18:${IMAGE_VERSION} .
+
 ##### UF images #####
-uf: ansible uf-debian-9 uf-debian-10 uf-centos-7 uf-centos-8 uf-redhat-8
+uf: ansible uf-debian-9 uf-debian-10 uf-centos-7 uf-centos-8 uf-redhat-8 uf-ubuntu-18
 
 ufbare-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -258,9 +283,15 @@ uf-windows-2016: base-windows-2016 ansible
 		--build-arg SPLUNK_BUILD_URL=${UF_WIN_BUILD_URL} \
 		-t uf-windows-2016:${IMAGE_VERSION} .
 
+ufbare-ubuntu-18: base-ubuntu-18 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f uf/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-ubuntu-18 \
+		--build-arg SPLUNK_BUILD_URL=${UF_ARM_BUILD_URL} \
+		--target bare -t ufbare-ubuntu-18:${IMAGE_VERSION} .
 
 ##### Python 3 support #####
-splunk-py23: splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-centos-8 splunk-py23-redhat-8
+splunk-py23: splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-centos-8 splunk-py23-redhat-8 splunk-py23-ubuntu-18
 
 splunk-py23-debian-9: splunk-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -292,7 +323,13 @@ splunk-py23-redhat-8: splunk-redhat-8
 		--build-arg SPLUNK_PRODUCT=splunk \
 		-t splunk-py23-redhat-8:${IMAGE_VERSION} .
 
-uf-py23: uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
+splunk-py23-ubuntu-18: splunk-ubuntu-18
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/ubuntu-18/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=splunk \
+		-t splunk-py23-ubuntu-18:${IMAGE_VERSION} .
+
+uf-py23: uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8 uf-ubuntu-18
 
 uf-py23-debian-9: uf-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -324,6 +361,11 @@ uf-py23-redhat-8: uf-redhat-8
 		--build-arg SPLUNK_PRODUCT=uf \
 		-t uf-py23-redhat-8:${IMAGE_VERSION} .
 
+uf-py23-ubuntu-18: uf-ubuntu-18
+	docker build ${DOCKER_BUILD_FLAGS} \
+		-f py23-image/ubuntu-18/Dockerfile \
+		--build-arg SPLUNK_PRODUCT=uf \
+		-t uf-py23-ubuntu-18:${IMAGE_VERSION} .
 
 ##### Tests #####
 sample-compose-up: sample-compose-down
@@ -345,6 +387,16 @@ test_redhat8: clean ansible splunk-redhat-8 uf-redhat-8 test_setup run_small_tes
 test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_small_tests_debian9 run_large_tests_debian9
 
 test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_small_tests_debian10 run_large_tests_debian10
+
+test_ubuntu18: clean ansible splunk-ubuntu-18 uf-ubuntu-18 test_setup run_small_tests_ubuntu18 run_large_tests_ubuntu18
+
+run_small_tests_ubuntu18:
+	@echo 'Running the super awesome small tests; Ubuntu 18'
+	pytest -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform ubuntu-18 --junitxml test-results/ubuntu-18-result/testresults_small_ubuntu18.xml
+
+run_large_tests_ubuntu18:
+	@echo 'Running the super awesome large tests; Ubuntu 18'
+	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform ubuntu-18 --junitxml test-results/ubuntu-18-result/testresults_large_ubuntu18.xml
 
 run_small_tests_centos7:
 	@echo 'Running the super awesome small tests; CentOS 7'
@@ -394,9 +446,9 @@ save_containers:
 
 test_python3_all: test_splunk_python3_all test_uf_python3_all
 
-test_splunk_python3_all: test_splunk_centos7_python3 test_splunk_redhat8_python3 test_splunk_debian9_python3 test_splunk_debian10_python3
+test_splunk_python3_all: test_splunk_centos7_python3 test_splunk_redhat8_python3 test_splunk_debian9_python3 test_splunk_debian10_python3 test_splunk_ubuntu18_python3
 
-test_uf_python3_all: test_uf_centos7_python3 test_uf_redhat8_python3 test_uf_debian9_python3 test_uf_debian10_python3
+test_uf_python3_all: test_uf_centos7_python3 test_uf_redhat8_python3 test_uf_debian9_python3 test_uf_debian10_python3 test_uf_ubuntu18_python3
 
 test_splunk_centos7_python3:
 	$(call test_python3_installation,splunk-py23-centos-7)
@@ -410,6 +462,9 @@ test_splunk_debian9_python3:
 test_splunk_debian10_python3:
 	$(call test_python3_installation,splunk-py23-debian-10)
 
+test_splunk_ubuntu18_python3:
+	$(call test_python3_installation,splunk-py23-ubuntu-18)
+
 test_uf_centos7_python3:
 	$(call test_python3_installation,uf-py23-centos-7)
 
@@ -422,6 +477,9 @@ test_uf_debian9_python3:
 test_uf_debian10_python3:
 	$(call test_python3_installation,uf-py23-debian-10)
 
+test_uf_ubuntu18_python3:
+	$(call test_python3_installation,uf-py23-ubuntu-18)
+
 define test_python3_installation
 docker run -d --rm --name $1 -it $1 bash
 docker exec -it $1 bash -c 'if [[ $$(python3 -V) =~ "Python 3" ]] ; then echo "$$(python3 -V) installed" ; else echo "No Python3 installation found" ; docker kill $1 ; exit 1 ; fi'
@@ -430,9 +488,9 @@ endef
 
 test_python2_all: test_splunk_python2_all test_uf_python2_all
 
-test_splunk_python2_all: test_splunk_centos7_python2 test_splunk_redhat8_python2 test_splunk_debian9_python2 test_splunk_debian10_python2
+test_splunk_python2_all: test_splunk_centos7_python2 test_splunk_redhat8_python2 test_splunk_debian9_python2 test_splunk_debian10_python2 test_splunk_ubuntu18_python2
 
-test_uf_python2_all: test_uf_centos7_python2 test_uf_redhat8_python2 test_uf_debian9_python2 test_uf_debian10_python2
+test_uf_python2_all: test_uf_centos7_python2 test_uf_redhat8_python2 test_uf_debian9_python2 test_uf_debian10_python2 test_uf_ubuntu18_python2
 
 test_splunk_centos7_python2:
 	$(call test_python2_installation,splunk-py23-centos-7)
@@ -446,6 +504,9 @@ test_splunk_debian9_python2:
 test_splunk_debian10_python2:
 	$(call test_python2_installation,splunk-py23-debian-10)
 
+test_splunk_ubuntu18_python2:
+	$(call test_python2_installation,splunk-py23-debian-10)
+
 test_uf_centos7_python2:
 	$(call test_python2_installation,uf-py23-centos-7)
 
@@ -457,6 +518,9 @@ test_uf_debian9_python2:
 
 test_uf_debian10_python2:
 	$(call test_python2_installation,uf-py23-debian-10)
+
+test_uf_ubuntu18_python2:
+	$(call test_python2_installation,uf-py23-ubuntu-18)
 
 #python2 version print to stderr, hence the 2>&1
 define test_python2_installation

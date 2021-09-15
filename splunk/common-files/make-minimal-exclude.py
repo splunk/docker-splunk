@@ -4,10 +4,7 @@ import re, sys
 
 EXCLUDE_V7 = """*-manifest
 */bin/installit.py
-*/bin/jars/*
 */bin/jsmin*
-*/bin/*mongo*
-*/3rdparty/Copyright-for-mongo*
 */bin/node*
 */bin/pcregextest*
 */etc/*.lic*
@@ -19,7 +16,6 @@ EXCLUDE_V7 = """*-manifest
 */etc/apps/sample_app*
 */etc/apps/appsbrowser*
 */etc/apps/alert_webhook*
-*/etc/apps/splunk_archiver*
 */etc/apps/splunk_monitoring_console*
 */lib/node_modules*
 */share/splunk/app_templates*
@@ -30,7 +26,7 @@ EXCLUDE_V7 = """*-manifest
 */share/splunk/pdf*
 *mrsparkle*"""
 
-m = re.match(".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+\.?[0-9]?-[0-9a-z]+-Linux-[0-9a-z_-]+.tgz", sys.argv[1])
+m = re.match(".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+\.?[0-9]?-[0-9a-z]+-Linux-([0-9a-z_-]+).tgz", sys.argv[1])
 
 if m and m.group(1):
     print(EXCLUDE_V7)
@@ -45,3 +41,8 @@ if m and m.group(1):
         print("*/etc/apps/splunk_metrics_workspace*")
         if int(m.group(2)) < 1:
             print("*/bin/parsetest*")
+    if m.group(3) != "aarch64":
+        print("*/bin/jars/*")
+        print("*/bin/*mongo*")
+        print("*/3rdparty/Copyright-for-mongo*")
+        print("*/etc/apps/splunk_archiver*")
