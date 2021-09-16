@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+import six
 import pytest
 import time
 import os
@@ -101,9 +102,20 @@ class Executor(object):
         stream = self.client.logs(container_id, stream=True)
         output = ""
         for char in stream:
+            if six.PY3:
+                char = char.decode()
             if "Ansible playbook complete" in char:
                 break
             output += char
+        return output
+    
+    def exec_start(self, command):
+        # Wraps the docker client.exec_start so we can decode any output
+        # in python3 environments (bytes -> string). This allows us to continue
+        # using our string-based assertions in the tests.
+        output = self.client.exec_start(command)
+        if six.PY3:
+            output = output.decode()
         return output
 
     def cleanup_files(self, files):
@@ -148,6 +160,8 @@ class Executor(object):
                 # The healthcheck on our Splunk image is not reliable - resorting to checking logs
                 if container.get("Labels", {}).get("maintainer") == "support@splunk.com":
                     output = self.client.logs(container["Id"], tail=5)
+                    if six.PY3:
+                        output = output.decode()
                     if "unable to" in output or "denied" in output or "splunkd.pid file is unreadable" in output:
                         self.logger.error("Container {} did not start properly, last log line: {}".format(container["Names"][0], output))
                     elif "Ansible playbook complete" in output:
@@ -232,6 +246,8 @@ class Executor(object):
         for i in range(retries):
             exec_command = self.client.exec_create(container_name, "cat /opt/container_artifact/ansible_inventory.json")
             json_data = self.client.exec_start(exec_command)
+            if six.PY3:
+                json_data = json_data.decode()
             if "No such file or directory" in json_data:
                 time.sleep(5)
             else: 
