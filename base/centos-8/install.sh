@@ -23,8 +23,15 @@ export LANG=en_US.utf8
 yum -y update && yum -y install wget sudo epel-release make
 yum -y install ansible python3-requests python3-jmespath
 
+# map os arch to busybox arch labels as needed
+ARCH=`arch`
+if [[ $ARCH = aarch64 ]]
+then
+  ARCH="armv8l"
+fi
+
 # Install busybox
-wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
+wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-${ARCH}
 chmod +x /bin/busybox
 
 # Install scloud

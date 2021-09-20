@@ -20,6 +20,9 @@ SPLUNK_ARCH=`arch`
 if [[ $SPLUNK_ARCH = `s390x` ]]
 then
   SPLUNK_ARCH="s390x"
+elif [[ $SPLUNK_ARCH = `aarch64` ]]
+then
+  SPLUNK_ARCH="armv8"
 else
   SPLUNK_ARCH="x86_64"
 fi
