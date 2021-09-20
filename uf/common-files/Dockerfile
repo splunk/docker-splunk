@@ -21,8 +21,8 @@ FROM ${SPLUNK_BASE_IMAGE}:latest as package
 ARG SPLUNK_BUILD_URL
 ENV SPLUNK_HOME=/opt/splunkforwarder
 RUN echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}" \
-    && wget -qO /tmp/`basename ${SPLUNK_BUILD_URL}` ${SPLUNK_BUILD_URL} \
-    && wget -qO /tmp/splunk.tgz.sha512 ${SPLUNK_BUILD_URL}.sha512 \
+    && wget -qO /tmp/`basename ${SPLUNK_BUILD_URL}` ${SPLUNK_BUILD_URL} --no-check-certificate \
+    && wget -qO /tmp/splunk.tgz.sha512 ${SPLUNK_BUILD_URL}.sha512 --no-check-certificate \
     && cd /tmp \
     && echo "$(cat /tmp/splunk.tgz.sha512)" | sha512sum --check  --status \
     && rm /tmp/splunk.tgz.sha512 \

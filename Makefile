@@ -284,12 +284,12 @@ uf-windows-2016: base-windows-2016 ansible
 		--build-arg SPLUNK_BUILD_URL=${UF_WIN_BUILD_URL} \
 		-t uf-windows-2016:${IMAGE_VERSION} .
 
-ufbare-ubuntu-18: base-ubuntu-18 ansible
+uf-ubuntu-18: base-ubuntu-18 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-ubuntu-18 \
 		--build-arg SPLUNK_BUILD_URL=${UF_ARM_BUILD_URL} \
-		--target bare -t ufbare-ubuntu-18:${IMAGE_VERSION} .
+		--target bare -t uf-ubuntu-18:${IMAGE_VERSION} .
 
 ##### Python 3 support #####
 splunk-py23: splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-centos-8 splunk-py23-redhat-8 splunk-py23-ubuntu-18
