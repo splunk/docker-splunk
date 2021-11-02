@@ -7,8 +7,8 @@ SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
-SPLUNK_VERSION := 8.2.2 #
-SPLUNK_BUILD := 87344edfcdb4
+SPLUNK_VERSION := 8.2.3
+SPLUNK_BUILD := cd0848707637
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
@@ -140,7 +140,7 @@ bare-centos-7: base-centos-7
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target bare -t bare-centos-7:${IMAGE_VERSION} .
 
-bare-centos-8: base-centos-7
+bare-centos-8: base-centos-8
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-centos-8 \
