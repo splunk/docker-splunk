@@ -140,7 +140,7 @@ bare-centos-7: base-centos-7
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target bare -t bare-centos-7:${IMAGE_VERSION} .
 
-bare-centos-8: base-centos-7
+bare-centos-8: base-centos-8
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-centos-8 \
