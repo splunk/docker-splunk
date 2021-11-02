@@ -34,7 +34,7 @@ microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 nettle \
                             rpm rpm-libs
 
 # Reinstall tzdata (originally stripped from minimal image): https://bugzilla.redhat.com/show_bug.cgi?id=1903219
-microdnf -y --nodocs reinstall tzdata
+microdnf -y --nodocs reinstall tzdata || microdnf -y --nodocs update tzdata
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
