@@ -7,8 +7,8 @@ SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
-SPLUNK_VERSION := 8.2.3.2
-SPLUNK_BUILD := 5281ae34c90c
+SPLUNK_VERSION := 8.2.3.3
+SPLUNK_BUILD := e40ea5a516d2
 # Temporarily setting different versions for SE and UF for security patch
 SPLUNK_UF_VERSION := 8.2.3
 SPLUNK_UF_BUILD := cd0848707637
