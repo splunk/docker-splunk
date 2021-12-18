@@ -10,6 +10,7 @@ Red Hat images will continue to be published.
 
 ## Navigation
 
+* [8.2.3.3](#8233)
 * [8.2.3.2](#8232)
 * [8.2.3](#823)
 * [8.2.2](#822)
@@ -64,6 +65,13 @@ Red Hat images will continue to be published.
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.2.3.3
+
+#### What's New?
+* New Splunk Enterprise security patch. For details, see [Fixed issues for 8.2.3.3](https://docs.splunk.com/Documentation/Splunk/8.2.3/ReleaseNotes/Fixedissues)
 
 ---
 
