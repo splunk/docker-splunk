@@ -7,11 +7,8 @@ SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
-SPLUNK_VERSION := 8.2.3.3
-SPLUNK_BUILD := e40ea5a516d2
-# Temporarily setting different versions for SE and UF for security patch
-SPLUNK_UF_VERSION := 8.2.3
-SPLUNK_UF_BUILD := cd0848707637
+SPLUNK_VERSION := 8.2.4
+SPLUNK_BUILD := 87e2dda940d1
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
@@ -21,13 +18,13 @@ endif
 # Linux Splunk arguments
 SPLUNK_LINUX_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz
 SPLUNK_LINUX_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/linux/${SPLUNK_LINUX_FILENAME}
-UF_LINUX_FILENAME ?= splunkforwarder-${SPLUNK_UF_VERSION}-${SPLUNK_UF_BUILD}-Linux-${SPLUNK_ARCH}.tgz
-UF_LINUX_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_UF_VERSION}/linux/${UF_LINUX_FILENAME}
+UF_LINUX_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz
+UF_LINUX_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/linux/${UF_LINUX_FILENAME}
 # Windows Splunk arguments
 SPLUNK_WIN_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 SPLUNK_WIN_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/windows/${SPLUNK_WIN_FILENAME}
-UF_WIN_FILENAME ?= splunkforwarder-${SPLUNK_UF_VERSION}-${SPLUNK_UF_BUILD}-x64-release.msi
-UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_UF_VERSION}/windows/${UF_WIN_FILENAME}
+UF_WIN_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
+UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/windows/${UF_WIN_FILENAME}
 # Splunk Cloud SDK binary
 SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.11.1/scloud_v7.1.0_linux_amd64.tar.gz
 
