@@ -7,10 +7,10 @@
 
 # Default owners for everything in docker-splunk:
 # *       @splunk/if-01
-*       @alishamayor @jrigassio-splunk @jmeixensperger @hendolim @bb03 @sarahotis @martinluo22 @Devmalion
+*       @alishamayor @jrigassio-splunk @jmeixensperger @hendolim @bb03 @sarahotis @martinluo22 @ngood97-splunk @adityapinglesf
 
 # Docs-only pull requests:
 /docs/  @alishamayor @bb03
 
 # Release changelog
-docs/CHANGELOG.md  @alishamayor @jrigassio-splunk @jmeixensperger @hendolim @bb03 @sarahotis @martinluo22 @Devmalion
+docs/CHANGELOG.md  @alishamayor @jrigassio-splunk @jmeixensperger @hendolim @bb03 @sarahotis @ngood97-splunk @adityapinglesf
