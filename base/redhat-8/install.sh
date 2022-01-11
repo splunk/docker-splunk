@@ -98,7 +98,8 @@ echo "
 echo 'alias ll="ls --color -al"' >> /etc/bashrc
 echo 'alias cs="clear;ls -lsh"' >> /etc/bashrc
 echo 'alias ..="cd .."' >> /etc/bashrc
-echo 'alias ...="cd ../.."' /etc/bashrc
+echo 'alias ...="cd ../.."' >> /etc/bashrc
+echo 'alias splunk=/opt/splunk/bin/splunk' >> /etc/bashrc
 
 # Clean
 microdnf clean all
