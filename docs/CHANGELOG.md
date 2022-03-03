@@ -10,6 +10,7 @@ Red Hat images will continue to be published.
 
 ## Navigation
 
+* [8.2.5](#825)
 * [8.2.4](#824)
 * [8.2.3.3](#8233)
 * [8.2.3.2](#8232)
@@ -66,6 +67,19 @@ Red Hat images will continue to be published.
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 8.2.5
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.2.5](https://docs.splunk.com/Documentation/Splunk/8.2.5/ReleaseNotes/Fixedissues)
+
+#### splunk-ansible changes:
+* Bugfixes
 
 ---
 
@@ -163,6 +177,28 @@ Red Hat images will continue to be published.
 
 #### Changes
 * See [8.2.3.2](#8232) changes
+
+---
+
+## 8.1.9
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 8.1.9](https://docs.splunk.com/Documentation/Splunk/8.1.9/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.2.5](#825)
+
+#### Changes
+* See [8.2.5](#825) changes
+
+---
+
+## 8.1.8
+
+#### What's New?
+* New Splunk Enterprise maintenance patch. For details, see [Fixed issues for 8.1.8](https://docs.splunk.com/Documentation/Splunk/8.1.8/ReleaseNotes/Fixedissues)
+* Bundling in changes to be consistent with the release of [8.2.4](#824)
+
+#### Changes
+* See [8.2.4](#824) changes
 
 ---
 
