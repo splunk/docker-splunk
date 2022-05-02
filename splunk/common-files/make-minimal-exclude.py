@@ -35,7 +35,7 @@ m = re.match(".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+\.?[0-9]?-[0-9a-z]+-Linux-[0-9a
 if m and m.group(1):
     print(EXCLUDE_V7)
     if int(m.group(1)) == 7:
-        print("*/bin/parsetest*")
+        # print("*/bin/parsetest*")
         if int(m.group(2)) < 3:
             print("*/etc/apps/framework*")
             print("*/etc/apps/gettingstarted*")
@@ -43,5 +43,5 @@ if m and m.group(1):
             print("*/etc/apps/splunk_metrics_workspace*")
     elif int(m.group(1)) > 7:
         print("*/etc/apps/splunk_metrics_workspace*")
-        if int(m.group(2)) < 1:
-            print("*/bin/parsetest*")
+        # if int(m.group(2)) < 1:
+        #     print("*/bin/parsetest*")
