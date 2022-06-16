@@ -41,7 +41,7 @@ if m and m.group(1):
             print("*/etc/apps/gettingstarted*")
         else:
             print("*/etc/apps/splunk_metrics_workspace*")
-    elif int(m.group(1)) > 7:
+    elif 7 < int(m.group(1)) < 9:
         print("*/etc/apps/splunk_metrics_workspace*")
         if int(m.group(2)) < 1:
             print("*/bin/parsetest*")
