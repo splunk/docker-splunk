@@ -10,6 +10,8 @@ Red Hat images will continue to be published.
 
 ## Navigation
 
+* [9.0.0](#900)
+* [8.2.6](#826)
 * [8.2.5](#825)
 * [8.2.4](#824)
 * [8.2.3.3](#8233)
@@ -18,6 +20,7 @@ Red Hat images will continue to be published.
 * [8.2.2](#822)
 * [8.2.1](#821)
 * [8.2.0](#820)
+* [8.1.10](#8110)
 * [8.1.7](#817)
 * [8.1.7.1](#8171)
 * [8.1.6](#816)
@@ -67,6 +70,34 @@ Red Hat images will continue to be published.
 * [7.2.2](#722)
 * [7.2.1](#721)
 * [7.2.0](#720)
+
+---
+
+## 9.0.0
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Release notes for 9.0.0](https://docs.splunk.com/Documentation/Splunk/9.0.0/ReleaseNotes/)
+* Security patches & errata fixes
+
+#### splunk-ansible changes:
+* Patch support for new major Splunk release
+* Documentation updates + bugfixes
+
+---
+
+## 8.2.6
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.2.6](https://docs.splunk.com/Documentation/Splunk/8.2.6/ReleaseNotes/Fixedissues)
+
+#### splunk-ansible changes:
+* Bugfixes
 
 ---
 
@@ -166,6 +197,19 @@ Red Hat images will continue to be published.
 * Added support for setting `clientName` in `deploymentclient.conf`
     * `splunk.deployment_client.name` in `default.yml`
     * `SPLUNK_DEPLOYMENT_CLIENT_NAME` environment variable
+
+---
+
+## 8.1.10
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release. 
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.1,10](https://docs.splunk.com/Documentation/Splunk/8.1.10/ReleaseNotes/Fixedissues)
+
+#### splunk-ansible changes:
+* Bump version tag.
 
 ---
 
