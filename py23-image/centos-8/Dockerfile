@@ -27,4 +27,4 @@ RUN yum remove -y --setopt=tsflags=noscripts gcc openssl-devel bzip2-devel libff
     && yum autoremove -y \
     && yum clean all
 RUN pip3 --no-cache-dir install ansible==3.4.0 requests==2.25.1 pyyaml==5.4.1 jmespath==0.10.0 \
-    && pip --no-cache-dir install requests==2.25.1 pyyaml==5.4.1 jmespath==0.10.0 ansible==3.4.0
+    && pip --no-cache-dir install requests==2.25.1 pyyaml==5.4.1 jmespath==0.10.0
