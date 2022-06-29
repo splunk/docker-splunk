@@ -37,8 +37,8 @@ apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox pr
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
-wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
-wget -O /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz.asc
+wget --no-check-certificate -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+wget --no-check-certificate -O /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz.asc
 gpg --recv-keys $PYTHON_GPG_KEY_ID
 gpg --verify /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc /tmp/python.tgz
 rm /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc
@@ -76,7 +76,7 @@ apt-get remove -y --allow-remove-essential gcc libffi-dev libssl-dev make build-
 apt-get autoremove -y --allow-remove-essential
 
 # Install scloud
-wget -O /usr/bin/scloud.tar.gz ${SCLOUD_URL}
+wget --no-check-certificate -O /usr/bin/scloud.tar.gz ${SCLOUD_URL}
 tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
 rm /usr/bin/scloud.tar.gz
 
