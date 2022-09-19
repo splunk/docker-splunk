@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+#
 IMAGE_VERSION ?= "latest"
 NONQUOTE_IMAGE_VERSION := $(patsubst "%",%,$(IMAGE_VERSION))
 DOCKER_BUILD_FLAGS ?=
