@@ -37,7 +37,7 @@ jobs:
 
       - name: Build base image
         run: |
-          docker build \
+          docker buildx \
           --platform=linux/arm64,linux/amd64 \
           --build-arg SCLOUD_URL=$(cat tag_scloud_url) \
           --label version=$(cat tag_splunk_version) \
