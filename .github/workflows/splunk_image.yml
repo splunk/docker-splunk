@@ -45,7 +45,7 @@ jobs:
       
       - name: Build splunk image
         run: docker build --file splunk/common-files/Dockerfile
-          --platform=linux/arm64
+          --platform=linux/amd64
           --build-arg SPLUNK_BASE_IMAGE=8lex/redhat-8 
           --build-arg SPLUNK_BUILD_URL=$(cat tag_splunk_url_domain)$(cat tag_splunk_product)/releases/$(cat tag_splunk_version)/linux/$(cat tag_splunk_product)-$(cat tag_splunk_version)-$(cat tag_splunk_build)-Linux-x86_64.tgz 
           --tag ${{ secrets.DOCKER_HUB_USERNAME }}/$(cat tag_splunk_product):$(cat tag_image_version) 
