@@ -13,6 +13,7 @@ ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
 	SPLUNK_ARCH = x86_64
+	#
 endif
 
 # Linux Splunk arguments
