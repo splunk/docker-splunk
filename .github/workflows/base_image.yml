@@ -45,6 +45,6 @@ jobs:
         with: 
           push : true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/redhat-8:latest
-          label: version=$(cat tag_splunk_version)
-          build-args: SCLOUD_URL=$(cat tag_scloud_url)
+          label: version=$(cat ../../tag_splunk_version)
+          build-args: SCLOUD_URL=$(cat ../../tag_scloud_url)
           context: ./base/redhat-8
