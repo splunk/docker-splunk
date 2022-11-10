@@ -71,9 +71,9 @@ ldconfig
 
 # Cleanup
 microdnf remove -y make gcc openssl-devel bzip2-devel findutils glib2-devel glibc-devel cpp binutils \
-                   keyutils-libs-devel krb5-devel libcom_err-devel libffi-devel libgcrypt-devel \
-                   libcurl-devel libselinux-devel libsepol-devel libssh-devel libverto-devel \
-                   libxcrypt-devel ncurses-devel pcre2-devel zlib-devel
+                   keyutils-libs-devel krb5-devel libcom_err-devel libffi-devel libcurl-devel \
+                   libselinux-devel libsepol-devel libssh-devel libverto-devel libxcrypt-devel \
+                   ncurses-devel pcre2-devel zlib-devel
 microdnf clean all
 
 # Install scloud
