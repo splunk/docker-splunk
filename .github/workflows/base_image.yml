@@ -24,11 +24,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: 'arm64,arm'
-
       - name: set some envs
         run: |
           echo $(grep "SPLUNK_VERSION " Makefile | cut -d " " -f3) > tag_splunk_version
@@ -41,10 +36,13 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Build base image
-        uses: docker/build-push-action@v3
-        with: 
-          push : true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/redhat-8:latest
-          label: version=${{ cat tag_splunk_version }}
-          build-args: SCLOUD_URL=${{cat tag_scloud_url }}
-          context: ./base/redhat-8
+        run: |
+          docker build \
+          --build-arg SCLOUD_URL=$(cat tag_scloud_url) \
+          --label version=$(cat tag_splunk_version) \
+          --tag ${{ secrets.DOCKER_HUB_USERNAME }}/redhat-8:latest \
+          ./base/redhat-8
+
+      - name: push splunk image to docker
+        # uses: docker/build-push-action@v2
+        run: docker push --all-tags ${{ secrets.DOCKER_HUB_USERNAME }}/redhat-8
