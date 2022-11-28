@@ -53,3 +53,13 @@ jobs:
 
       - name: push splunk image to docker
         run: docker push --all-tags ${{ secrets.DOCKER_HUB_USERNAME }}/$(cat tag_splunk_product)
+
+      - name: Create Badge
+        uses: schneegans/dynamic-badges-action@v1.6.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: <gist-ID>
+          filename: test.json
+          label: Splunk Version
+          message: $(cat tag_splunk_version)
+          color: green
