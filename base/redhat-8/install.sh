@@ -27,12 +27,14 @@ export LANG=en_US.utf8
 
 # Install utility packages
 microdnf -y --nodocs install wget sudo shadow-utils procps tar make gcc \
-                             openssl-devel bzip2-devel libffi-devel findutils
+                             openssl-devel bzip2-devel libffi-devel findutils \
+                             libssh-devel libcurl-devel glib2-devel ncurses-devel
 # Patch security updates
-microdnf -y --nodocs update gnutls kernel-headers librepo libnghttp2 nettle \
-                            libpwquality libxml2 systemd-libs glib2 lz4-libs \
+microdnf -y --nodocs update gnutls kernel-headers libdnf librepo libnghttp2 nettle \
+                            libpwquality libxml2 systemd-libs lz4-libs curl \
                             rpm rpm-libs sqlite-libs cyrus-sasl-lib vim expat \
-                            openssl-libs xz-libs zlib
+                            openssl-libs xz-libs zlib libsolv file-libs pcre \
+                            libarchive libgcrypt libksba libstdc++ json-c gnupg
 
 # Reinstall tzdata (originally stripped from minimal image): https://bugzilla.redhat.com/show_bug.cgi?id=1903219
 microdnf -y --nodocs reinstall tzdata || microdnf -y --nodocs update tzdata
@@ -68,9 +70,10 @@ find /usr/lib/ -depth \( -type f -a -name 'wininst-*.exe' \) -exec rm -rf '{}' \
 ldconfig
 
 # Cleanup
-microdnf remove -y make gcc openssl-devel bzip2-devel libffi-devel findutils cpp binutils \
-                   glibc-devel keyutils-libs-devel krb5-devel libcom_err-devel libselinux-devel \
-                   libsepol-devel libverto-devel libxcrypt-devel pcre2-devel zlib-devel
+microdnf remove -y make gcc openssl-devel bzip2-devel findutils glib2-devel glibc-devel cpp binutils \
+                   keyutils-libs-devel krb5-devel libcom_err-devel libffi-devel libcurl-devel \
+                   libselinux-devel libsepol-devel libssh-devel libverto-devel libxcrypt-devel \
+                   ncurses-devel pcre2-devel zlib-devel
 microdnf clean all
 
 # Install scloud
