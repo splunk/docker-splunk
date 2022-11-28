@@ -58,7 +58,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
-          gistID: <gist-ID>
+          gistID: d1597df89eb3d0fc9fc0bdf0dc0cb5de
           filename: test.json
           label: Splunk Version
           message: $(cat tag_splunk_version)
