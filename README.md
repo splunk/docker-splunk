@@ -1,4 +1,4 @@
-# Docker-Splunk: Containerizing Splunk Enterprise with uid & guid=100
+# Docker-Splunk: Containerizing Splunk Enterprise with uid & guid=1000
 
 ![Docker Image Version (tag latest semver)](https://img.shields.io/docker/v/8lex/splunk/latest?color=green&label=Splunk&style=for-the-badge)
 
