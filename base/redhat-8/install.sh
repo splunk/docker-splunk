@@ -31,7 +31,7 @@ microdnf -y --nodocs install wget sudo shadow-utils procps tar make gcc \
                              libssh-devel libcurl-devel glib2-devel ncurses-devel
 # Patch security updates
 microdnf -y --nodocs update gnutls kernel-headers libdnf librepo libnghttp2 nettle \
-                            libpwquality libxml2 systemd-libs lz4-libs curl \
+                            libpwquality libxml2 systemd-libs lz4-libs curl sudo \
                             rpm rpm-libs sqlite-libs cyrus-sasl-lib vim expat \
                             openssl-libs xz-libs zlib libsolv file-libs pcre \
                             libarchive libgcrypt libksba libstdc++ json-c gnupg
@@ -72,8 +72,8 @@ ldconfig
 # Cleanup
 microdnf remove -y make gcc openssl-devel bzip2-devel findutils glib2-devel glibc-devel cpp binutils \
                    keyutils-libs-devel krb5-devel libcom_err-devel libffi-devel libcurl-devel \
-                   libselinux-devel libsepol-devel libssh-devel libverto-devel libxcrypt-devel \
-                   ncurses-devel pcre2-devel zlib-devel
+                   libselinux-devel libsepol-devel libssh-devel libverto-devel \
+                   libxcrypt-devel ncurses-devel pcre2-devel zlib-devel
 microdnf clean all
 
 # Install scloud
