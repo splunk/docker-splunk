@@ -39,6 +39,9 @@ microdnf -y --nodocs update gnutls kernel-headers libdnf librepo libnghttp2 nett
 # Reinstall tzdata (originally stripped from minimal image): https://bugzilla.redhat.com/show_bug.cgi?id=1903219
 microdnf -y --nodocs reinstall tzdata || microdnf -y --nodocs update tzdata
 
+# Install Java
+microdnf -y --nodocs install java-11-openjdk-headless
+
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
 wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
@@ -70,7 +73,7 @@ find /usr/lib/ -depth \( -type f -a -name 'wininst-*.exe' \) -exec rm -rf '{}' \
 ldconfig
 
 # Cleanup
-microdnf remove -y make gcc openssl-devel bzip2-devel findutils glib2-devel glibc-devel cpp binutils \
+microdnf remove -y make gcc openssl-devel bzip2-devel glib2-devel glibc-devel cpp binutils \
                    keyutils-libs-devel krb5-devel libcom_err-devel libffi-devel libcurl-devel \
                    libselinux-devel libsepol-devel libssh-devel libverto-devel \
                    libxcrypt-devel ncurses-devel pcre2-devel zlib-devel
