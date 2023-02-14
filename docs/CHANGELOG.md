@@ -86,7 +86,7 @@ Red Hat images will continue to be published.
 * Releasing new images to support Splunk Enterprise release.
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see [Fixed issues for 9.0.2](https://docs.splunk.com/Documentation/Splunk/9.0.2/ReleaseNotes/Fixedissues)
+* Bumping Splunk version. For details, see [Fixed issues for 9.0.4](https://docs.splunk.com/Documentation/Splunk/9.0.4/ReleaseNotes/Fixedissues)
 * Security patches & errata fixes
 
 #### splunk-ansible changes:
@@ -100,7 +100,7 @@ Red Hat images will continue to be published.
 * Releasing new images to support Splunk Enterprise release.
 
 #### docker-splunk changes:
-* Bumping Splunk version. For details, see [Fixed issues for 9.0.2](https://docs.splunk.com/Documentation/Splunk/9.0.4/ReleaseNotes/Fixedissues)
+* Bumping Splunk version. For details, see [Fixed issues for 9.0.2](https://docs.splunk.com/Documentation/Splunk/9.0.2/ReleaseNotes/Fixedissues)
 * Security patches & errata fixes
 
 #### splunk-ansible changes:
