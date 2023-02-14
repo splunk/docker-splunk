@@ -30,18 +30,18 @@ EXCLUDE_V7 = """*-manifest
 */share/splunk/pdf*
 *mrsparkle*"""
 
-m = re.match(".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+\.?[0-9]?-[0-9a-z]+-Linux-[0-9a-z_-]+.tgz", sys.argv[1])
+major_version = re.match(".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+\.?[0-9]?-[0-9a-z]+-Linux-[0-9a-z_-]+.tgz", sys.argv[1])
 
-if m and m.group(1):
+if major_version and major_version.group(1):
     print(EXCLUDE_V7)
-    if int(m.group(1)) == 7:
+    if int(major_version.group(1)) == 7:
         print("*/bin/parsetest*")
-        if int(m.group(2)) < 3:
+        if int(major_version.group(2)) < 3:
             print("*/etc/apps/framework*")
             print("*/etc/apps/gettingstarted*")
         else:
             print("*/etc/apps/splunk_metrics_workspace*")
-    elif 7 < int(m.group(1)) < 9:
+    elif 7 < int(major_version.group(1)) < 9:
         print("*/etc/apps/splunk_metrics_workspace*")
-        if int(m.group(2)) < 1:
+        if int(major_version.group(2)) < 1:
             print("*/bin/parsetest*")
