@@ -6,11 +6,4 @@
 #       Order matters: The last matching pattern has the most precedence.
 
 # Default owners for everything in docker-splunk:
-# *       @splunk/if-01
-*       @alishamayor @jmeixensperger @hendolim @sarahotis @martinluo22 @ngood97-splunk @adityapinglesf
-
-# Docs-only pull requests:
-/docs/  @alishamayor
-
-# Release changelog
-docs/CHANGELOG.md  @alishamayor @jmeixensperger @hendolim @sarahotis @ngood97-splunk @adityapinglesf
+*       @splunk/if-01
