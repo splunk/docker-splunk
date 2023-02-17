@@ -304,7 +304,7 @@ Red Hat images will continue to be published.
 ## 8.1.13
 
 #### What's New?
-* Releasing new images to support Splunk Enterprise release.
+* Releasing new images to support Splunk Enterprise release 8.1.13.
 
 #### docker-splunk changes:
 * Bumping Splunk version. For details, see [Fixed issues for 8.1.13](https://docs.splunk.com/Documentation/Splunk/8.1.13/ReleaseNotes/Fixedissues)
