@@ -16,7 +16,7 @@
 # the container catalog moved from registry.access.redhat.com to registry.redhat.io
 # So at some point before they deprecate the old registry we have to make sure that
 # we have access to the new registry and change where we pull the ubi image from.
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7-1049.1675784874
+FROM registry.access.redhat.com/ubi8/ubi-minimal
 
 LABEL name="splunk" \
       maintainer="support@splunk.com" \
@@ -25,11 +25,10 @@ LABEL name="splunk" \
       summary="UBI 8 Docker image of Splunk Enterprise" \
       description="Splunk Enterprise is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results."
 
-ARG SCLOUD_URL
 ARG BUSYBOX_URL
-ENV SCLOUD_URL=${SCLOUD_URL} \
-    BUSYBOX_URL=${BUSYBOX_URL} \
-    PYTHON_VERSION=3.7.10 \
+
+ENV BUSYBOX_URL=${BUSYBOX_URL} \
+    PYTHON_VERSION=3.7.16 \
     PYTHON_GPG_KEY_ID=0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
 
 COPY install.sh /install.sh
