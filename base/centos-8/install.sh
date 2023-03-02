@@ -24,7 +24,7 @@ yum -y update && yum -y install wget sudo epel-release make
 yum -y install ansible python3-requests python3-jmespath
 
 # Install busybox
-wget -O /bin/busybox https://busybox.net/downloads/binaries/1.31.1-defconfig-multiarch/busybox-`arch`
+wget -O /bin/busybox https://busybox.net/downloads/binaries/1.31.0-defconfig-multiarch/busybox-`arch`
 chmod +x /bin/busybox
 
 # Install scloud
