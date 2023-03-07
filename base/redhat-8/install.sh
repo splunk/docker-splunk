@@ -61,7 +61,7 @@ ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 
 # Install splunk-ansible dependencies
 cd /
-pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible==7.0.0 urllib3==1.26.5 jmespath --upgrade
+pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible==4.2.0 urllib3==1.26.5 jmespath --upgrade
 
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
