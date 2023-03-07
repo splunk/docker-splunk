@@ -26,7 +26,8 @@ SPLUNK_WIN_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/r
 UF_WIN_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/windows/${UF_WIN_FILENAME}
 # Splunk Cloud SDK binary
-SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.11.1/scloud_v7.1.0_linux_amd64.tar.gz
+SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.12.0-beta.7/scloud_v8.0.0-beta.7_windows_amd64.zip
+
 
 # Security Scanner Variables
 SCANNER_DATE := `date +%Y-%m-%d`
