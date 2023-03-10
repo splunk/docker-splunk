@@ -9,5 +9,10 @@ pytest-xdist
 pytest-rerunfailures
 setuptools>=65.5.1
 protobuf-java==3.16.3
-protobu==3.18.3
+protobuf==3.18.3
 pip==19.2
+commons-io==2.7
+lxml==4.9.1
+cryptography==39.0.1
+certifi==2022.12.07
+Mako==1.2.2                    
