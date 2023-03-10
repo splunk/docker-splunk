@@ -7,3 +7,4 @@ pyasn1
 junit-xml
 pytest-xdist
 pytest-rerunfailures
+setuptools>=65.5.1
