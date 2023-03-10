@@ -61,7 +61,7 @@ ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 
 # Install splunk-ansible dependencies
 cd /
-pip -q --no-cache-dir install six wheel requests ansible==4.2.0 urllib3==1.26.5 setuptools==65.5.1 protobuf-java==3.16.3 protobuf==3.18.3 commons-io==2.7 lxml==4.9.1 cryptography==39.0.1 certifi==2022.12.07 jmespath --upgrade
+pip -q --no-cache-dir install six wheel requests ansible==4.2.0 urllib3==1.26.5 setuptools==65.5.1 protobuf==3.18.3 commons-io==2.7 lxml==4.9.1 cryptography==39.0.1 certifi==2022.12.07 jmespath --upgrade
 
 
 # Remove tests packaged in python libs
