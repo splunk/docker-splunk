@@ -9,3 +9,4 @@ pytest-xdist
 pytest-rerunfailures
 setuptools>=65.5.1
 ansible==7.0.0
+avro==1.11.0
