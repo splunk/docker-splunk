@@ -18,7 +18,7 @@ LABEL maintainer="support@splunk.com"
 ARG SCLOUD_URL
 ENV SCLOUD_URL=${SCLOUD_URL} \
     DEBIAN_FRONTEND=noninteractive \
-    PYTHON_VERSION=3.7.10 \
+    ERSION=3.7.10 \
     PYTHON_GPG_KEY_ID=0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
 
 COPY install.sh /install.sh
