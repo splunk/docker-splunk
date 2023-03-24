@@ -61,9 +61,11 @@ ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 
 # Install splunk-ansible dependencies
 cd /
-pip -q --no-cache-dir install six wheel requests ansible==7.0.0 Mako==1.2.2 urllib3==1.26.5 setuptools==67.5.1 protobuf==3.18.3 lxml==4.9.1 cryptography==39.0.1 certifi==2022.12.07 jmespath --upgrade
+/usr/bin/python3.7 -m pip install --upgrade pip
+pip -q --no-cache-dir install six wheel requests Mako==1.2.2 urllib3==1.26.5 setuptools==67.5.1 protobuf==3.18.3 lxml==4.9.1 cryptography==39.0.1 certifi==2022.12.07 jmespath --upgrade
 pip install setuptools==67.5.1
 pip install avro==1.11.1
+pip install Mako==1.2.2
 
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
