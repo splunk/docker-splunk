@@ -9,5 +9,4 @@ pytest-xdist
 pytest-rerunfailures
 setuptools==67.5.1
 ansible==7.0.0
-avro==1.11.0
 Mako==1.2.2
