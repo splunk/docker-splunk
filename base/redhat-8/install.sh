@@ -66,7 +66,7 @@ pip -q --no-cache-dir install six wheel requests Mako==1.2.2 urllib3==1.26.5 set
 pip install setuptools==67.5.1
 pip install avro==1.11.1
 pip install Mako==1.2.2
-
+pip install future==0.18.3
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
 find /usr/lib/ -depth \( -type f -a -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) -exec rm -rf '{}' \;
