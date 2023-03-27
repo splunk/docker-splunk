@@ -67,7 +67,7 @@ pip install setuptools==67.5.1
 pip install avro==1.11.1
 pip install Mako==1.2.2
 pip install future==0.18.3
-pip install protobuf==3.18.3 
+pip install protobuf==3.18.3
 
 
 # Remove tests packaged in python libs
@@ -112,3 +112,6 @@ echo "
 # Clean
 microdnf clean all
 rm -rf /install.sh /anaconda-post.log /var/log/anaconda/*
+
+# installed pacakges 
+pip list
