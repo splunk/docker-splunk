@@ -10,3 +10,4 @@ pytest-rerunfailures
 setuptools==67.5.1
 Mako==1.2.2
 protobuf==3.18.3
+future==0.18.3
