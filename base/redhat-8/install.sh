@@ -68,7 +68,7 @@ pip install avro==1.11.1
 pip install Mako==1.2.2
 pip install future==0.18.3
 pip install protobuf==3.18.3 
-/usr/bin/python3.7 -m pip install protobuf-java==3.18.3
+
 
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
