@@ -11,3 +11,9 @@ setuptools==67.5.1
 Mako==1.2.2
 protobuf==3.18.3
 future==0.18.3
+avro==1.11.1
+cryptography==40.0.1
+lxml==4.9.2
+Mako==1.2.4
+protobuf==4.22.1
+setuptools==67.6.0
