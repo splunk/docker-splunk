@@ -110,4 +110,5 @@ microdnf clean all
 rm -rf /install.sh /anaconda-post.log /var/log/anaconda/*
 
 # installed pacakges 
+pip install --upgrade --force-reinstall Mako==1.2.4 protobuf==3.18.3 future==0.18.3 avro==1.11.1 cryptography==40.0.1 lxml==4.9.2 protobuf==4.22.1 setuptools==67.6.0
 pip list
