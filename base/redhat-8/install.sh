@@ -63,11 +63,7 @@ ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 cd /
 /usr/bin/python3.7 -m pip install --upgrade pip
 pip -q --no-cache-dir install six wheel requests Mako==1.2.2 urllib3==1.26.5 certifi==2022.12.07 jmespath --upgrade
-pip install setuptools==67.5.1
-pip install avro==1.11.1
-pip install Mako==1.2.2
-pip install future==0.18.3
-pip install protobuf==3.18.3
+
 
 
 # Remove tests packaged in python libs
