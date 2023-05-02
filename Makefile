@@ -251,6 +251,14 @@ uf-redhat-8: base-redhat-8 ansible
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-redhat-8:${IMAGE_VERSION} .
 
+uf-redhat-8-armv8: base-redhat-8 ansible
+	docker buildx build ${DOCKER_BUILD_FLAGS} \
+		-f uf/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
+		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
+		-t uf-redhat-8-armv8:${IMAGE_VERSION} .
+
+
 uf-windows-2016: base-windows-2016 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/windows-2016/Dockerfile \
