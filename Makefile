@@ -27,6 +27,7 @@ UF_WIN_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release
 UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/windows/${UF_WIN_FILENAME}
 # Splunk Cloud SDK binary
 SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.11.1/scloud_v7.1.0_linux_amd64.tar.gz
+BUSYBOX_URL ?= https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-armv8l
 
 # Security Scanner Variables
 SCANNER_DATE := `date +%Y-%m-%d`
@@ -76,7 +77,7 @@ base-redhat-8:
 	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} --label version=${SPLUNK_VERSION} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
 
 base-redhat-8-armv8:
-	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} --label version=${SPLUNK_VERSION} -t base-redhat-8-armv8:${IMAGE_VERSION} ./base/redhat-8
+	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} --build-arg BUSYBOX_URL=${BUSYBOX_URL} --label version=${SPLUNK_VERSION} -t base-redhat-8-armv8:${IMAGE_VERSION} ./base/redhat-8-armv8
 
 base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
@@ -257,7 +258,7 @@ uf-redhat-8: base-redhat-8 ansible
 uf-redhat-8-armv8: base-redhat-8-armv8 ansible
 	docker buildx build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
-		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
+		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8-armv8 \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-redhat-8-armv8:${IMAGE_VERSION} .
 

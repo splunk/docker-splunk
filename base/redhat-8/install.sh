@@ -82,7 +82,8 @@ tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
 rm /usr/bin/scloud.tar.gz
 
 # Install busybox direct from the multiarch since EPEL isn't available yet for redhat8
-wget -O /bin/busybox https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`
+BUSYBOX_URL=${BUSYBOX_URL:=https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`}
+wget -O /bin/busybox ${BUSYBOX_URL}
 chmod +x /bin/busybox
 
 # Enable busybox symlinks

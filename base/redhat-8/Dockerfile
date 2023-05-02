@@ -26,7 +26,9 @@ LABEL name="splunk" \
       description="Splunk Enterprise is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results."
 
 ARG SCLOUD_URL
+ARG BUSYBOX_URL
 ENV SCLOUD_URL=${SCLOUD_URL} \
+    BUSYBOX_URL=${BUSYBOX_URL} \
     PYTHON_VERSION=3.7.10 \
     PYTHON_GPG_KEY_ID=0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
 
