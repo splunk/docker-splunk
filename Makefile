@@ -27,7 +27,6 @@ UF_WIN_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release
 UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/windows/${UF_WIN_FILENAME}
 # Splunk Cloud SDK binary
 SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.11.1/scloud_v7.1.0_linux_amd64.tar.gz
-BUSYBOX_URL ?= https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-armv8l
 
 # Security Scanner Variables
 SCANNER_DATE := `date +%Y-%m-%d`
