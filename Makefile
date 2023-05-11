@@ -75,6 +75,9 @@ base-centos-8:
 base-redhat-8:
 	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} --label version=${SPLUNK_VERSION} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
 
+base-redhat-8-armv8:
+	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} --build-arg BUSYBOX_URL=${BUSYBOX_URL} --label version=${SPLUNK_VERSION} -t base-redhat-8-armv8:${IMAGE_VERSION} ./base/redhat-8
+
 base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
 
@@ -250,6 +253,14 @@ uf-redhat-8: base-redhat-8 ansible
 		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-redhat-8:${IMAGE_VERSION} .
+
+uf-redhat-8-armv8: base-redhat-8-armv8 ansible
+	docker buildx build ${DOCKER_BUILD_FLAGS} \
+		-f uf/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8-armv8 \
+		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
+		-t uf-redhat-8-armv8:${IMAGE_VERSION} .
+
 
 uf-windows-2016: base-windows-2016 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
