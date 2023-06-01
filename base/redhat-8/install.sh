@@ -61,7 +61,8 @@ ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 
 # Install splunk-ansible dependencies
 cd /
-pip -q --no-cache-dir install six wheel requests cryptography==3.3.2 ansible==3.4.0 urllib3==1.26.5 jmespath --upgrade
+/usr/bin/python3.7 -m pip install --upgrade pip
+pip -q --no-cache-dir install --upgrade six wheel requests Mako urllib3 certifi jmespath future avro cryptography lxml protobuf setuptools ansible
 
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
@@ -76,13 +77,8 @@ microdnf remove -y make gcc openssl-devel bzip2-devel findutils glib2-devel glib
                    ncurses-devel pcre2-devel zlib-devel
 microdnf clean all
 
-# Install scloud
-wget -O /usr/bin/scloud.tar.gz ${SCLOUD_URL}
-tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
-rm /usr/bin/scloud.tar.gz
-
 # Install busybox direct from the multiarch since EPEL isn't available yet for redhat8
-BUSYBOX_URL=${BUSYBOX_URL:=https://busybox.net/downloads/binaries/1.28.1-defconfig-multiarch/busybox-`arch`}
+BUSYBOX_URL=${BUSYBOX_URL:=https://busybox.net/downloads/binaries/1.35.0-`arch`-linux-musl/}
 wget -O /bin/busybox ${BUSYBOX_URL}
 chmod +x /bin/busybox
 
