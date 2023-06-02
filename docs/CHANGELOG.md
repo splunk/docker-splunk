@@ -17,6 +17,8 @@ Red Hat images will continue to be published.
 * [9.0.1](#901)
 * [9.0.0.1](#9001)
 * [9.0.0](#900)
+* [8.2.11](#8211)
+* [8.2.10](#8210)
 * [8.2.9](#829)
 * [8.2.8](#828)
 * [8.2.7](#827)
@@ -178,6 +180,16 @@ Red Hat images will continue to be published.
 #### splunk-ansible changes:
 * Patch support for new major Splunk release
 * Documentation updates + bugfixes
+
+---
+
+## 8.2.11
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 8.2.11](https://docs.splunk.com/Documentation/Splunk/8.2.11/ReleaseNotes/Fixedissues)
 
 ---
 
