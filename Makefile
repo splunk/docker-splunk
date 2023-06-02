@@ -7,8 +7,8 @@ SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
-SPLUNK_VERSION := 9.0.4
-SPLUNK_BUILD := de405f4a7979
+SPLUNK_VERSION := 9.0.5
+SPLUNK_BUILD := e9494146ae5c
 ifeq ($(shell arch), s390x)
 	SPLUNK_ARCH = s390x
 else
@@ -25,8 +25,7 @@ SPLUNK_WIN_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 SPLUNK_WIN_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/windows/${SPLUNK_WIN_FILENAME}
 UF_WIN_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 UF_WIN_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/windows/${UF_WIN_FILENAME}
-# Splunk Cloud SDK binary
-SCLOUD_URL ?= https://github.com/splunk/splunk-cloud-sdk-go/releases/download/v1.11.1/scloud_v7.1.0_linux_amd64.tar.gz
+
 
 # Security Scanner Variables
 SCANNER_DATE := `date +%Y-%m-%d`
@@ -61,19 +60,22 @@ ansible:
 base: base-debian-9 base-debian-10 base-centos-7 base-centos-8 base-redhat-8 base-windows-2016
 
 base-debian-10:
-	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
+	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
 
 base-debian-9:
-	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-debian-9:${IMAGE_VERSION} ./base/debian-9
+	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-9:${IMAGE_VERSION} ./base/debian-9
 
 base-centos-7:
-	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-centos-7:${IMAGE_VERSION} ./base/centos-7
+	docker build ${DOCKER_BUILD_FLAGS} -t base-centos-7:${IMAGE_VERSION} ./base/centos-7
 
 base-centos-8:
-	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} -t base-centos-8:${IMAGE_VERSION} ./base/centos-8
+	docker build ${DOCKER_BUILD_FLAGS} -t base-centos-8:${IMAGE_VERSION} ./base/centos-8
 
 base-redhat-8:
-	docker build ${DOCKER_BUILD_FLAGS} --build-arg SCLOUD_URL=${SCLOUD_URL} --label version=${SPLUNK_VERSION} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
+	docker build ${DOCKER_BUILD_FLAGS} --label version=${SPLUNK_VERSION} -t base-redhat-8:${IMAGE_VERSION} ./base/redhat-8
+
+base-redhat-8-armv8:
+	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg BUSYBOX_URL=${BUSYBOX_URL} --label version=${SPLUNK_VERSION} -t base-redhat-8-armv8:${IMAGE_VERSION} ./base/redhat-8
 
 base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
@@ -250,6 +252,14 @@ uf-redhat-8: base-redhat-8 ansible
 		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-redhat-8:${IMAGE_VERSION} .
+
+uf-redhat-8-armv8: base-redhat-8-armv8 ansible
+	docker buildx build ${DOCKER_BUILD_FLAGS} \
+		-f uf/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8-armv8 \
+		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
+		-t uf-redhat-8-armv8:${IMAGE_VERSION} .
+
 
 uf-windows-2016: base-windows-2016 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
