@@ -2098,7 +2098,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_adhoc_1uf_hec_custom_cert(self):
+    def test_adhoc_1uf_hec_custom_cert(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
