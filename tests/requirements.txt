@@ -1,4 +1,4 @@
-pytest
+pytest==4.4.0
 pyrsistent==0.16.1
 requests
 docker
