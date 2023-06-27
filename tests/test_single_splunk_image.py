@@ -70,29 +70,7 @@ class TestDockerSplunk(Executor):
         assert "SPLUNK_HOME - home directory where Splunk gets installed (default: /opt/splunk)" in output
         assert "Examples:" in output
     
-    def untest_splunk_scloud(self):
-        cid = None
-        try:
-            # Run container
-            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="no-provision")
-            cid = cid.get("Id")
-            self.client.start(cid)
-            # Wait a bit
-            time.sleep(5)
-            # If the container is still running, we should be able to exec inside
-            # Check that the version returns successfully for multiple users
-            for user in ["splunk", "ansible"]:
-                exec_command = self.client.exec_create(cid, "scloud version", user=user)
-                std_out = self.client.exec_start(exec_command)
-                assert "scloud version " in std_out
-        except Exception as e:
-            self.logger.error(e)
-            raise e
-        finally:
-            if cid:
-                self.client.remove_container(cid, v=True, force=True)
-
-    def test_splunk_ulimit(self):
+    def untest_splunk_ulimit(self):
         cid = None
         try:
             # Run container
@@ -113,7 +91,7 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def test_splunk_entrypoint_create_defaults(self):
+    def untest_splunk_entrypoint_create_defaults(self):
         # Run container
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -1896,7 +1874,7 @@ disabled = 1''' in std_out
         except OSError:
             pass
 
-    def untest_uf_entrypoint_help(self):
+    def test_uf_entrypoint_help(self):
         # Run container
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="help")
         self.client.start(cid.get("Id"))
@@ -1904,7 +1882,7 @@ disabled = 1''' in std_out
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "SPLUNK_CMD - 'any splunk command' - execute any splunk commands separated by commas" in output
 
-    def untest_uf_entrypoint_create_defaults(self):
+    def test_uf_entrypoint_create_defaults(self):
         # Run container
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -1913,7 +1891,7 @@ disabled = 1''' in std_out
         assert "home: /opt/splunk" in output
         assert "password: " in output
     
-    def untest_uf_entrypoint_start_no_password(self):
+    def test_uf_entrypoint_start_no_password(self):
         # Run container
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start",
                                            environment={"SPLUNK_START_ARGS": "nothing"})
@@ -1922,7 +1900,7 @@ disabled = 1''' in std_out
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "WARNING: No password ENV var." in output
     
-    def untest_uf_entrypoint_start_no_accept_license(self):
+    def test_uf_entrypoint_start_no_accept_license(self):
         # Run container
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start",
                                            environment={"SPLUNK_PASSWORD": "something", "SPLUNK_START_ARGS": "nothing"})
@@ -1931,7 +1909,7 @@ disabled = 1''' in std_out
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag" in output
 
-    def untest_uf_entrypoint_no_provision(self):
+    def test_uf_entrypoint_no_provision(self):
         cid = None
         try:
             # Run container
@@ -1957,7 +1935,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_uf_uid_gid(self):
+    def test_uf_uid_gid(self):
         cid = None
         try:
             # Run container
@@ -2662,29 +2640,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_uf_scloud(self):
-        cid = None
-        try:
-            # Run container
-            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="no-provision")
-            cid = cid.get("Id")
-            self.client.start(cid)
-            # Wait a bit
-            time.sleep(5)
-            # If the container is still running, we should be able to exec inside
-            # Check that the version returns successfully for multiple users
-            for user in ["splunk", "ansible"]:
-                exec_command = self.client.exec_create(cid, "scloud version", user=user)
-                std_out = self.client.exec_start(exec_command)
-                assert "scloud version " in std_out
-        except Exception as e:
-            self.logger.error(e)
-            raise e
-        finally:
-            if cid:
-                self.client.remove_container(cid, v=True, force=True)
-
-    def untest_uf_ulimit(self):
+    def test_uf_ulimit(self):
         cid = None
         try:
             # Run container
