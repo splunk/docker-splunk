@@ -2173,7 +2173,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_compose_1uf_enable_service(self):
+    def test_compose_1uf_enable_service(self):
         # Standup deployment
         self.compose_file_name = "1uf_enable_service.yaml"
         self.project_name = self.generate_random_string()
@@ -2205,7 +2205,7 @@ disabled = 1''' in std_out
             std_out = self.client.exec_start(exec_command)
             assert "/etc/init.d/splunk" in std_out
 
-    def untest_adhoc_1uf_splunkd_no_ssl(self):
+    def test_adhoc_1uf_splunkd_no_ssl(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
@@ -2265,7 +2265,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_compose_1uf_before_start_cmd(self):
+    def test_compose_1uf_before_start_cmd(self):
         # Check that SPLUNK_BEFORE_START_CMD works for splunkforwarder image
         # Standup deployment
         self.compose_file_name = "1uf_before_start_cmd.yaml"
@@ -2327,7 +2327,7 @@ disabled = 1''' in std_out
         assert self.check_splunkd("jerry", "changemepls")
         assert self.check_splunkd("george", "changemepls")
 
-    def untest_adhoc_1uf_using_default_yml(self):
+    def test_adhoc_1uf_using_default_yml(self):
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         # Generate default.yml
@@ -2375,7 +2375,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_adhoc_1uf_hec_ssl_disabled(self):
+    def test_adhoc_1uf_hec_ssl_disabled(self):
         # Create the container
         cid = None
         try:
@@ -2410,7 +2410,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_change_tailed_files(self):
+    def test_adhoc_1uf_change_tailed_files(self):
         # Create a splunk container
         cid = None
         try:
@@ -2446,7 +2446,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_password_from_file(self):
+    def test_adhoc_1uf_password_from_file(self):
         # Create a splunk container
         cid = None
         # From fixtures/pwfile
@@ -2480,7 +2480,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_compose_1uf_hec(self):
+    def test_compose_1uf_hec(self):
         # Standup deployment
         self.compose_file_name = "1uf_hec.yaml"
         self.project_name = self.generate_random_string()
@@ -2512,7 +2512,7 @@ disabled = 1''' in std_out
         status, content = self.handle_request_retry("POST", url, kwargs)
         assert status == 200
 
-    def untest_adhoc_1uf_splunk_pass4symmkey(self):
+    def test_adhoc_1uf_splunk_pass4symmkey(self):
         # Create a splunk container
         cid = None
         try:
@@ -2550,7 +2550,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_splunk_secret_env(self):
+    def test_adhoc_1uf_splunk_secret_env(self):
         # Create a uf container
         cid = None
         try:
@@ -2585,7 +2585,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_bind_mount_apps(self):
+    def test_adhoc_1uf_bind_mount_apps(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.project_name = self.generate_random_string()
@@ -2661,7 +2661,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_custom_conf(self):
+    def test_adhoc_1uf_custom_conf(self):
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
@@ -2722,7 +2722,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_adhoc_1uf_run_as_root(self):
+    def test_adhoc_1uf_run_as_root(self):
         # Create a uf container
         cid = None
         try:
@@ -2759,7 +2759,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_compose_1hf_splunk_add(self):
+    def test_compose_1hf_splunk_add(self):
         # Check that SPLUNK_ADD works for splunk image (role=heavy forwarder)
         # Standup deployment
         self.compose_file_name = "1hf_splunk_add_user.yaml"
