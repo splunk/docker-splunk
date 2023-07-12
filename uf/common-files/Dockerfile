@@ -91,6 +91,7 @@ USER root
 
 # Setup users and groups
 RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL\nansible ALL=(splunk)NOPASSWD:ALL/g' /etc/sudoers \
+    && microdnf install systemd \
     && echo 'Create the ansible user/group' \
     && groupadd -r ${ANSIBLE_GROUP} \
     && useradd -r -m -g ${ANSIBLE_GROUP} -s /bin/bash ${ANSIBLE_USER} \

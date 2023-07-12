@@ -70,28 +70,6 @@ class TestDockerSplunk(Executor):
         assert "SPLUNK_HOME - home directory where Splunk gets installed (default: /opt/splunk)" in output
         assert "Examples:" in output
     
-    def test_splunk_scloud(self):
-        cid = None
-        try:
-            # Run container
-            cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="no-provision")
-            cid = cid.get("Id")
-            self.client.start(cid)
-            # Wait a bit
-            time.sleep(5)
-            # If the container is still running, we should be able to exec inside
-            # Check that the version returns successfully for multiple users
-            for user in ["splunk", "ansible"]:
-                exec_command = self.client.exec_create(cid, "scloud version", user=user)
-                std_out = self.client.exec_start(exec_command)
-                assert "scloud version " in std_out
-        except Exception as e:
-            self.logger.error(e)
-            raise e
-        finally:
-            if cid:
-                self.client.remove_container(cid, v=True, force=True)
-
     def test_splunk_ulimit(self):
         cid = None
         try:
@@ -2661,28 +2639,6 @@ disabled = 1''' in std_out
                 os.remove(os.path.join(self.DIR, "default.yml"))
             except OSError:
                 pass
-
-    def test_uf_scloud(self):
-        cid = None
-        try:
-            # Run container
-            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="no-provision")
-            cid = cid.get("Id")
-            self.client.start(cid)
-            # Wait a bit
-            time.sleep(5)
-            # If the container is still running, we should be able to exec inside
-            # Check that the version returns successfully for multiple users
-            for user in ["splunk", "ansible"]:
-                exec_command = self.client.exec_create(cid, "scloud version", user=user)
-                std_out = self.client.exec_start(exec_command)
-                assert "scloud version " in std_out
-        except Exception as e:
-            self.logger.error(e)
-            raise e
-        finally:
-            if cid:
-                self.client.remove_container(cid, v=True, force=True)
 
     def test_uf_ulimit(self):
         cid = None
