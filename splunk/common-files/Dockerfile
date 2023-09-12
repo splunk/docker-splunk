@@ -21,12 +21,6 @@ FROM ${SPLUNK_BASE_IMAGE}:latest as package
 ARG SPLUNK_BUILD_URL
 COPY splunk/common-files/make-minimal-exclude.py /tmp
 RUN python /tmp/make-minimal-exclude.py ${SPLUNK_BUILD_URL} > /tmp/splunk-minimal-exclude.list \
-    && echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}" \
-    && wget -qO /tmp/`basename ${SPLUNK_BUILD_URL}` ${SPLUNK_BUILD_URL} \
-    && wget -qO /tmp/splunk.tgz.sha512 ${SPLUNK_BUILD_URL}.sha512 \
-    && cd /tmp \
-    && echo "$(cat /tmp/splunk.tgz.sha512)" | sha512sum --check  --status \
-    && rm /tmp/splunk.tgz.sha512 \
     && mkdir -p /minimal/splunk/var /extras/splunk/var \
     && tar -C /minimal/splunk --strip 1 --exclude-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/`basename ${SPLUNK_BUILD_URL}` \
     && tar -C /extras/splunk --strip 1 --wildcards --files-from=/tmp/splunk-minimal-exclude.list -zxf /tmp/`basename ${SPLUNK_BUILD_URL}` \
