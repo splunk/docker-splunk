@@ -30,10 +30,12 @@ ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 /usr/sbin/dpkg-reconfigure -f noninteractive tzdata
 
 # Install utility packages
+# it is presently unknown why some packages are installed at latest versions (example: gcc)
+# whereas other packages are installed at specific versions (example: libgnutls30=3.6.7-4+deb10u10)
 apt-get install -y --no-install-recommends curl sudo libgssapi-krb5-2 busybox procps acl gcc make \
                                            libffi-dev libssl-dev make build-essential libbz2-dev \
                                            wget xz-utils ca-certificates zlib1g-dev python3-apt p11-kit liblz4-dev \
-                                           libhogweed4=3.4.1-1+deb10u1 libgnutls30=3.6.7-4+deb10u7 libgcrypt20=1.8.4-5+deb10u1
+                                           libhogweed4=3.4.1-1+deb10u1 libgnutls30=3.6.7-4+deb10u10 libgcrypt20=1.8.4-5+deb10u1
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
