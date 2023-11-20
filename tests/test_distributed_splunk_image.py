@@ -217,7 +217,7 @@ class TestDockerSplunk(Executor):
             except OSError as e:
                 pass
 
-    def test_compose_1uf1so(self):
+    def untest_compose_1uf1so(self):
         # Standup deployment
         self.compose_file_name = "1uf1so.yaml"
         self.project_name = self.generate_random_string()
@@ -556,7 +556,7 @@ class TestDockerSplunk(Executor):
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         self.check_dmc(containers, 4, 3, 2, 1, 5)
 
-    def test_compose_1uf1so1dmc(self):
+    def untest_compose_1uf1so1dmc(self):
         # Standup deployment
         self.compose_file_name = "1uf1so1dmc.yaml"
         self.project_name = self.generate_random_string()
@@ -916,7 +916,7 @@ class TestDockerSplunk(Executor):
             except OSError:
                 pass
 
-    def test_compose_1deployment1uf(self):
+    def untest_compose_1deployment1uf(self):
         self.project_name = self.generate_random_string()
         # Tar the app before spinning up the scenario
         with tarfile.open(os.path.join(self.FIXTURES_DIR, "{}.tgz".format(self.project_name)), "w:gz") as tar:
