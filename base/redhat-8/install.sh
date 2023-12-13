@@ -78,7 +78,7 @@ microdnf remove -y make gcc openssl-devel bzip2-devel findutils glib2-devel glib
 microdnf clean all
 
 # Install busybox direct from the multiarch since EPEL isn't available yet for redhat8
-BUSYBOX_URL=${BUSYBOX_URL:=https://busybox.net/downloads/binaries/1.35.0-`arch`-linux-musl/busybox}
+BUSYBOX_URL=${BUSYBOX_URL:=https://busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox}
 wget -O /bin/busybox ${BUSYBOX_URL}
 chmod +x /bin/busybox
 

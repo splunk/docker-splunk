@@ -19,9 +19,7 @@ from random import choice
 from string import ascii_lowercase
 # Code to suppress insecure https warnings
 import urllib3
-from urllib3.exceptions import InsecureRequestWarning, SubjectAltNameWarning
-urllib3.disable_warnings(InsecureRequestWarning)
-urllib3.disable_warnings(SubjectAltNameWarning)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 # Define variables
@@ -101,9 +99,9 @@ class Executor(object):
         stream = self.client.logs(container_id, stream=True)
         output = ""
         for char in stream:
-            if "Ansible playbook complete" in char:
+            if "Ansible playbook complete" in char.decode():
                 break
-            output += char
+            output += char.decode()
         return output
 
     def cleanup_files(self, files):

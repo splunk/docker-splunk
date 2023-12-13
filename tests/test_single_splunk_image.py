@@ -16,9 +16,8 @@ from executor import Executor
 from docker.types import Mount
 # Code to suppress insecure https warnings
 import urllib3
-from urllib3.exceptions import InsecureRequestWarning, SubjectAltNameWarning
+from urllib3.exceptions import InsecureRequestWarning
 urllib3.disable_warnings(InsecureRequestWarning)
-urllib3.disable_warnings(SubjectAltNameWarning)
 
 
 global PLATFORM
@@ -82,7 +81,7 @@ class TestDockerSplunk(Executor):
             # If the container is still running, we should be able to exec inside
             # Check that nproc limits are unlimited
             exec_command = self.client.exec_create(cid, "sudo -u splunk bash -c 'ulimit -u'")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "unlimited" in std_out
         except Exception as e:
             self.logger.error(e)
@@ -131,11 +130,11 @@ class TestDockerSplunk(Executor):
             # If the container is still running, we should be able to exec inside
             # Check that the git SHA exists in /opt/ansible
             exec_command = self.client.exec_create(cid, "cat /opt/ansible/version.txt")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert len(std_out.strip()) == 40
             # Check that the wrapper-example directory does not exist
             exec_command = self.client.exec_create(cid, "ls /opt/ansible/")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "wrapper-example" not in std_out
             assert "docs" not in std_out
         except Exception as e:
@@ -156,7 +155,7 @@ class TestDockerSplunk(Executor):
             # If the container is still running, we should be able to exec inside
             # Check that the git SHA exists in /opt/ansible
             exec_command = self.client.exec_create(cid, "id", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "uid=41812" in std_out
             assert "gid=41812" in std_out
         except Exception as e:
@@ -330,7 +329,7 @@ class TestDockerSplunk(Executor):
             assert status == 200
             # Check splunk-launch.conf
             exec_command = self.client.exec_create(cid, r'cat /opt/splunk/etc/splunk-launch.conf', user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "OPTIMISTIC_ABOUT_FILE_LOCKING=1" in std_out
             assert "HELLO=WORLD" in std_out
         except Exception as e:
@@ -437,7 +436,7 @@ class TestDockerSplunk(Executor):
             assert status == 200
             # Check the decrypted pass4SymmKey
             exec_command = self.client.exec_create(cid, "ls /opt/splunk/etc/system/local/", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "outputs.conf" not in std_out
         except Exception as e:
             self.logger.error(e)
@@ -472,10 +471,10 @@ class TestDockerSplunk(Executor):
             assert status == 200
             # Check the decrypted pass4SymmKey
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/server.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             pass4SymmKey = re.search(r'\[general\].*?pass4SymmKey = (.*?)\n', std_out, flags=re.MULTILINE|re.DOTALL).group(1).strip()
             exec_command = self.client.exec_create(cid, "/opt/splunk/bin/splunk show-decrypted --value '{}'".format(pass4SymmKey), user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "wubbalubbadubdub" in std_out
         except Exception as e:
             self.logger.error(e)
@@ -510,7 +509,7 @@ class TestDockerSplunk(Executor):
             assert status == 200
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/auth/splunk.secret", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "wubbalubbadubdub" in std_out
         except Exception as e:
             self.logger.error(e)
@@ -579,11 +578,11 @@ class TestDockerSplunk(Executor):
             assert status == 200
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /tmp/i-am", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "batman" in std_out
             # Check file owner
             exec_command = self.client.exec_create(cid, r'stat -c \'%U\' /tmp/i-am')
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "root" in std_out
         except Exception as e:
             self.logger.error(e)
@@ -620,11 +619,11 @@ class TestDockerSplunk(Executor):
             assert status == 200
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /tmp/i-am", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "batman" in std_out
             # Check file owner
             exec_command = self.client.exec_create(cid, r'stat -c \'%U\' /tmp/i-am')
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "splunk" in std_out
         except Exception as e:
             self.logger.error(e)
@@ -661,11 +660,11 @@ class TestDockerSplunk(Executor):
             assert status == 200
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /tmp/i-am", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "batman" in std_out
             # Check file owner
             exec_command = self.client.exec_create(cid, r'stat -c \'%U\' /tmp/i-am')
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "root" in std_out
         except Exception as e:
             self.logger.error(e)
@@ -821,7 +820,7 @@ class TestDockerSplunk(Executor):
             assert status == 200
             # Check that root owns the splunkd process
             exec_command = self.client.exec_create(cid, "ps -u root", user="root")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "entrypoint.sh" in std_out
             assert "splunkd" in std_out
         except Exception as e:
@@ -865,7 +864,7 @@ EOL'
             self.client.exec_start(exec_command)
             # Execute ansible
             exec_command = self.client.exec_create(cid, "/sbin/entrypoint.sh start-and-exit")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             # Check splunk with the initial password
             assert self.check_splunkd("admin", "thisisarealpassword123", name=splunk_container_name)
             # Mutate the password so that ansible changes it on the next run
@@ -921,7 +920,7 @@ EOL'
             self.client.exec_start(exec_command)
             # Execute ansible
             exec_command = self.client.exec_create(cid, "/sbin/entrypoint.sh start-and-exit")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             # Check splunk with the initial password
             assert self.check_splunkd("admin", "thisisarealpassword123", name=splunk_container_name)
             # Mutate the password so that ansible changes it on the next run
@@ -968,12 +967,12 @@ EOL'
             assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check that HEC endpoint is up - by default, the image will enable HEC
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert std_out == '''[http]
 disabled = 0
 '''
             exec_command = self.client.exec_create(cid, "netstat -tuln", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "tcp        0      0 0.0.0.0:8088            0.0.0.0:*               LISTEN" in std_out
             # Create a new /tmp/defaults/default.yml to change desired HEC settings
             exec_command = self.client.exec_create(cid, "mkdir -p /tmp/defaults", user="splunk")
@@ -998,7 +997,7 @@ EOL'
             assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert '''[http]
 disabled = 0
 enableSSL = 0
@@ -1007,7 +1006,7 @@ port = 9999''' in std_out
 disabled = 0
 token = hihihi''' in std_out
             exec_command = self.client.exec_create(cid, "netstat -tuln", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "tcp        0      0 0.0.0.0:9999            0.0.0.0:*               LISTEN" in std_out
             # Check HEC
             hec_port = self.client.port(cid, 9999)[0]["HostPort"]
@@ -1034,7 +1033,7 @@ EOL'
             assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert '''[http]
 disabled = 0
 enableSSL = 1
@@ -1043,7 +1042,7 @@ port = 8088''' in std_out
 disabled = 0
 token = byebyebye''' in std_out
             exec_command = self.client.exec_create(cid, "netstat -tuln", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "tcp        0      0 0.0.0.0:8088            0.0.0.0:*               LISTEN" in std_out
             # Check HEC
             hec_port = self.client.port(cid, 8088)[0]["HostPort"]
@@ -1068,7 +1067,7 @@ EOL'
             assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             # NOTE: The previous configuration still applies - we just deleted the former token
             assert '''[http]
 disabled = 0
@@ -1076,7 +1075,7 @@ enableSSL = 1
 port = 8088''' in std_out
             assert "[http://splunk_hec_token]" not in std_out
             exec_command = self.client.exec_create(cid, "netstat -tuln", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "tcp        0      0 0.0.0.0:8088            0.0.0.0:*               LISTEN" in std_out
             # Disable HEC entirely
             exec_command = self.client.exec_create(cid, '''bash -c 'cat > /tmp/defaults/default.yml << EOL 
@@ -1095,11 +1094,11 @@ EOL'
             assert self.check_splunkd("admin", self.password, name=splunk_container_name)
             # Check the new HEC settings
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert '''[http]
 disabled = 1''' in std_out
             exec_command = self.client.exec_create(cid, "netstat -tuln", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "tcp        0      0 0.0.0.0:8088            0.0.0.0:*               LISTEN" not in std_out
         except Exception as e:
             self.logger.error(e)
@@ -1184,7 +1183,7 @@ disabled = 1''' in std_out
             assert self.check_splunkd("admin", p, name=splunk_container_name, scheme="http")
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/server.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "enableSplunkdSSL = false" in std_out
             # Check splunkd using the custom certs
             mgmt_port = self.client.port(cid, 8089)[0]["HostPort"]
@@ -1273,7 +1272,7 @@ disabled = 1''' in std_out
         assert self.check_splunkd("admin", self.password)
         # Check if java is installed
         exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
-        std_out = self.client.exec_start(exec_command)
+        std_out = self.client.exec_start(exec_command).decode()
         assert "java version \"1.8.0" in std_out
         # Restart the container and make sure java is still installed
         self.client.restart("{}_so1_1".format(self.project_name))
@@ -1283,7 +1282,7 @@ disabled = 1''' in std_out
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
         exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
-        std_out = self.client.exec_start(exec_command)
+        std_out = self.client.exec_start(exec_command).decode()
         assert "java version \"1.8.0" in std_out
  
     def test_compose_1so_java_openjdk8(self):
@@ -1309,7 +1308,7 @@ disabled = 1''' in std_out
         assert self.check_splunkd("admin", self.password)
         # Check if java is installed
         exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
-        std_out = self.client.exec_start(exec_command)
+        std_out = self.client.exec_start(exec_command).decode()
         assert "openjdk version \"1.8.0" in std_out
         # Restart the container and make sure java is still installed
         self.client.restart("{}_so1_1".format(self.project_name))
@@ -1319,7 +1318,7 @@ disabled = 1''' in std_out
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
         exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
-        std_out = self.client.exec_start(exec_command)
+        std_out = self.client.exec_start(exec_command).decode()
         assert "openjdk version \"1.8.0" in std_out
  
 
@@ -1346,7 +1345,7 @@ disabled = 1''' in std_out
         assert self.check_splunkd("admin", self.password)
         # Check if java is installed
         exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
-        std_out = self.client.exec_start(exec_command)
+        std_out = self.client.exec_start(exec_command).decode()
         assert "openjdk version \"11.0.2" in std_out
         # Restart the container and make sure java is still installed
         self.client.restart("{}_so1_1".format(self.project_name))
@@ -1356,7 +1355,7 @@ disabled = 1''' in std_out
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
         exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
-        std_out = self.client.exec_start(exec_command)
+        std_out = self.client.exec_start(exec_command).decode()
         assert "openjdk version \"11.0.2" in std_out
 
     def test_compose_1so_enable_service(self):
@@ -1384,11 +1383,11 @@ disabled = 1''' in std_out
         # Check if service is registered
         if 'debian' in PLATFORM:
             exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "sudo service splunk status")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "splunkd is running" in std_out
         else:
             exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "stat /etc/init.d/splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "/etc/init.d/splunk" in std_out
  
     def test_adhoc_1so_hec_custom_cert(self):
@@ -1445,7 +1444,7 @@ disabled = 1''' in std_out
             assert self.check_splunkd("admin", password, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "[http://splunk_hec_token]" in std_out
             assert "serverCert = /tmp/defaults/cert.pem" in std_out
             assert "sslPassword = " in std_out
@@ -1521,7 +1520,7 @@ disabled = 1''' in std_out
             assert self.check_splunkd("admin", password, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/inputs.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "[splunktcp-ssl:9997]" in std_out
             assert "serverCert = /tmp/defaults/cert.pem" in std_out
         except Exception as e:
@@ -1589,7 +1588,7 @@ disabled = 1''' in std_out
             assert self.check_splunkd("admin", password, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/system/local/server.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "sslRootCAPath = /tmp/defaults/ca.pem" in std_out
             assert "serverCert = /tmp/defaults/cert.pem" in std_out
             # Check splunkd using the custom certs
@@ -1704,11 +1703,11 @@ disabled = 1''' in std_out
             assert status == 200
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /tmp/i-am", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "batman" in std_out
             # Check file owner
             exec_command = self.client.exec_create(cid, r'stat -c \'%U\' /tmp/i-am')
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "splunk" in std_out
         except Exception as e:
             self.logger.error(e)
@@ -1810,7 +1809,7 @@ disabled = 1''' in std_out
             assert status == 200
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunk/etc/users/admin/user-prefs/local/user-prefs.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "[general]" in std_out
             assert "default_namespace = appboilerplate" in std_out
             assert "search_syntax_highlighting = dark" in std_out
@@ -1921,11 +1920,11 @@ disabled = 1''' in std_out
             # If the container is still running, we should be able to exec inside
             # Check that the git SHA exists in /opt/ansible
             exec_command = self.client.exec_create(cid, "cat /opt/ansible/version.txt")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert len(std_out.strip()) == 40
             # Check that the wrapper-example directory does not exist
             exec_command = self.client.exec_create(cid, "ls /opt/ansible/")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "wrapper-example" not in std_out
             assert "docs" not in std_out
         except Exception as e:
@@ -1947,7 +1946,7 @@ disabled = 1''' in std_out
             # If the container is still running, we should be able to exec inside
             # Check that the git SHA exists in /opt/ansible
             exec_command = self.client.exec_create(cid, "id", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "uid=41812" in std_out
             assert "gid=41812" in std_out
         except Exception as e:
@@ -2012,7 +2011,7 @@ disabled = 1''' in std_out
             assert self.check_splunkd("admin", password, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/system/local/inputs.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "[splunktcp-ssl:9997]" in std_out
             assert "serverCert = /tmp/defaults/cert.pem" in std_out
         except Exception as e:
@@ -2078,7 +2077,7 @@ disabled = 1''' in std_out
             assert self.wait_for_containers(1, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/system/local/server.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "sslRootCAPath = /tmp/defaults/ca.pem" in std_out
             assert "serverCert = /tmp/defaults/cert.pem" in std_out
             # Check splunkd using the custom certs
@@ -2152,7 +2151,7 @@ disabled = 1''' in std_out
             assert self.check_splunkd("admin", password, name=splunk_container_name)
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/apps/splunk_httpinput/local/inputs.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "[http://splunk_hec_token]" in std_out
             assert "serverCert = /tmp/defaults/cert.pem" in std_out
             assert "sslPassword = " in std_out
@@ -2198,11 +2197,11 @@ disabled = 1''' in std_out
         # Check if service is registered
         if 'debian' in PLATFORM:
             exec_command = self.client.exec_create("{}_uf1_1".format(self.project_name), "sudo service splunk status")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "splunkd is running" in std_out
         else:
             exec_command = self.client.exec_create("{}_uf1_1".format(self.project_name), "stat /etc/init.d/splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "/etc/init.d/splunk" in std_out
 
     def test_adhoc_1uf_splunkd_no_ssl(self):
@@ -2246,7 +2245,7 @@ disabled = 1''' in std_out
             assert self.check_splunkd("admin", p, name=splunk_container_name, scheme="http")
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/system/local/server.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "enableSplunkdSSL = false" in std_out
             # Check splunkd using the custom certs
             mgmt_port = self.client.port(cid, 8089)[0]["HostPort"]
@@ -2538,10 +2537,10 @@ disabled = 1''' in std_out
             assert status == 200
             # Check the decrypted pass4SymmKey
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/system/local/server.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             pass4SymmKey = re.search(r'\[general\].*?pass4SymmKey = (.*?)\n', std_out, flags=re.MULTILINE|re.DOTALL).group(1).strip()
             exec_command = self.client.exec_create(cid, "/opt/splunkforwarder/bin/splunk show-decrypted --value '{}'".format(pass4SymmKey), user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "wubbalubbadubdub" in std_out
         except Exception as e:
             self.logger.error(e)
@@ -2576,7 +2575,7 @@ disabled = 1''' in std_out
             assert status == 200
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/auth/splunk.secret", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "wubbalubbadubdub" in std_out
         except Exception as e:
             self.logger.error(e)
@@ -2652,7 +2651,7 @@ disabled = 1''' in std_out
             # If the container is still running, we should be able to exec inside
             # Check that nproc limits are unlimited
             exec_command = self.client.exec_create(cid, "sudo -u splunk bash -c 'ulimit -u'")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "unlimited" in std_out
         except Exception as e:
             self.logger.error(e)
@@ -2706,7 +2705,7 @@ disabled = 1''' in std_out
             assert status == 200
             # Check if the created file exists
             exec_command = self.client.exec_create(cid, "cat /opt/splunkforwarder/etc/users/admin/user-prefs/local/user-prefs.conf", user="splunk")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "[general]" in std_out
             assert "default_namespace = appboilerplate" in std_out
             assert "search_syntax_highlighting = dark" in std_out
@@ -2749,7 +2748,7 @@ disabled = 1''' in std_out
             assert status == 200
             # Check that root owns the splunkd process
             exec_command = self.client.exec_create(cid, "ps -u root", user="root")
-            std_out = self.client.exec_start(exec_command)
+            std_out = self.client.exec_start(exec_command).decode()
             assert "entrypoint.sh" in std_out
             assert "splunkd" in std_out
         except Exception as e:
