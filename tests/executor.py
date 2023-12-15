@@ -221,7 +221,7 @@ class Executor(object):
 
     def compose_up(self, defaults_url=None, apps_url=None):
         container_count = self.get_number_of_containers(os.path.join(self.SCENARIOS_DIR, self.compose_file_name))
-        command = "docker-compose -p {} -f test_scenarios/{} up -d".format(self.project_name, self.compose_file_name)
+        command = "docker compose -p {} -f test_scenarios/{} up -d".format(self.project_name, self.compose_file_name)
         out, err, rc = self._run_command(command, defaults_url, apps_url)
         return container_count, rc
 
