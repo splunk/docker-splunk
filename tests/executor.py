@@ -285,16 +285,22 @@ class Executor(object):
             env["SPLUNK_DEFAULTS_URL"] = defaults_url
         if apps_url:
             env["SPLUNK_APPS_URL"] = apps_url
+        self.logger.info("execute command")
         proc = subprocess.Popen(sh, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+        self.logger.info("PROC created")
         lines = []
         err_lines = []
         for line in iter(proc.stdout.readline, ''):
             lines.append(line)
         for line in iter(proc.stderr.readline, ''):
             err_lines.append(line)
+        self.logger.info("PROC close stdout")
         proc.stdout.close()
+        self.logger.info("PROC close stdout")
         proc.stderr.close()
+        self.logger.info("PROC WAIT")
         proc.wait()
+        self.logger.info("Done with proc")
         out = "".join(lines)
         self.logger.info("STDOUT: %s" % out)
         err = "".join(err_lines)
