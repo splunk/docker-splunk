@@ -290,9 +290,13 @@ class Executor(object):
         self.logger.info("PROC created")
         lines = []
         err_lines = []
+        self.logger.info("START RECORDING STDOUT")
         for line in iter(proc.stdout.readline, ''):
+            self.logger.info(line)
             lines.append(line)
+        self.logger.info("START RECORDING STDERR")
         for line in iter(proc.stderr.readline, ''):
+            self.logger.info(line)
             err_lines.append(line)
         self.logger.info("PROC close stdout")
         proc.stdout.close()
