@@ -235,10 +235,11 @@ class Executor(object):
         command = "docker compose -p {} -f test_scenarios/{} up -d".format(self.project_name, self.compose_file_name)
         print(f"LOOK AT THIS COMMAND")
         print(command)
-        import sys
-        sys.exit(1)
         out, err, rc = self._run_command(command, defaults_url, apps_url)
         print("COMPLETED DOCKER COMPOSE")
+        print(f"check RC for docker compose: {rc}; check err for docker-compose: {err}")
+        print("check output for docker-compose")
+        print(out)
         return container_count, rc
 
     def extract_json(self, container_name):
