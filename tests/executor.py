@@ -128,6 +128,7 @@ class Executor(object):
         '''
         NOTE: This helper method can only be used for `compose up` scenarios where self.project_name is defined
         '''
+        print(f"now WAITING for CONTAINERS to be UP")
         start = time.time()
         end = start
         # Wait
@@ -148,15 +149,25 @@ class Executor(object):
                     output = self.client.logs(container["Id"], tail=5)
                     if "unable to" in output or "denied" in output or "splunkd.pid file is unreadable" in output:
                         self.logger.error("Container {} did not start properly, last log line: {}".format(container["Names"][0], output))
+                        print(f"SCRIPT FAILS TO CREATE CONTAINER")
+                        sys.exit(1)
                     elif "Ansible playbook complete" in output:
+                        print(f"ANSIBLE EXEC COMPLETE")
                         self.logger.info("Container {} is ready".format(container["Names"][0]))
                         healthy_count += 1
+                    else:
+                        print(f"IN ELSE WHICH WAS NOT EXPECTED:")
+                        print("-------- START LOG ----------")
+                        print(output)
+                        print("-------- END LOG ----------")
                 else:
+                    print("ALL GOOD ELSE")
                     self.logger.info("Container {} is ready".format(container["Names"][0]))
                     healthy_count += 1
             if healthy_count == count:
                 self.logger.info("All containers ready to proceed")
                 break
+            print(f"continue for loop without break")
             time.sleep(5)
             end = time.time()
         return True
@@ -222,7 +233,12 @@ class Executor(object):
     def compose_up(self, defaults_url=None, apps_url=None):
         container_count = self.get_number_of_containers(os.path.join(self.SCENARIOS_DIR, self.compose_file_name))
         command = "docker compose -p {} -f test_scenarios/{} up -d".format(self.project_name, self.compose_file_name)
+        print(f"LOOK AT THIS COMMAND")
+        print(command)
+        import sys
+        sys.exit(1)
         out, err, rc = self._run_command(command, defaults_url, apps_url)
+        print("COMPLETED DOCKER COMPOSE")
         return container_count, rc
 
     def extract_json(self, container_name):
