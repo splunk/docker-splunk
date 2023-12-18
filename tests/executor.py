@@ -28,7 +28,7 @@ REPO_DIR = os.path.join(FILE_DIR, "..")
 # Setup logging
 LOGGER = logging.getLogger("docker-splunk")
 LOGGER.setLevel(logging.INFO)
-file_handler = logging.handlers.RotatingFileHandler(os.path.join(FILE_DIR, "..", "test-results", "docker_splunk_test_python{}.log".format(sys.version_info[0])), maxBytes=25000000)
+file_handler = logging.handlers.RotatingFileHandler("/builds/core-ee/docker-images/docker_splunk_tests.log", maxBytes=25000000)
 formatter = logging.Formatter('%(asctime)s %(levelname)s [%(name)s] [%(process)d] %(message)s')
 file_handler.setFormatter(formatter)
 LOGGER.addHandler(file_handler)
