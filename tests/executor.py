@@ -285,7 +285,9 @@ class Executor(object):
             env["SPLUNK_DEFAULTS_URL"] = defaults_url
         if apps_url:
             env["SPLUNK_APPS_URL"] = apps_url
-        self.logger.info("execute command")
+        self.logger.info(f"os.system attempt - {command}")
+        os.system(command)
+        self.logger.info("execute command vis subprocess;")
         proc = subprocess.Popen(sh, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         self.logger.info("PROC created")
         lines = []
