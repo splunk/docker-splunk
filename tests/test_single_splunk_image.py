@@ -48,9 +48,9 @@ class TestDockerSplunk(Executor):
     def teardown_method(self, method):
         if self.compose_file_name and self.project_name:
             if self.DIR:
-                command = "docker-compose -p {} -f {} down --volumes --remove-orphans".format(self.project_name, os.path.join(self.DIR, self.compose_file_name))
+                command = "docker compose -p {} -f {} down --volumes --remove-orphans".format(self.project_name, os.path.join(self.DIR, self.compose_file_name))
             else:
-                command = "docker-compose -p {} -f test_scenarios/{} down --volumes --remove-orphans".format(self.project_name, self.compose_file_name)
+                command = "docker compose -p {} -f test_scenarios/{} down --volumes --remove-orphans".format(self.project_name, self.compose_file_name)
             out, err, rc = self._run_command(command)
             self._clean_docker_env()
         if self.DIR:

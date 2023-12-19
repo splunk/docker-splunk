@@ -114,7 +114,7 @@ class Executor(object):
             raise e
 
     def _clean_docker_env(self):
-        # Remove anything spun up by docker-compose
+        # Remove anything spun up by docker compose
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         for container in containers:
             self.client.remove_container(container["Id"], v=True, force=True)
@@ -237,8 +237,8 @@ class Executor(object):
         print(command)
         out, err, rc = self._run_command(command, defaults_url, apps_url)
         print("COMPLETED DOCKER COMPOSE")
-        print(f"check RC for docker compose: {rc}; check err for docker-compose: {err}")
-        print("check output for docker-compose")
+        print(f"check RC for docker compose: {rc}; check err for docker compose: {err}")
+        print("check output for docker compose")
         print(out)
         return container_count, rc
 
