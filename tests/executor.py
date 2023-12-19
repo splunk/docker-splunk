@@ -146,7 +146,8 @@ class Executor(object):
             for container in containers:
                 # The healthcheck on our Splunk image is not reliable - resorting to checking logs
                 if container.get("Labels", {}).get("maintainer") == "support@splunk.com":
-                    output = self.client.logs(container["Id"], tail=5)
+                    output = self.client.logs(container["Id"], tail=5).decode()
+                    self.logger.info(f"DEBUG: Check the tupe of output - {type(output)}")
                     if "unable to" in output or "denied" in output or "splunkd.pid file is unreadable" in output:
                         self.logger.error("Container {} did not start properly, last log line: {}".format(container["Names"][0], output))
                         print(f"SCRIPT FAILS TO CREATE CONTAINER")
