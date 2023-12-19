@@ -288,7 +288,7 @@ class Executor(object):
         self.logger.info(f"os.system attempt - {command}")
         os.system(command)
         self.logger.info("execute command vis subprocess;")
-        proc = subprocess.Popen(sh, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+        proc = subprocess.Popen(sh, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, text=True)
         self.logger.info("PROC created")
         lines = []
         err_lines = []
