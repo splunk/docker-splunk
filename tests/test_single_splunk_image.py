@@ -51,7 +51,7 @@ class TestDockerSplunk(Executor):
                 command = "docker compose -p {} -f {} down --volumes --remove-orphans".format(self.project_name, os.path.join(self.DIR, self.compose_file_name))
             else:
                 command = "docker compose -p {} -f test_scenarios/{} down --volumes --remove-orphans".format(self.project_name, self.compose_file_name)
-            out, err, rc = self._run_command(command)
+            #out, err, rc = self._run_command(command)
             self._clean_docker_env()
         if self.DIR:
             try:
@@ -174,14 +174,14 @@ class TestDockerSplunk(Executor):
         print(f"ALL CONTAINERS ARE UP")
         # Check ansible inventory json
         print(f"EXTRACT JSON")
-        log_json = self.extract_json("{}_so1_1".format(self.project_name))
+        log_json = self.extract_json("{}-so1-1".format(self.project_name))
         print(f"DONE EXTRACT JSON")
         print(f"START: CHECK COMMON KEYS")
         self.check_common_keys(log_json, "so")
         print(f"DONE: CHECK COMMON KEYS")
         # Check container logs
         print(f"START: GET CONTAINER LOGS")
-        output = self.get_container_logs("{}_so1_1".format(self.project_name))
+        output = self.get_container_logs("{}-so1-1".format(self.project_name))
         print(f"DONE: GET CONTAINER LOGS")
         print(f"START: CHECK ANSIBLE OUTPUT")
         self.check_ansible(output)
@@ -199,10 +199,10 @@ class TestDockerSplunk(Executor):
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_so1_1".format(self.project_name))
+        log_json = self.extract_json("{}-so1-1".format(self.project_name))
         self.check_common_keys(log_json, "so")
         # Check container logs
-        output = self.get_container_logs("{}_so1_1".format(self.project_name))
+        output = self.get_container_logs("{}-so1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -217,10 +217,10 @@ class TestDockerSplunk(Executor):
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_so1_1".format(self.project_name))
+        log_json = self.extract_json("{}-so1-1".format(self.project_name))
         self.check_common_keys(log_json, "so")
         # Check container logs
-        output = self.get_container_logs("{}_so1_1".format(self.project_name))
+        output = self.get_container_logs("{}-so1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -235,10 +235,10 @@ class TestDockerSplunk(Executor):
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_so1_1".format(self.project_name))
+        log_json = self.extract_json("{}-so1-1".format(self.project_name))
         self.check_common_keys(log_json, "so")
         # Check container logs
-        output = self.get_container_logs("{}_so1_1".format(self.project_name))
+        output = self.get_container_logs("{}-so1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -256,10 +256,10 @@ class TestDockerSplunk(Executor):
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_so1_1".format(self.project_name))
+        log_json = self.extract_json("{}-so1-1".format(self.project_name))
         self.check_common_keys(log_json, "so")
         # Check container logs
-        output = self.get_container_logs("{}_so1_1".format(self.project_name))
+        output = self.get_container_logs("{}-so1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -538,7 +538,7 @@ class TestDockerSplunk(Executor):
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_so1_1".format(self.project_name))
+        log_json = self.extract_json("{}-so1-1".format(self.project_name))
         self.check_common_keys(log_json, "so")
         try:
             # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
@@ -547,7 +547,7 @@ class TestDockerSplunk(Executor):
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("{}_so1_1".format(self.project_name))
+        output = self.get_container_logs("{}-so1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -1269,7 +1269,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_so1_1".format(self.project_name))
+        log_json = self.extract_json("{}-so1-1".format(self.project_name))
         self.check_common_keys(log_json, "so")
         try:
             assert log_json["all"]["vars"]["java_version"] == "oracle:8"
@@ -1277,22 +1277,22 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("{}_so1_1".format(self.project_name))
+        output = self.get_container_logs("{}-so1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if java is installed
-        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}-so1-1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command).decode()
         assert "java version \"1.8.0" in std_out
         # Restart the container and make sure java is still installed
-        self.client.restart("{}_so1_1".format(self.project_name))
+        self.client.restart("{}-so1-1".format(self.project_name))
         # After restart, a container's logs are preserved. So, sleep in order for the self.wait_for_containers()
         # to avoid seeing the prior entrypoint's "Ansible playbook complete" string 
         time.sleep(15)
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
-        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}-so1-1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command).decode()
         assert "java version \"1.8.0" in std_out
  
@@ -1305,7 +1305,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_so1_1".format(self.project_name))
+        log_json = self.extract_json("{}-so1-1".format(self.project_name))
         self.check_common_keys(log_json, "so")
         try:
             assert log_json["all"]["vars"]["java_version"] == "openjdk:8"
@@ -1313,22 +1313,22 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("{}_so1_1".format(self.project_name))
+        output = self.get_container_logs("{}-so1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if java is installed
-        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}-so1-1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command).decode()
         assert "openjdk version \"1.8.0" in std_out
         # Restart the container and make sure java is still installed
-        self.client.restart("{}_so1_1".format(self.project_name))
+        self.client.restart("{}-so1-1".format(self.project_name))
         # After restart, a container's logs are preserved. So, sleep in order for the self.wait_for_containers()
         # to avoid seeing the prior entrypoint's "Ansible playbook complete" string 
         time.sleep(15)
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
-        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}-so1-1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command).decode()
         assert "openjdk version \"1.8.0" in std_out
  
@@ -1342,7 +1342,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_so1_1".format(self.project_name))
+        log_json = self.extract_json("{}-so1-1".format(self.project_name))
         self.check_common_keys(log_json, "so")
         try:
             assert log_json["all"]["vars"]["java_version"] == "openjdk:11"
@@ -1350,22 +1350,22 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("{}_so1_1".format(self.project_name))
+        output = self.get_container_logs("{}-so1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if java is installed
-        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}-so1-1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command).decode()
         assert "openjdk version \"11.0.2" in std_out
         # Restart the container and make sure java is still installed
-        self.client.restart("{}_so1_1".format(self.project_name))
+        self.client.restart("{}-so1-1".format(self.project_name))
         # After restart, a container's logs are preserved. So, sleep in order for the self.wait_for_containers()
         # to avoid seeing the prior entrypoint's "Ansible playbook complete" string 
         time.sleep(15)
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         assert self.check_splunkd("admin", self.password)
-        exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "java -version")
+        exec_command = self.client.exec_create("{}-so1-1".format(self.project_name), "java -version")
         std_out = self.client.exec_start(exec_command).decode()
         assert "openjdk version \"11.0.2" in std_out
 
@@ -1378,7 +1378,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_so1_1".format(self.project_name))
+        log_json = self.extract_json("{}-so1-1".format(self.project_name))
         self.check_common_keys(log_json, "so")
         try:
             # enable_service is set in the compose file
@@ -1387,17 +1387,17 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("{}_so1_1".format(self.project_name))
+        output = self.get_container_logs("{}-so1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if service is registered
         if 'debian' in PLATFORM:
-            exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "sudo service splunk status")
+            exec_command = self.client.exec_create("{}-so1-1".format(self.project_name), "sudo service splunk status")
             std_out = self.client.exec_start(exec_command).decode()
             assert "splunkd is running" in std_out
         else:
-            exec_command = self.client.exec_create("{}_so1_1".format(self.project_name), "stat /etc/init.d/splunk")
+            exec_command = self.client.exec_create("{}-so1-1".format(self.project_name), "stat /etc/init.d/splunk")
             std_out = self.client.exec_start(exec_command).decode()
             assert "/etc/init.d/splunk" in std_out
  
@@ -1739,7 +1739,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_so1_1".format(self.project_name))
+        log_json = self.extract_json("{}-so1-1".format(self.project_name))
         self.check_common_keys(log_json, "so")
         try:
             assert log_json["all"]["vars"]["splunk"]["apps_location"][0] == "http://appserver/{}.tgz".format(self.project_name)
@@ -1752,7 +1752,7 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("{}_so1_1".format(self.project_name))
+        output = self.get_container_logs("{}-so1-1".format(self.project_name))
         self.check_ansible(output)
         # Check to make sure the app got installed
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
@@ -1848,7 +1848,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_uf1_1".format(self.project_name))
+        log_json = self.extract_json("{}-uf1-1".format(self.project_name))
         self.check_common_keys(log_json, "uf")
         try:
             assert log_json["all"]["vars"]["splunk"]["apps_location"][0] == "http://appserver/{}.tgz".format(self.project_name)
@@ -1861,7 +1861,7 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("{}_uf1_1".format(self.project_name))
+        output = self.get_container_logs("{}-uf1-1".format(self.project_name))
         self.check_ansible(output)
         # Check to make sure the app got installed
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
@@ -2192,7 +2192,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_uf1_1".format(self.project_name))
+        log_json = self.extract_json("{}-uf1-1".format(self.project_name))
         self.check_common_keys(log_json, "uf")
         try:
             # enable_service is set in the compose file
@@ -2201,17 +2201,17 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("{}_uf1_1".format(self.project_name))
+        output = self.get_container_logs("{}-uf1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
         # Check if service is registered
         if 'debian' in PLATFORM:
-            exec_command = self.client.exec_create("{}_uf1_1".format(self.project_name), "sudo service splunk status")
+            exec_command = self.client.exec_create("{}-uf1-1".format(self.project_name), "sudo service splunk status")
             std_out = self.client.exec_start(exec_command).decode()
             assert "splunkd is running" in std_out
         else:
-            exec_command = self.client.exec_create("{}_uf1_1".format(self.project_name), "stat /etc/init.d/splunk")
+            exec_command = self.client.exec_create("{}-uf1-1".format(self.project_name), "stat /etc/init.d/splunk")
             std_out = self.client.exec_start(exec_command).decode()
             assert "/etc/init.d/splunk" in std_out
 
@@ -2285,10 +2285,10 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_uf1_1".format(self.project_name))
+        log_json = self.extract_json("{}-uf1-1".format(self.project_name))
         self.check_common_keys(log_json, "uf")
         # Check container logs
-        output = self.get_container_logs("{}_uf1_1".format(self.project_name))
+        output = self.get_container_logs("{}-uf1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -2305,10 +2305,10 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_uf1_1".format(self.project_name))
+        log_json = self.extract_json("{}-uf1-1".format(self.project_name))
         self.check_common_keys(log_json, "uf")
         # Check container logs
-        output = self.get_container_logs("{}_uf1_1".format(self.project_name))
+        output = self.get_container_logs("{}-uf1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -2326,10 +2326,10 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_uf1_1".format(self.project_name))
+        log_json = self.extract_json("{}-uf1-1".format(self.project_name))
         self.check_common_keys(log_json, "uf")
         # Check container logs
-        output = self.get_container_logs("{}_uf1_1".format(self.project_name))
+        output = self.get_container_logs("{}-uf1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)
@@ -2499,7 +2499,7 @@ disabled = 1''' in std_out
         # Wait for containers to come up
         assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
         # Check ansible inventory json
-        log_json = self.extract_json("{}_uf1_1".format(self.project_name))
+        log_json = self.extract_json("{}-uf1-1".format(self.project_name))
         self.check_common_keys(log_json, "uf")
         try:
             # token "abcd1234" is hard-coded within the 1so_hec.yaml compose
@@ -2508,7 +2508,7 @@ disabled = 1''' in std_out
             self.logger.error(e)
             raise e
         # Check container logs
-        output = self.get_container_logs("{}_uf1_1".format(self.project_name))
+        output = self.get_container_logs("{}-uf1-1".format(self.project_name))
         self.check_ansible(output)
         # Check Splunkd on all the containers
         assert self.check_splunkd("admin", self.password)

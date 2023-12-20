@@ -241,7 +241,7 @@ class TestDockerSplunk(Executor):
                 raise e
         # Search results won't return the correct results immediately :(
         time.sleep(30)
-        search_providers, distinct_hosts = self.search_internal_distinct_hosts("{}_so1_1".format(self.project_name), password=self.password)
+        search_providers, distinct_hosts = self.search_internal_distinct_hosts("{}-so1-1".format(self.project_name), password=self.password)
         assert len(search_providers) == 1
         assert search_providers[0] == "so1"
         assert distinct_hosts == 2
@@ -842,7 +842,7 @@ class TestDockerSplunk(Executor):
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
             # Get container logs
-            container_mapping = {"{}_so1_1".format(self.project_name): "so", "{}_depserver1_1".format(self.project_name): "deployment_server"}
+            container_mapping = {"{}-so1-1".format(self.project_name): "so", "{}_depserver1_1".format(self.project_name): "deployment_server"}
             for container in container_mapping:
                 # Check ansible version & configs
                 ansible_logs = self.get_container_logs(container)
@@ -929,7 +929,7 @@ class TestDockerSplunk(Executor):
             # Wait for containers to come up
             assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
             # Get container logs
-            container_mapping = {"{}_uf1_1".format(self.project_name): "uf", "{}_depserver1_1".format(self.project_name): "deployment_server"}
+            container_mapping = {"{}-uf1-1".format(self.project_name): "uf", "{}_depserver1_1".format(self.project_name): "deployment_server"}
             for container in container_mapping:
                 # Check ansible version & configs
                 ansible_logs = self.get_container_logs(container)

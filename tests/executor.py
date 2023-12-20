@@ -235,10 +235,13 @@ class Executor(object):
             import time
             print("sleeping now for 10; check if docker container exists")
             self.logger.info("sleeping now for 10; check if docker container exists")
-            time.sleep(20)
+            os.system("echo '----------- START  -----------'")
+            os.system("docker ps -a")
+            os.system(f"docker logs {container_name}")
+            os.system("echo '----------- END  -----------'")
             exec_command = self.client.exec_create(container_name, "cat /opt/container_artifact/ansible_inventory.json")
             print(f"collect exec command: {exec_command}")
-            json_data = self.client.exec_start(exec_command)
+            json_data = self.client.exec_start(exec_command).decode()
             if "No such file or directory" in json_data:
                 time.sleep(5)
             else: 
@@ -287,10 +290,10 @@ class Executor(object):
         self.logger.info("START RECORDING STDOUT")
         for line in iter(proc.stdout.readline, ''):
             self.logger.info(line)
-            lines.append(line)
+            lines.append(f"out: {line}")
         self.logger.info("START RECORDING STDERR")
         for line in iter(proc.stderr.readline, ''):
-            self.logger.info(line)
+            self.logger.info(f"err: {line}")
             err_lines.append(line)
         self.logger.info("PROC close stdout")
         proc.stdout.close()
