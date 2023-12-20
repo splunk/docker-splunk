@@ -2,6 +2,8 @@ pytest==4.4.0
 pyrsistent==0.16.1
 requests
 docker
+PyYAML
+docker-compose
 pyasn1
 junit-xml
 pytest-xdist
