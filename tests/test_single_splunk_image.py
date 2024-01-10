@@ -60,7 +60,7 @@ class TestDockerSplunk(Executor):
                 pass
         self.compose_file_name, self.project_name, self.DIR = None, None, None
 
-    def untest_splunk_entrypoint_help(self):
+    def test_splunk_entrypoint_help(self):
         # Run container
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="help")
         self.client.start(cid.get("Id"))
@@ -69,7 +69,7 @@ class TestDockerSplunk(Executor):
         assert "SPLUNK_HOME - home directory where Splunk gets installed (default: /opt/splunk)" in output
         assert "Examples:" in output
     
-    def untest_splunk_ulimit(self):
+    def test_splunk_ulimit(self):
         cid = None
         try:
             # Run container
@@ -90,7 +90,7 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_splunk_entrypoint_create_defaults(self):
+    def test_splunk_entrypoint_create_defaults(self):
         # Run container
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -100,7 +100,7 @@ class TestDockerSplunk(Executor):
         assert "password: " in output
         assert "secret: " in output
     
-    def untest_splunk_entrypoint_start_no_password(self):
+    def test_splunk_entrypoint_start_no_password(self):
         # Run container
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="start",
                                            environment={"SPLUNK_START_ARGS": "nothing"})
@@ -109,7 +109,7 @@ class TestDockerSplunk(Executor):
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "WARNING: No password ENV var." in output
 
-    def untest_splunk_entrypoint_start_no_accept_license(self):
+    def test_splunk_entrypoint_start_no_accept_license(self):
         # Run container
         cid = self.client.create_container(self.SPLUNK_IMAGE_NAME, tty=True, command="start",
                                            environment={"SPLUNK_PASSWORD": "something", "SPLUNK_START_ARGS": "nothing"})
@@ -118,7 +118,7 @@ class TestDockerSplunk(Executor):
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag" in output
 
-    def untest_splunk_entrypoint_no_provision(self):
+    def test_splunk_entrypoint_no_provision(self):
         cid = None
         try:
             # Run container
@@ -143,7 +143,7 @@ class TestDockerSplunk(Executor):
         if cid:
             self.client.remove_container(cid, v=True, force=True)
 
-    def untest_splunk_uid_gid(self):
+    def test_splunk_uid_gid(self):
         cid = None
         try:
             # Run container
@@ -164,7 +164,7 @@ class TestDockerSplunk(Executor):
         if cid:
             self.client.remove_container(cid, v=True, force=True)
 
-    def test_compose_1so_trial(self):
+    def untest_compose_1so_trial(self):
         # Standup deployment
         self.compose_file_name = "1so_trial.yaml"
         self.project_name = self.generate_random_string()
@@ -266,7 +266,7 @@ class TestDockerSplunk(Executor):
         # Check Splunkd using the new users
         assert self.check_splunkd("newman", "changemepls")
 
-    def untest_adhoc_1so_using_default_yml(self):
+    def test_adhoc_1so_using_default_yml(self):
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         # Generate default.yml
@@ -314,7 +314,7 @@ class TestDockerSplunk(Executor):
             except OSError:
                 pass
 
-    def untest_adhoc_1so_splunk_launch_conf(self):
+    def test_adhoc_1so_splunk_launch_conf(self):
         # Create a splunk container
         cid = None
         try:
@@ -350,7 +350,7 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_change_tailed_files(self):
+    def test_adhoc_1so_change_tailed_files(self):
         # Create a splunk container
         cid = None
         try:
@@ -386,7 +386,7 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_password_from_file(self):
+    def test_adhoc_1so_password_from_file(self):
         # Create a splunk container
         cid = None
         # From fixtures/pwfile
@@ -420,7 +420,7 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_reflexive_forwarding(self):
+    def test_adhoc_1so_reflexive_forwarding(self):
         # Create a splunk container
         cid = None
         try:
@@ -456,7 +456,7 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_splunk_pass4symmkey(self):
+    def test_adhoc_1so_splunk_pass4symmkey(self):
         # Create a splunk container
         cid = None
         try:
@@ -494,7 +494,7 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_splunk_secret_env(self):
+    def test_adhoc_1so_splunk_secret_env(self):
         # Create a splunk container
         cid = None
         try:
@@ -561,7 +561,7 @@ class TestDockerSplunk(Executor):
         status, content = self.handle_request_retry("POST", url, kwargs)
         assert status == 200
 
-    def untest_adhoc_1so_preplaybook_with_sudo(self):
+    def test_adhoc_1so_preplaybook_with_sudo(self):
         # Create a splunk container
         cid = None
         try:
@@ -602,7 +602,7 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_postplaybook(self):
+    def test_adhoc_1so_postplaybook(self):
         # Create a splunk container
         cid = None
         try:
@@ -643,7 +643,7 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_postplaybook_with_sudo(self):
+    def test_adhoc_1so_postplaybook_with_sudo(self):
         # Create a splunk container
         cid = None
         try:
@@ -684,7 +684,7 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
     
-    def untest_adhoc_1so_apps_location_in_default_yml(self):
+    def test_adhoc_1so_apps_location_in_default_yml(self):
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         DIR_EXAMPLE_APP = os.path.join(self.DIR, "splunk_app_example")
@@ -747,7 +747,7 @@ class TestDockerSplunk(Executor):
             except OSError:
                 pass
 
-    def untest_adhoc_1so_bind_mount_apps(self):
+    def test_adhoc_1so_bind_mount_apps(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
@@ -804,7 +804,7 @@ class TestDockerSplunk(Executor):
             except OSError:
                 pass
 
-    def untest_adhoc_1so_run_as_root(self):
+    def test_adhoc_1so_run_as_root(self):
         # Create a splunk container
         cid = None
         try:
@@ -841,7 +841,7 @@ class TestDockerSplunk(Executor):
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_declarative_password(self):
+    def test_adhoc_1so_declarative_password(self):
         """
         This test is intended to check how the container gets provisioned with declarative passwords
         """
@@ -897,7 +897,7 @@ EOL'
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_declarative_password(self):
+    def test_adhoc_1uf_declarative_password(self):
         """
         This test is intended to check how the container gets provisioned with declarative passwords
         """
@@ -953,7 +953,7 @@ EOL'
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_hec_idempotence(self):
+    def test_adhoc_1so_hec_idempotence(self):
         """
         This test is intended to check how the container gets provisioned with changing splunk.hec.* parameters
         """
@@ -1118,7 +1118,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_hec_ssl_disabled(self):
+    def test_adhoc_1so_hec_ssl_disabled(self):
         # Create the container
         cid = None
         try:
@@ -1153,7 +1153,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_splunkd_no_ssl(self):
+    def test_adhoc_1so_splunkd_no_ssl(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
@@ -1213,7 +1213,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_adhoc_1so_web_ssl(self):
+    def test_adhoc_1so_web_ssl(self):
         # Create the container
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
@@ -1401,7 +1401,7 @@ disabled = 1''' in std_out
             std_out = self.client.exec_start(exec_command).decode()
             assert "/etc/init.d/splunk" in std_out
  
-    def untest_adhoc_1so_hec_custom_cert(self):
+    def test_adhoc_1so_hec_custom_cert(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
@@ -1476,7 +1476,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_adhoc_1so_splunktcp_ssl(self):
+    def test_adhoc_1so_splunktcp_ssl(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
@@ -1545,7 +1545,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_adhoc_1so_splunkd_custom_ssl(self):
+    def test_adhoc_1so_splunkd_custom_ssl(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
@@ -1619,7 +1619,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
      
-    def untest_adhoc_1so_upgrade(self):
+    def test_adhoc_1so_upgrade(self):
         # Pull the old image
         for line in self.client.pull("splunk/splunk:{}".format(OLD_SPLUNK_VERSION), stream=True, decode=True):
             continue
@@ -1686,7 +1686,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1so_preplaybook(self):
+    def test_adhoc_1so_preplaybook(self):
         # Create a splunk container
         cid = None
         try:
@@ -1775,7 +1775,7 @@ disabled = 1''' in std_out
         except OSError:
             pass
 
-    def untest_adhoc_1so_custom_conf(self):
+    def test_adhoc_1so_custom_conf(self):
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
@@ -1884,7 +1884,7 @@ disabled = 1''' in std_out
         except OSError:
             pass
 
-    def untest_uf_entrypoint_help(self):
+    def test_uf_entrypoint_help(self):
         # Run container
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="help")
         self.client.start(cid.get("Id"))
@@ -1892,7 +1892,7 @@ disabled = 1''' in std_out
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "SPLUNK_CMD - 'any splunk command' - execute any splunk commands separated by commas" in output
 
-    def untest_uf_entrypoint_create_defaults(self):
+    def test_uf_entrypoint_create_defaults(self):
         # Run container
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="create-defaults")
         self.client.start(cid.get("Id"))
@@ -1901,7 +1901,7 @@ disabled = 1''' in std_out
         assert "home: /opt/splunk" in output
         assert "password: " in output
     
-    def untest_uf_entrypoint_start_no_password(self):
+    def test_uf_entrypoint_start_no_password(self):
         # Run container
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start",
                                            environment={"SPLUNK_START_ARGS": "nothing"})
@@ -1910,7 +1910,7 @@ disabled = 1''' in std_out
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "WARNING: No password ENV var." in output
     
-    def untest_uf_entrypoint_start_no_accept_license(self):
+    def test_uf_entrypoint_start_no_accept_license(self):
         # Run container
         cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start",
                                            environment={"SPLUNK_PASSWORD": "something", "SPLUNK_START_ARGS": "nothing"})
@@ -1919,7 +1919,7 @@ disabled = 1''' in std_out
         self.client.remove_container(cid.get("Id"), v=True, force=True)
         assert "License not accepted, please ensure the environment variable SPLUNK_START_ARGS contains the '--accept-license' flag" in output
 
-    def untest_uf_entrypoint_no_provision(self):
+    def test_uf_entrypoint_no_provision(self):
         cid = None
         try:
             # Run container
@@ -1945,7 +1945,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_uf_uid_gid(self):
+    def test_uf_uid_gid(self):
         cid = None
         try:
             # Run container
@@ -1967,7 +1967,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_splunktcp_ssl(self):
+    def test_adhoc_1uf_splunktcp_ssl(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
@@ -2036,7 +2036,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_adhoc_1uf_splunkd_custom_ssl(self):
+    def test_adhoc_1uf_splunkd_custom_ssl(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
@@ -2108,7 +2108,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_adhoc_1uf_hec_custom_cert(self):
+    def test_adhoc_1uf_hec_custom_cert(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
@@ -2215,7 +2215,7 @@ disabled = 1''' in std_out
             std_out = self.client.exec_start(exec_command).decode()
             assert "/etc/init.d/splunk" in std_out
 
-    def untest_adhoc_1uf_splunkd_no_ssl(self):
+    def test_adhoc_1uf_splunkd_no_ssl(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
@@ -2337,7 +2337,7 @@ disabled = 1''' in std_out
         assert self.check_splunkd("jerry", "changemepls")
         assert self.check_splunkd("george", "changemepls")
 
-    def untest_adhoc_1uf_using_default_yml(self):
+    def test_adhoc_1uf_using_default_yml(self):
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         # Generate default.yml
@@ -2385,7 +2385,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_adhoc_1uf_hec_ssl_disabled(self):
+    def test_adhoc_1uf_hec_ssl_disabled(self):
         # Create the container
         cid = None
         try:
@@ -2420,7 +2420,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_change_tailed_files(self):
+    def test_adhoc_1uf_change_tailed_files(self):
         # Create a splunk container
         cid = None
         try:
@@ -2456,7 +2456,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_password_from_file(self):
+    def test_adhoc_1uf_password_from_file(self):
         # Create a splunk container
         cid = None
         # From fixtures/pwfile
@@ -2522,7 +2522,7 @@ disabled = 1''' in std_out
         status, content = self.handle_request_retry("POST", url, kwargs)
         assert status == 200
 
-    def untest_adhoc_1uf_splunk_pass4symmkey(self):
+    def test_adhoc_1uf_splunk_pass4symmkey(self):
         # Create a splunk container
         cid = None
         try:
@@ -2560,7 +2560,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_splunk_secret_env(self):
+    def test_adhoc_1uf_splunk_secret_env(self):
         # Create a uf container
         cid = None
         try:
@@ -2595,7 +2595,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_bind_mount_apps(self):
+    def test_adhoc_1uf_bind_mount_apps(self):
         # Generate default.yml
         splunk_container_name = self.generate_random_string()
         self.project_name = self.generate_random_string()
@@ -2650,7 +2650,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_uf_ulimit(self):
+    def test_uf_ulimit(self):
         cid = None
         try:
             # Run container
@@ -2671,7 +2671,7 @@ disabled = 1''' in std_out
             if cid:
                 self.client.remove_container(cid, v=True, force=True)
 
-    def untest_adhoc_1uf_custom_conf(self):
+    def test_adhoc_1uf_custom_conf(self):
         splunk_container_name = self.generate_random_string()
         self.DIR = os.path.join(self.FIXTURES_DIR, splunk_container_name)
         os.mkdir(self.DIR)
@@ -2732,7 +2732,7 @@ disabled = 1''' in std_out
             except OSError:
                 pass
 
-    def untest_adhoc_1uf_run_as_root(self):
+    def test_adhoc_1uf_run_as_root(self):
         # Create a uf container
         cid = None
         try:
