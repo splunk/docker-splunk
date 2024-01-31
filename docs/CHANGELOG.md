@@ -10,6 +10,7 @@ Red Hat images will continue to be published.
 
 ## Navigation
 
+* [9.2.0](#920)
 * [9.1.3](#913)
 * [9.1.2](#912)
 * [9.1.1](#911)
@@ -96,6 +97,21 @@ Red Hat images will continue to be published.
 * [7.2.1](#721)
 * [7.2.0](#720)
 
+---
+
+## 9.2.0
+
+#### What's New?
+* Releasing new images to support Splunk Enterprise release.
+
+#### docker-splunk changes:
+* Bumping Splunk version. For details, see [Fixed issues for 9.2.0](https://docs.splunk.com/Documentation/Splunk/9.2.0/ReleaseNotes/Fixedissues#Splunk_Enterprise_9.2.0)
+
+#### splunk-ansible changes:
+* Docs updated
+* Bugfixes
+
+---
 
 ## 9.1.3
 
