@@ -67,6 +67,9 @@ watch_for_failure(){
 		echo Ansible playbook complete, will begin streaming ${SPLUNK_TAIL_FILE}
 		${RUN_AS_SPLUNK} tail -n 0 -f ${SPLUNK_TAIL_FILE} &
 	fi
+	if [[ "$DISABLE_ENTIRE_SHELL_ACCESS" == "true" ]]; then
+		disable_entire_shell_access_for_container
+	fi
 	wait
 }
 
@@ -90,6 +93,12 @@ start() {
 	watch_for_failure
 }
 
+secure_start() {
+    start_and_exit
+    export DISABLE_ENTIRE_SHELL_ACCESS="true"
+    watch_for_failure
+}
+
 configure_multisite() {
 	prep_ansible
 	ansible-playbook $ANSIBLE_EXTRA_FLAGS -i inventory/environ.py -l localhost multisite.yml
@@ -101,6 +110,16 @@ restart(){
 	${SPLUNK_HOME}/bin/splunk stop 2>/dev/null || true
 	ansible-playbook -i inventory/environ.py -l localhost start.yml
 	watch_for_failure
+}
+
+disable_entire_shell_access_for_container() {
+	if [[ "$DISABLE_ENTIRE_SHELL_ACCESS" == "true" ]]; then
+		bash -c "sudo usermod -s /sbin/nologin splunk"
+		bash -c "sudo usermod -s /sbin/nologin ansible"
+		sudo rm /bin/sh
+		sudo rm /bin/bash
+		sudo ln -s /bin/busybox /bin/sh
+	fi
 }
 
 user_permission_change(){
@@ -174,6 +193,10 @@ case "$1" in
 		user_permission_change
 		tail -n 0 -f /etc/hosts &
 		wait
+		;;
+	secure-start|secure-start-service)
+		shift
+		secure_start $@
 		;;
 	bash|splunk-bash)
 		/bin/bash --init-file ${SPLUNK_HOME}/bin/setSplunkEnv
