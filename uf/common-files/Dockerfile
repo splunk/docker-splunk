@@ -90,9 +90,9 @@ COPY [ "uf/common-files/entrypoint.sh", "uf/common-files/checkstate.sh", "uf/com
 USER root
 
 # Setup users and groups
-RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL\nansible ALL=(splunk)NOPASSWD:ALL/g' /etc/sudoers \
-    && microdnf install systemd \
-    && echo 'Create the ansible user/group' \
+RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL\nansible ALL=(splunk)NOPASSWD:ALL/g' /etc/sudoers
+RUN yum install systemd
+RUN echo 'Create the ansible user/group' \
     && groupadd -r ${ANSIBLE_GROUP} \
     && useradd -r -m -g ${ANSIBLE_GROUP} -s /bin/bash ${ANSIBLE_USER} \
     && usermod -aG sudo ${ANSIBLE_USER} \
