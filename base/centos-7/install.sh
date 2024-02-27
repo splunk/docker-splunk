@@ -21,11 +21,6 @@ export LANG=en_US.utf8
 yum -y update && yum -y install wget sudo epel-release
 yum -y install busybox ansible python-requests python-jmespath
 
-# Install scloud
-wget -O /usr/bin/scloud.tar.gz ${SCLOUD_URL}
-tar -xf /usr/bin/scloud.tar.gz -C /usr/bin/
-rm /usr/bin/scloud.tar.gz
-
 cd /bin
 ln -s busybox killall
 ln -s busybox netstat
@@ -45,5 +40,34 @@ echo "
 rm -rf /etc/security/limits.d/20-nproc.conf
 
 # Clean
-yum clean all
 rm -rf /anaconda-post.log /var/log/anaconda/*
+
+yum install -y gcc openssl-devel bzip2-devel libffi-devel zlib-devel xz-devel
+
+PY_SHORT=${PYTHON_VERSION%.*}
+wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+#wget -O /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz.asc
+#gpg --keyserver keys.openpgp.org --recv-keys $PYTHON_GPG_KEY_ID \
+#    || gpg --keyserver pool.sks-keyservers.net --recv-keys $PYTHON_GPG_KEY_ID \
+#    || gpg --keyserver pgp.mit.edu --recv-keys $PYTHON_GPG_KEY_ID \
+#    || gpg --keyserver keyserver.pgp.com --recv-keys $PYTHON_GPG_KEY_ID
+#gpg --verify /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc /tmp/python.tgz
+#rm /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc
+mkdir -p /tmp/pyinstall
+tar -xzC /tmp/pyinstall/ --strip-components=1 -f /tmp/python.tgz
+rm /tmp/python.tgz
+cd /tmp/pyinstall
+./configure --enable-optimizations --prefix=/usr --with-ensurepip=install
+make altinstall
+#make altinstall LDFLAGS="-Wl,--strip-all"
+rm -rf /tmp/pyinstall
+#ln -sf /usr/bin/python${PY_SHORT} /usr/bin/python
+#ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
+python --version
+
+# Install splunk-ansible dependencies
+cd /
+#/usr/bin/python3.7 -m pip install --upgrade pip
+
+#yum install -y python2
+yum clean all
