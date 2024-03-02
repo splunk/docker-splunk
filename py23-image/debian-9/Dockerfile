@@ -9,3 +9,4 @@ RUN apt-get update -y \
     && ln -sf /usr/bin/python3.7 /usr/bin/python \
     && ln -sf /usr/bin/pip3.7 /usr/bin/pip \
     && pip3 install --upgrade ansible==3.4.0 requests==2.25.1 pyyaml==5.4.1 jmespath==0.10.0
+
