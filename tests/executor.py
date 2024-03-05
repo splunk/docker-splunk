@@ -19,9 +19,7 @@ from random import choice
 from string import ascii_lowercase
 # Code to suppress insecure https warnings
 import urllib3
-from urllib3.exceptions import InsecureRequestWarning, SubjectAltNameWarning
-urllib3.disable_warnings(InsecureRequestWarning)
-urllib3.disable_warnings(SubjectAltNameWarning)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 # Define variables
@@ -30,7 +28,7 @@ REPO_DIR = os.path.join(FILE_DIR, "..")
 # Setup logging
 LOGGER = logging.getLogger("docker-splunk")
 LOGGER.setLevel(logging.INFO)
-file_handler = logging.handlers.RotatingFileHandler(os.path.join(FILE_DIR, "..", "test-results", "docker_splunk_test_python{}.log".format(sys.version_info[0])), maxBytes=25000000)
+file_handler = logging.handlers.RotatingFileHandler("./docker_splunk_tests.log", maxBytes=25000000)
 formatter = logging.Formatter('%(asctime)s %(levelname)s [%(name)s] [%(process)d] %(message)s')
 file_handler.setFormatter(formatter)
 LOGGER.addHandler(file_handler)
@@ -101,9 +99,9 @@ class Executor(object):
         stream = self.client.logs(container_id, stream=True)
         output = ""
         for char in stream:
-            if "Ansible playbook complete" in char:
+            if "Ansible playbook complete" in char.decode():
                 break
-            output += char
+            output += char.decode()
         return output
 
     def cleanup_files(self, files):
@@ -116,7 +114,7 @@ class Executor(object):
             raise e
 
     def _clean_docker_env(self):
-        # Remove anything spun up by docker-compose
+        # Remove anything spun up by docker compose
         containers = self.client.containers(filters={"label": "com.docker.compose.project={}".format(self.project_name)})
         for container in containers:
             self.client.remove_container(container["Id"], v=True, force=True)
@@ -147,9 +145,12 @@ class Executor(object):
             for container in containers:
                 # The healthcheck on our Splunk image is not reliable - resorting to checking logs
                 if container.get("Labels", {}).get("maintainer") == "support@splunk.com":
-                    output = self.client.logs(container["Id"], tail=5)
+                    output = self.client.logs(container["Id"], tail=5).decode()
+                    self.logger.info("DEBUG: Check the tupe of output - {}".format(type(output)))
                     if "unable to" in output or "denied" in output or "splunkd.pid file is unreadable" in output:
                         self.logger.error("Container {} did not start properly, last log line: {}".format(container["Names"][0], output))
+                        print("SCRIPT FAILS TO CREATE CONTAINER")
+                        sys.exit(1)
                     elif "Ansible playbook complete" in output:
                         self.logger.info("Container {} is ready".format(container["Names"][0]))
                         healthy_count += 1
@@ -223,15 +224,24 @@ class Executor(object):
 
     def compose_up(self, defaults_url=None, apps_url=None):
         container_count = self.get_number_of_containers(os.path.join(self.SCENARIOS_DIR, self.compose_file_name))
-        command = "docker-compose -p {} -f test_scenarios/{} up -d".format(self.project_name, self.compose_file_name)
+        command = "docker compose -p {} -f test_scenarios/{} up -d".format(self.project_name, self.compose_file_name)
         out, err, rc = self._run_command(command, defaults_url, apps_url)
         return container_count, rc
 
     def extract_json(self, container_name):
         retries = 15
         for i in range(retries):
+            print("DEBUG: EXTRACT JSON")
+            import time
+            print("sleeping now for 10; check if docker container exists")
+            self.logger.info("sleeping now for 10; check if docker container exists")
+            os.system("echo '----------- START  -----------'")
+            os.system("docker ps -a")
+            os.system("docker logs {}".format(container_name))
+            os.system("echo '----------- END  -----------'")
             exec_command = self.client.exec_create(container_name, "cat /opt/container_artifact/ansible_inventory.json")
-            json_data = self.client.exec_start(exec_command)
+            print("collect exec command: {}".format(exec_command))
+            json_data = self.client.exec_start(exec_command).decode()
             if "No such file or directory" in json_data:
                 time.sleep(5)
             else: 
@@ -270,16 +280,28 @@ class Executor(object):
             env["SPLUNK_DEFAULTS_URL"] = defaults_url
         if apps_url:
             env["SPLUNK_APPS_URL"] = apps_url
-        proc = subprocess.Popen(sh, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+        self.logger.info("os.system attempt - {}; SKIPPED".format(command))
+        #os.system(command)
+        self.logger.info("execute command vis subprocess;")
+        proc = subprocess.Popen(sh, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, text=True)
+        self.logger.info("PROC created")
         lines = []
         err_lines = []
+        self.logger.info("START RECORDING STDOUT")
         for line in iter(proc.stdout.readline, ''):
-            lines.append(line)
+            self.logger.info(line)
+            lines.append("out: {}".format(line))
+        self.logger.info("START RECORDING STDERR")
         for line in iter(proc.stderr.readline, ''):
+            self.logger.info("err: {}".format(line))
             err_lines.append(line)
+        self.logger.info("PROC close stdout")
         proc.stdout.close()
+        self.logger.info("PROC close stdout")
         proc.stderr.close()
+        self.logger.info("PROC WAIT")
         proc.wait()
+        self.logger.info("Done with proc")
         out = "".join(lines)
         self.logger.info("STDOUT: %s" % out)
         err = "".join(err_lines)
