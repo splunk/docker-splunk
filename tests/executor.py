@@ -146,10 +146,10 @@ class Executor(object):
                 # The healthcheck on our Splunk image is not reliable - resorting to checking logs
                 if container.get("Labels", {}).get("maintainer") == "support@splunk.com":
                     output = self.client.logs(container["Id"], tail=5).decode()
-                    self.logger.info(f"DEBUG: Check the tupe of output - {type(output)}")
+                    self.logger.info("DEBUG: Check the tupe of output - {}".format(type(output)))
                     if "unable to" in output or "denied" in output or "splunkd.pid file is unreadable" in output:
                         self.logger.error("Container {} did not start properly, last log line: {}".format(container["Names"][0], output))
-                        print(f"SCRIPT FAILS TO CREATE CONTAINER")
+                        print("SCRIPT FAILS TO CREATE CONTAINER")
                         sys.exit(1)
                     elif "Ansible playbook complete" in output:
                         self.logger.info("Container {} is ready".format(container["Names"][0]))
@@ -237,10 +237,10 @@ class Executor(object):
             self.logger.info("sleeping now for 10; check if docker container exists")
             os.system("echo '----------- START  -----------'")
             os.system("docker ps -a")
-            os.system(f"docker logs {container_name}")
+            os.system("docker logs {}".format(container_name))
             os.system("echo '----------- END  -----------'")
             exec_command = self.client.exec_create(container_name, "cat /opt/container_artifact/ansible_inventory.json")
-            print(f"collect exec command: {exec_command}")
+            print("collect exec command: {}".format(exec_command))
             json_data = self.client.exec_start(exec_command).decode()
             if "No such file or directory" in json_data:
                 time.sleep(5)
@@ -280,7 +280,7 @@ class Executor(object):
             env["SPLUNK_DEFAULTS_URL"] = defaults_url
         if apps_url:
             env["SPLUNK_APPS_URL"] = apps_url
-        self.logger.info(f"os.system attempt - {command}; SKIPPED")
+        self.logger.info("os.system attempt - {}; SKIPPED".format(command))
         #os.system(command)
         self.logger.info("execute command vis subprocess;")
         proc = subprocess.Popen(sh, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, text=True)
@@ -290,10 +290,10 @@ class Executor(object):
         self.logger.info("START RECORDING STDOUT")
         for line in iter(proc.stdout.readline, ''):
             self.logger.info(line)
-            lines.append(f"out: {line}")
+            lines.append("out: {}".format(line))
         self.logger.info("START RECORDING STDERR")
         for line in iter(proc.stderr.readline, ''):
-            self.logger.info(f"err: {line}")
+            self.logger.info("err: {}".format(line))
             err_lines.append(line)
         self.logger.info("PROC close stdout")
         proc.stdout.close()
