@@ -28,7 +28,8 @@ export LANG=en_US.utf8
 # Install utility packages
 microdnf -y --nodocs install wget sudo shadow-utils procps tar make gcc \
                              openssl-devel bzip2-devel libffi-devel findutils \
-                             libssh-devel libcurl-devel glib2-devel ncurses-devel
+                             libssh-devel libcurl-devel glib2-devel ncurses-devel \
+                             diffutils bzip2
 # Patch security updates
 microdnf -y --nodocs update gnutls kernel-headers libdnf librepo libnghttp2 nettle \
                             libpwquality libxml2 systemd-libs lz4-libs curl \
@@ -38,6 +39,18 @@ microdnf -y --nodocs update gnutls kernel-headers libdnf librepo libnghttp2 nett
 
 # Reinstall tzdata (originally stripped from minimal image): https://bugzilla.redhat.com/show_bug.cgi?id=1903219
 microdnf -y --nodocs reinstall tzdata || microdnf -y --nodocs update tzdata
+
+# Build and install busybox direct from the multiarch since EPEL isn't available yet for redhat8
+cd ~
+wget https://busybox.net/downloads/busybox-1.36.1.tar.bz2
+bzip2 -d busybox-1.36.1.tar.bz2
+tar -xf busybox-1.36.1.tar
+cd busybox-1.36.1
+make defconfig
+make
+cp busybox /bin/busybox
+cd ~
+rm -rf busybox-1.36.1.tar busybox-1.36.1/
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}
@@ -74,13 +87,8 @@ ldconfig
 microdnf remove -y make gcc openssl-devel bzip2-devel findutils glib2-devel glibc-devel cpp binutils \
                    keyutils-libs-devel krb5-devel libcom_err-devel libffi-devel libcurl-devel \
                    libselinux-devel libsepol-devel libssh-devel libverto-devel libxcrypt-devel \
-                   ncurses-devel pcre2-devel zlib-devel
+                   ncurses-devel pcre2-devel zlib-devel diffutils bzip2
 microdnf clean all
-
-# Install busybox direct from the multiarch since EPEL isn't available yet for redhat8
-BUSYBOX_URL=${BUSYBOX_URL:=https://busybox.net/downloads/binaries/1.35.0-`arch`-linux-musl/busybox}
-wget -O /bin/busybox ${BUSYBOX_URL}
-chmod +x /bin/busybox
 
 # Enable busybox symlinks
 cd /bin
