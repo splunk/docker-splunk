@@ -17,9 +17,13 @@ endif
 
 # Linux Splunk arguments
 SPLUNK_LINUX_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz
+SPLUNK_ARM_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz
 SPLUNK_LINUX_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/linux/${SPLUNK_LINUX_FILENAME}
+SPLUNK_ARM_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/linux/${SPLUNK_ARM_FILENAME}
 UF_LINUX_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz
 UF_LINUX_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/linux/${UF_LINUX_FILENAME}
+UF_ARM_FILENAME ?= splunkforwarder-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz
+UF_ARM_BUILD_URL ?= https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_VERSION}/linux/${UF_ARM_FILENAME}
 # Windows Splunk arguments
 SPLUNK_WIN_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-x64-release.msi
 SPLUNK_WIN_BUILD_URL ?= https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/windows/${SPLUNK_WIN_FILENAME}
@@ -32,8 +36,8 @@ SCANNER_DATE := `date +%Y-%m-%d`
 SCANNER_DATE_YEST := `TZ=GMT+24 +%Y:%m:%d`
 SCANNER_VERSION := v8
 SCANNER_LOCALIP := $(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $1}' | head -n 1)
-SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
-CONTAINERS_TO_SAVE := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8
+SCANNER_IMAGES_TO_SCAN := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 splunk-arm64-amazon-linux-2023 uf-arm64-amazon-linux-2023 uf-debian-9 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8 splunk-arm64-ubuntu-20 uf-arm64-amazon-ubuntu-20
+CONTAINERS_TO_SAVE := splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-redhat-8 uf-debian-9 splunk-arm64-amazon-linux-2023 uf-arm64-amazon-linux-2023 uf-debian-10 uf-centos-7 uf-redhat-8 splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-redhat-8 uf-py23-debian-9 uf-py23-debian-10 uf-py23-centos-7 uf-py23-redhat-8 splunk-arm64-ubuntu-20 uf-arm64-amazon-ubuntu-20
 ifeq ($(shell uname), Linux)
 	SCANNER_FILE = clair-scanner_linux_amd64
 else ifeq ($(shell uname), Darwin)
@@ -57,7 +61,7 @@ ansible:
 	@cat splunk-ansible/version.txt
 
 ##### Base images #####
-base: base-debian-9 base-debian-10 base-centos-7 base-centos-8 base-redhat-8 base-windows-2016
+base: base-debian-9 base-debian-10 base-centos-7 base-centos-8 base-redhat-8 base-windows-2016 base-arm64-amazon-linux-2023 base-arm64-ubuntu-20
 
 base-debian-10:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-debian-10:${IMAGE_VERSION} ./base/debian-10
@@ -79,6 +83,12 @@ base-redhat-8-armv8:
 
 base-windows-2016:
 	docker build ${DOCKER_BUILD_FLAGS} -t base-windows-2016:${IMAGE_VERSION} ./base/windows-2016
+
+base-arm64-amazon-linux-2023:
+	docker build ${DOCKER_BUILD_FLAGS} --platform=linux/arm64/v8 --label version=${SPLUNK_VERSION} -t base-arm64-amazon-linux-2023:${IMAGE_VERSION} ./base/amazon-linux-2023
+
+base-arm64-ubuntu-20:
+	docker build ${DOCKER_BUILD_FLAGS} --platform=linux/arm64/v8 --label version=${SPLUNK_VERSION} -t base-arm64-ubuntu-20:${IMAGE_VERSION} ./base/arm64-ubuntu-20
 
 ##### Minimal images #####
 minimal: minimal-debian-9 minimal-debian-10 minimal-centos-7 minimal-centos-8 minimal-redhat-8
@@ -157,7 +167,7 @@ bare-redhat-8: base-redhat-8
 		--target bare -t bare-redhat-8:${IMAGE_VERSION} .
 
 ##### Splunk images #####
-splunk: ansible splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-centos-8 splunk-redhat-8
+splunk: ansible splunk-debian-9 splunk-debian-10 splunk-centos-7 splunk-centos-8 splunk-redhat-8 splunk-arm64-amazon-linux-2023 splunk-arm64-ubuntu-20
 
 splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -201,8 +211,24 @@ splunk-windows-2016: base-windows-2016 ansible
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_WIN_BUILD_URL} \
 		-t splunk-windows-2016:${IMAGE_VERSION} .
 
+splunk-arm64-amazon-linux-2023: base-arm64-amazon-linux-2023 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+        --platform=linux/arm64/v8 \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-arm64-amazon-linux-2023 \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_ARM_BUILD_URL} \
+		-t splunk-arm64-amazon-linux-2023:${IMAGE_VERSION} .
+
+splunk-arm64-ubuntu-20: base-arm64-ubuntu-20 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+        --platform=linux/arm64/v8 \
+		-f splunk/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-arm64-ubuntu-20 \
+		--build-arg SPLUNK_BUILD_URL=${SPLUNK_ARM_BUILD_URL} \
+		-t splunk-arm64-ubuntu-20:${IMAGE_VERSION} .
+
 ##### UF images #####
-uf: ansible uf-debian-9 uf-debian-10 uf-centos-7 uf-centos-8 uf-redhat-8
+uf: ansible uf-debian-9 uf-debian-10 uf-centos-7 uf-centos-8 uf-redhat-8 uf-arm64-amazon-linux-2023 uf-arm64-ubuntu-20
 
 ufbare-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
@@ -268,6 +294,21 @@ uf-windows-2016: base-windows-2016 ansible
 		--build-arg SPLUNK_BUILD_URL=${UF_WIN_BUILD_URL} \
 		-t uf-windows-2016:${IMAGE_VERSION} .
 
+uf-arm64-amazon-linux-2023: base-arm64-amazon-linux-2023 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+        --platform=linux/arm64/v8 \
+		-f uf/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-arm64-amazon-linux-2023 \
+		--build-arg SPLUNK_BUILD_URL=${UF_ARM_BUILD_URL} \
+		-t uf-arm64-amazon-linux-2023:${IMAGE_VERSION} .
+
+uf-arm64-ubuntu-20: base-arm64-ubuntu-20 ansible
+	docker build ${DOCKER_BUILD_FLAGS} \
+        --platform=linux/arm64/v8 \
+		-f uf/common-files/Dockerfile \
+		--build-arg SPLUNK_BASE_IMAGE=base-arm64-ubuntu-20 \
+		--build-arg SPLUNK_BUILD_URL=${UF_ARM_BUILD_URL} \
+		-t uf-arm64-ubuntu-20:${IMAGE_VERSION} .
 
 ##### Python 3 support #####
 splunk-py23: splunk-py23-debian-9 splunk-py23-debian-10 splunk-py23-centos-7 splunk-py23-centos-8 splunk-py23-redhat-8
@@ -350,7 +391,7 @@ run_large_tests: run_large_tests_centos7 run_large_tests_redhat8 run_large_tests
 
 test_centos7: clean ansible splunk-centos-7 uf-centos-7 test_setup run_small_tests_centos7 run_large_tests_centos7
 
-test_redhat8: clean ansible splunk-redhat-8 uf-redhat-8 test_setup run_small_tests_redhat8 run_large_tests_redhat8
+test_redhat8: clean ansible splunk-redhat-8 splunk-arm64-amazon-linux-2023 uf-arm64-amazon-linux-2023 uf-redhat-8 test_setup run_small_tests_redhat8 run_large_tests_redhat8
 
 test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_small_tests_debian9 run_large_tests_debian9
 
