@@ -1,10 +1,12 @@
 pytest==4.4.0
 pyrsistent==0.16.1
-requests
+requests==2.31.0
 docker
 PyYAML
 docker-compose
+docker-compose-wait
 pyasn1
 junit-xml
 pytest-xdist
 pytest-rerunfailures==8.0
+urllib3<2.0

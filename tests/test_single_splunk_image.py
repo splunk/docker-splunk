@@ -2437,6 +2437,8 @@ disabled = 1''' in std_out
             assert status == 200
             # Check the tailed logs
             logs = self.client.logs(cid, tail=20)
+            if type(logs) is bytes:
+                logs = logs.decode("utf-8")
             assert "==> /opt/splunkforwarder/var/log/splunk/first_install.log <==" in logs
             assert "==> /opt/splunkforwarder/var/log/splunk/splunkd_stderr.log <==" in logs
         except Exception as e:

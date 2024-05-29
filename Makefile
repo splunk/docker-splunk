@@ -356,6 +356,8 @@ test_debian9: clean ansible splunk-debian-9 uf-debian-9 test_setup run_small_tes
 
 test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_small_tests_debian10 run_large_tests_debian10
 
+test_debian11: clean ansible test_setup run_small_tests_debian11 run_large_tests_debian11
+
 run_small_tests_centos7:
 	@echo 'Running the super awesome small tests; CentOS 7'
 	pytest -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform centos-7 --junitxml test-results/centos7-result/testresults_small_centos7.xml
@@ -397,6 +399,15 @@ run_large_tests_debian10:
 	@echo 'Running the super awesome large tests; Debian 10'
 	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform debian-10 --junitxml test-results/debian10-result/testresults_large_debian10.xml
 
+run_small_tests_debian11:
+	@echo 'Running the super awesome small tests; Debian 11'
+	pytest -n 2 --reruns 0 -sv tests/test_single_splunk_image.py --platform debian-11 --junitxml test-results/debian11-result/testresults_small_debian11.xml
+
+run_large_tests_debian11:
+	@echo 'Running the super awesome large tests; Debian 11'
+	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform debian-11 --junitxml test-results/debian11-result/testresults_large_debian11.xml
+
+
 save_containers:
 	@echo 'Saving the following containers:${CONTAINERS_TO_SAVE}'
 	mkdir test-results/saved_images || true
@@ -419,6 +430,9 @@ test_splunk_debian9_python3:
 
 test_splunk_debian10_python3:
 	$(call test_python3_installation,splunk-py23-debian-10)
+
+test_splunk_debian11_python3:
+	$(call test_python3_installation,splunk-py23-debian-11)
 
 test_uf_centos7_python3:
 	$(call test_python3_installation,uf-py23-centos-7)

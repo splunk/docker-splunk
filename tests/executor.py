@@ -60,8 +60,8 @@ class Executor(object):
         cls.client = docker.APIClient()
         # Define images by name to be validated
         cls.BASE_IMAGE_NAME = "base-{}".format(platform)
-        cls.SPLUNK_IMAGE_NAME = "splunk-{}".format(platform)
-        cls.UF_IMAGE_NAME = "uf-{}".format(platform)
+        cls.SPLUNK_IMAGE_NAME = "splunk-py23-{}".format(platform)
+        cls.UF_IMAGE_NAME = "uf-py23-{}".format(platform)
         # Define new, random password for each executor
         cls.password = Executor.generate_random_string()
         cls.compose_file_name = None
@@ -101,9 +101,10 @@ class Executor(object):
         stream = self.client.logs(container_id, stream=True)
         output = ""
         for char in stream:
-            if "Ansible playbook complete" in char:
+            charstr = char.decode("utf-8")
+            if "Ansible playbook complete" in charstr:
                 break
-            output += char
+            output += charstr
         return output
 
     def cleanup_files(self, files):
@@ -148,6 +149,8 @@ class Executor(object):
                 # The healthcheck on our Splunk image is not reliable - resorting to checking logs
                 if container.get("Labels", {}).get("maintainer") == "support@splunk.com":
                     output = self.client.logs(container["Id"], tail=5)
+                    if type(output) is bytes:
+                        output = output.decode("utf-8")
                     if "unable to" in output or "denied" in output or "splunkd.pid file is unreadable" in output:
                         self.logger.error("Container {} did not start properly, last log line: {}".format(container["Names"][0], output))
                     elif "Ansible playbook complete" in output:
@@ -231,10 +234,10 @@ class Executor(object):
         retries = 15
         for i in range(retries):
             exec_command = self.client.exec_create(container_name, "cat /opt/container_artifact/ansible_inventory.json")
-            json_data = self.client.exec_start(exec_command)
+            json_data = self.client.exec_start(exec_command["Id"]).decode("utf-8")
             if "No such file or directory" in json_data:
                 time.sleep(5)
-            else: 
+            else:
                 break
         try:
             data = json.loads(json_data)
@@ -257,6 +260,7 @@ class Executor(object):
         return search_providers, distinct_hosts
 
     def _run_command(self, command, defaults_url=None, apps_url=None):
+        sh = []
         if isinstance(command, list):
             sh = command
         elif isinstance(command, str):
@@ -270,22 +274,29 @@ class Executor(object):
             env["SPLUNK_DEFAULTS_URL"] = defaults_url
         if apps_url:
             env["SPLUNK_APPS_URL"] = apps_url
-        proc = subprocess.Popen(sh, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
-        lines = []
-        err_lines = []
-        for line in iter(proc.stdout.readline, ''):
-            lines.append(line)
-        for line in iter(proc.stderr.readline, ''):
-            err_lines.append(line)
-        proc.stdout.close()
-        proc.stderr.close()
-        proc.wait()
-        out = "".join(lines)
+        proc = subprocess.run(sh, env=env, capture_output=True)
+        out = proc.stdout.splitlines()
         self.logger.info("STDOUT: %s" % out)
-        err = "".join(err_lines)
+        err = proc.stderr.splitlines()
         self.logger.info("STDERR: %s" % err)
-        self.logger.info("RC: %s" % proc.returncode)
+
+        project_index = sh.index("-p") + 1
+        project_name = sh[project_index]
+        compose_index = sh.index("-f") + 1
+        compose_file = sh[compose_index]
+        wait_out, wait_err, wait_rc = self.docker_compose_wait(project_name, compose_file)
         return out, err, proc.returncode
+
+    def docker_compose_wait(self, project_name, compose_file):
+        sh = ["docker-compose-wait", "-p", project_name, "-f", compose_file]
+        wait_proc = subprocess.run(sh, capture_output=True)
+        out = wait_proc.stdout.splitlines()
+        self.logger.info("STDOUT: %s" % out)
+        err = wait_proc.stderr.splitlines()
+        self.logger.info("STDERR: %s" % err)
+        #if wait_proc.returncode != 0:
+        #    self.logger.error("Bad rc from docker-compose-wait: {}".format(wait_proc.returncode))
+        return out, err, wait_proc.returncode
 
     def check_common_keys(self, log_output, role):
         try:
