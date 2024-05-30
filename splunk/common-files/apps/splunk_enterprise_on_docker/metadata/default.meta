@@ -1,2 +1,2 @@
 []
-access = read : [ * ], write : [ admin, power, etc ]
+access = read : [ * ], write : [ admin ]
