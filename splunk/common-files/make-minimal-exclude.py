@@ -50,7 +50,7 @@ if major_version:
         print("*/etc/apps/splunk_metrics_workspace*")
         if int(minor_version) < 1:
             print("*/bin/parsetest*")
-    elif int(major_version) == 9:
+    elif int(major_version) >= 9:
         if int(minor_version) >= 4:
             EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jsmin*', '')
     print(EXCLUDE_V7)
