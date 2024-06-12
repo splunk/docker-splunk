@@ -17,7 +17,8 @@ set -e
 
 # Generate UTF-8 char map and locale
 # Reinstalling local English def for now, removed in minimal image: https://bugzilla.redhat.com/show_bug.cgi?id=1665251
-microdnf -y --nodocs install glibc-langpack-en
+# Comment below install until glibc update is available in minimal image: https://access.redhat.com/errata/RHSA-2024:2722
+#microdnf -y --nodocs install glibc-langpack-en
 
 # Currently there is no access to the UTF-8 char map. The following command is commented out until
 # the base container can generate the locale.
@@ -74,8 +75,11 @@ ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
 
 # Install splunk-ansible dependencies
 cd /
-/usr/bin/python3.8 -m pip install --upgrade pip
+/usr/bin/python3.9 -m pip install --upgrade pip
 pip -q --no-cache-dir install --upgrade "requests_unixsocket<2.29" "requests<2.29" six wheel Mako "urllib3<2.0.0" certifi jmespath future avro cryptography lxml protobuf setuptools ansible
+
+# Avoid vulnerability on old pip version
+/usr/libexec/platform-python -m pip install --upgrade pip
 
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
