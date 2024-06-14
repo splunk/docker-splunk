@@ -380,3 +380,9 @@ class Executor(object):
         assert status == 200
         output = json.loads(content)
         assert len(output["entry"][0]["content"]["member"]) == num_sh
+
+    def uds_enabled(self, container_name):
+        # Check for cli.socket file
+        exec_command = self.client.exec_create(container_name, "ls /opt/splunkforwarder/var/run/splunk")
+        file_output = self.client.exec_start(exec_command)
+        return "cli.socket" in file_output

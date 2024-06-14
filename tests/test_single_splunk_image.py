@@ -2778,3 +2778,16 @@ disabled = 1''' in std_out
         assert self.check_splunkd("admin", self.password)
         # Check Splunkd using the new users
         assert self.check_splunkd("jerry", "seinfeld")
+
+    def test_compose_1uf_uds(self):
+        # TODO: perform curl request using unix socket once bug is resolved: https://splunk.atlassian.net/browse/SPL-257022
+        self.compose_file_name = "1uf_uds.yaml"
+        self.project_name = self.generate_random_string()
+        container_count, rc = self.compose_up()
+        assert rc == 0
+        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
+        container_name = "{}_uf1_1".format(self.project_name)
+        output = self.get_container_logs()
+        self.check_ansible(output)
+        # Check that cli.socket file is created
+        assert self.uds_enabled(container_name)
