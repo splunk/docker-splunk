@@ -2780,14 +2780,29 @@ disabled = 1''' in std_out
         assert self.check_splunkd("jerry", "seinfeld")
 
     def test_compose_1uf_uds(self):
-        # TODO: perform curl request using unix socket once bug is resolved: https://splunk.atlassian.net/browse/SPL-257022
-        self.compose_file_name = "1uf_uds.yaml"
-        self.project_name = self.generate_random_string()
-        container_count, rc = self.compose_up()
-        assert rc == 0
-        assert self.wait_for_containers(container_count, label="com.docker.compose.project={}".format(self.project_name))
-        container_name = "{}_uf1_1".format(self.project_name)
-        output = self.get_container_logs()
-        self.check_ansible(output)
-        # Check that cli.socket file is created
-        assert self.uds_enabled(container_name)
+        container_name = self.generate_random_string()
+        self.DIR = os.path.join(self.FIXTURES_DIR, container_name)
+        cid = None
+        try:
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start",
+                                               volumes=["/tmp/defaults/"], name=container_name,
+                                               environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": "foobar", "ENABLE_TCP_MODE": "false"},
+                                               host_config=self.client.create_host_config(binds=[
+                                                   os.path.join(self.FIXTURES_DIR, container_name) + ":/tmp/defaults/"])
+                                               )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            assert self.wait_for_containers(1, name=container_name)
+            assert self.uds_enabled(container_name)
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.DIR, "default.yml"))
+                os.rmdir(self.DIR)
+            except OSError:
+                pass
