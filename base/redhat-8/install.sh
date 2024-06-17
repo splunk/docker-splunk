@@ -111,3 +111,7 @@ echo "
 # Clean
 microdnf clean all
 rm -rf /install.sh /anaconda-post.log /var/log/anaconda/*
+
+# Symlink python/pip
+ln -sf /usr/bin/python3.9 /usr/bin/python3
+ln -sf /usr/bin/pip3.9 /usr/bin/pip3
