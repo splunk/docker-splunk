@@ -2787,7 +2787,7 @@ disabled = 1''' in std_out
             cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start",
                                                volumes=["/tmp/defaults/"], name=container_name,
                                                environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license",
-                                                            "SPLUNK_PASSWORD": "foobar", "ENABLE_TCP_MODE": "false"},
+                                                            "SPLUNK_PASSWORD": "Changeme", "ENABLE_TCP_MODE": "false"},
                                                host_config=self.client.create_host_config(binds=[
                                                    os.path.join(self.FIXTURES_DIR, container_name) + ":/tmp/defaults/"])
                                                )

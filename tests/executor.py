@@ -61,7 +61,7 @@ class Executor(object):
         # Define images by name to be validated
         cls.BASE_IMAGE_NAME = "base-{}".format(platform)
         cls.SPLUNK_IMAGE_NAME = "splunk-{}".format(platform)
-        cls.UF_IMAGE_NAME = "uf-{}".format(platform)
+        cls.UF_IMAGE_NAME = "uf-redhat-8"
         # Define new, random password for each executor
         cls.password = Executor.generate_random_string()
         cls.compose_file_name = None
@@ -101,6 +101,8 @@ class Executor(object):
         stream = self.client.logs(container_id, stream=True)
         output = ""
         for char in stream:
+            if type(char) is bytes:
+                char = char.decode("utf-8")
             if "Ansible playbook complete" in char:
                 break
             output += char
@@ -148,6 +150,8 @@ class Executor(object):
                 # The healthcheck on our Splunk image is not reliable - resorting to checking logs
                 if container.get("Labels", {}).get("maintainer") == "support@splunk.com":
                     output = self.client.logs(container["Id"], tail=5)
+                    if type(output) is bytes:
+                        output = output.decode("utf-8")
                     if "unable to" in output or "denied" in output or "splunkd.pid file is unreadable" in output:
                         self.logger.error("Container {} did not start properly, last log line: {}".format(container["Names"][0], output))
                     elif "Ansible playbook complete" in output:
@@ -231,7 +235,9 @@ class Executor(object):
         retries = 15
         for i in range(retries):
             exec_command = self.client.exec_create(container_name, "cat /opt/container_artifact/ansible_inventory.json")
-            json_data = self.client.exec_start(exec_command)
+            json_data = self.client.exec_start(exec_command["Id"])
+            if type(json_data) is bytes:
+                json_data = json_data.decode("utf-8")
             if "No such file or directory" in json_data:
                 time.sleep(5)
             else: 
