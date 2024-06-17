@@ -49,6 +49,7 @@ echo "
 
 # symlink for python3
 ln -s /bin/python3 /bin/python
+ln -sf /usr/bin/pip3.7 /usr/bin/pip3
 
 # Clean
 yum clean all

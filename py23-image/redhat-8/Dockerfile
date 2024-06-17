@@ -8,5 +8,4 @@ RUN microdnf -y --nodocs update \
     && pip2 --no-cache-dir install requests pyyaml jmespath \
     && ln -sf /usr/bin/python3.9 /usr/bin/python \
     && ln -sf /usr/bin/pip3.9 /usr/bin/pip \
-    && pip3 install --upgrade requests==2.25.1 pyyaml==5.4.1 jmespath==0.10.0 \
-    && sed -i '/^\[defaults\]/a\interpreter_python = /usr/bin/python3' /opt/ansible/ansible.cfg
+    && pip3 install --upgrade requests==2.25.1 pyyaml==5.4.1 jmespath==0.10.0
