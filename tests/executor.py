@@ -61,7 +61,7 @@ class Executor(object):
         # Define images by name to be validated
         cls.BASE_IMAGE_NAME = "base-{}".format(platform)
         cls.SPLUNK_IMAGE_NAME = "splunk-{}".format(platform)
-        cls.UF_IMAGE_NAME = "uf-redhat-8"
+        cls.UF_IMAGE_NAME = "uf-{}".format(platform)
         # Define new, random password for each executor
         cls.password = Executor.generate_random_string()
         cls.compose_file_name = None
