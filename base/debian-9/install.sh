@@ -93,3 +93,7 @@ chmod u+s /bin/ping
 # Clean
 apt clean autoclean
 rm -rf /var/lib/apt/lists/*
+
+# Symlink python/pip
+ln -sf /usr/bin/python3.7 /usr/bin/python3
+ln -sf /usr/bin/pip3.7 /usr/bin/pip3

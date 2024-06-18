@@ -112,6 +112,7 @@ RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL\nans
     && chgrp ${ANSIBLE_GROUP} ${SPLUNK_ANSIBLE_HOME} ${SPLUNK_ANSIBLE_HOME}/ansible.cfg \
     && chmod 775 ${SPLUNK_ANSIBLE_HOME} \
     && chmod 664 ${SPLUNK_ANSIBLE_HOME}/ansible.cfg \
+    && sed -i '/^\[defaults\]/a\interpreter_python = /usr/bin/python3' ${SPLUNK_ANSIBLE_HOME}/ansible.cfg \
     && chmod 755 /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh
 
 USER ${ANSIBLE_USER}
