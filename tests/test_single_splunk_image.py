@@ -2794,7 +2794,9 @@ disabled = 1''' in std_out
             cid = cid.get("Id")
             self.client.start(cid)
             assert self.wait_for_containers(1, name=container_name)
-            assert self.uds_enabled(container_name)
+            output = self.get_container_logs(cid)
+            assert "Allows UDS" in output
+            assert self.check_uds_socket_file(container_name)
         except Exception as e:
             self.logger.error(e)
             raise e

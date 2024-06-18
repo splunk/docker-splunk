@@ -103,9 +103,9 @@ class Executor(object):
         for char in stream:
             if type(char) is bytes:
                 char = char.decode("utf-8")
-            if "Ansible playbook complete" in char:
-                break
             output += char
+            if "Ansible playbook complete" in output:
+                break
         return output
 
     def cleanup_files(self, files):
@@ -387,8 +387,8 @@ class Executor(object):
         output = json.loads(content)
         assert len(output["entry"][0]["content"]["member"]) == num_sh
 
-    def uds_enabled(self, container_name):
+    def check_uds_socket_file(self, container_name):
         # Check for cli.socket file
-        exec_command = self.client.exec_create(container_name, "ls /opt/splunkforwarder/var/run/splunk")
+        exec_command = self.client.exec_create(container_name, "ls /opt/splunkforwarder/var/run/splunk", user="splunk")
         file_output = self.client.exec_start(exec_command)
-        return "cli.socket" in file_output
+        return "cli.socket" in file_output.decode("utf-8")
