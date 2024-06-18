@@ -72,14 +72,13 @@ make altinstall LDFLAGS="-Wl,--strip-all"
 rm -rf /tmp/pyinstall
 ln -sf /usr/bin/python${PY_SHORT} /usr/bin/python
 ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip
+ln -sf /usr/bin/python${PY_SHORT} /usr/bin/python3
+ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip3
 
 # Install splunk-ansible dependencies
 cd /
 /usr/bin/python3.9 -m pip install --upgrade pip
 pip -q --no-cache-dir install --upgrade "requests_unixsocket<2.29" "requests<2.29" six wheel Mako "urllib3<2.0.0" certifi jmespath future avro cryptography lxml protobuf setuptools ansible
-
-# Avoid vulnerability on old pip version
-/usr/libexec/platform-python -m pip install --upgrade pip
 
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
@@ -111,7 +110,3 @@ echo "
 # Clean
 microdnf clean all
 rm -rf /install.sh /anaconda-post.log /var/log/anaconda/*
-
-# Symlink python/pip
-ln -sf /usr/bin/python3.9 /usr/bin/python3
-ln -sf /usr/bin/pip3.9 /usr/bin/pip3
