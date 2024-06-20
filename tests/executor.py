@@ -101,9 +101,11 @@ class Executor(object):
         stream = self.client.logs(container_id, stream=True)
         output = ""
         for char in stream:
-            if "Ansible playbook complete" in char:
-                break
+            if type(char) is bytes:
+                char = char.decode("utf-8")
             output += char
+            if "Ansible playbook complete" in output:
+                break
         return output
 
     def cleanup_files(self, files):
@@ -148,6 +150,8 @@ class Executor(object):
                 # The healthcheck on our Splunk image is not reliable - resorting to checking logs
                 if container.get("Labels", {}).get("maintainer") == "support@splunk.com":
                     output = self.client.logs(container["Id"], tail=5)
+                    if type(output) is bytes:
+                        output = output.decode("utf-8")
                     if "unable to" in output or "denied" in output or "splunkd.pid file is unreadable" in output:
                         self.logger.error("Container {} did not start properly, last log line: {}".format(container["Names"][0], output))
                     elif "Ansible playbook complete" in output:
@@ -231,7 +235,9 @@ class Executor(object):
         retries = 15
         for i in range(retries):
             exec_command = self.client.exec_create(container_name, "cat /opt/container_artifact/ansible_inventory.json")
-            json_data = self.client.exec_start(exec_command)
+            json_data = self.client.exec_start(exec_command["Id"])
+            if type(json_data) is bytes:
+                json_data = json_data.decode("utf-8")
             if "No such file or directory" in json_data:
                 time.sleep(5)
             else: 
@@ -380,3 +386,9 @@ class Executor(object):
         assert status == 200
         output = json.loads(content)
         assert len(output["entry"][0]["content"]["member"]) == num_sh
+
+    def check_uds_socket_file(self, container_name):
+        # Check for cli.socket file
+        exec_command = self.client.exec_create(container_name, "ls /opt/splunkforwarder/var/run/splunk", user="splunk")
+        file_output = self.client.exec_start(exec_command)
+        return "cli.socket" in file_output.decode("utf-8")
