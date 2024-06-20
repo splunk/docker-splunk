@@ -18,8 +18,7 @@ RUN wget https://www.python.org/ftp/python/3.7.4/Python-3.7.4.tgz \
     && python3.7 get-pip.py \
     && rm -f get-pip.py \
     # pip version is not automatically "fixed", unlike debian-based
-    && ln -sf /usr/bin/pip2 /usr/bin/pip \
-    && ln -sf /usr/bin/pip3.7 /usr/bin/pip3
+    && ln -sf /usr/bin/pip2 /usr/bin/pip
     # add python alias
     # && ln -s /bin/python3 /bin/python
 

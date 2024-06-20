@@ -47,3 +47,7 @@ rm -rf /etc/security/limits.d/20-nproc.conf
 # Clean
 yum clean all
 rm -rf /anaconda-post.log /var/log/anaconda/*
+
+# symlink for python3
+ln -s /bin/python3 /bin/python
+ln -sf /usr/bin/pip3.7 /usr/bin/pip3
