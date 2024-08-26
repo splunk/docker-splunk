@@ -63,9 +63,9 @@ watch_for_failure(){
 	fi
 	# Any crashes/errors while Splunk is running should get logged to splunkd_stderr.log and sent to the container's stdout
 	if [ -z "$SPLUNK_TAIL_FILE" ]; then
-		${RUN_AS_SPLUNK} tail -n 0 -f ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
+		${RUN_AS_SPLUNK} tail -n 0 -F ${SPLUNK_HOME}/var/log/splunk/splunkd_stderr.log &
 	else
-		${RUN_AS_SPLUNK} tail -n 0 -f ${SPLUNK_TAIL_FILE} &
+		${RUN_AS_SPLUNK} tail -n 0 -F ${SPLUNK_TAIL_FILE} &
 	fi
 	wait
 }
