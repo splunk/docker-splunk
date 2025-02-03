@@ -46,11 +46,13 @@ if major_version:
             print("*/etc/apps/gettingstarted*")
         else:
             print("*/etc/apps/splunk_metrics_workspace*")
-    elif 7 < int(major_version) < 9:
+    elif int(major_version) == 8:
         print("*/etc/apps/splunk_metrics_workspace*")
         if int(minor_version) < 1:
             print("*/bin/parsetest*")
-    elif int(major_version) >= 9:
+    elif int(major_version) == 9:
         if int(minor_version) >= 4:
             EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jsmin*', '')
+    elif int(major_version) > 9:
+        EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jsmin*', '')
     print(EXCLUDE_V7)
