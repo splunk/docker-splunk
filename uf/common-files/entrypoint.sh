@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2018 Splunk
+# Copyright 2018-2025 Splunk
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ set -e
 
 setup() {
 	# Check if the user accepted the license
-	if [[ "$SPLUNK_START_ARGS" != *"--accept-license"* ]]; then
-		printf "License not accepted, please adjust SPLUNK_START_ARGS to indicate you have accepted the license.\n"
+	if [[ "$SPLUNK_GENERAL_TERMS" != *"--accept-current-at-splunk-com"* ]]; then
+		printf "License not accepted, please adjust SPLUNK_GENERAL_TERMS to indicate you have accepted the license.\n"
 		printf "The license you are accepting is the Splunk General Terms, available here: https://www.splunk.com/en_us/legal/splunk-general-terms.html\n"
 		printf "Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms.\n"
 		printf "Please read and make sure you agree to the Splunk General Terms before you access or use this software.\n"
-		printf "Only once you've done so should you include the '--accept-license' flag to indicate your acceptance of the Splunk General Terms and launch this software.\n"
-		printf "For example: docker run -e SPLUNK_START_ARGS=--accept-license splunk/universalforwarder\n\n"
-		printf "For additional information and examples, see the help: docker run -it splunk/universalforwarder help\n"
+		printf "Only once you've done so should you include the '--accept-current-at-splunk-com' and '--accept-license' flags to indicate your acceptance of the Splunk General Terms and launch this software.\n"
+		printf "For example: docker run -e SPLUNK_GENERAL_TERMS=--accept-current-at-splunk-com SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD splunk/splunk\n\n"
+		printf "For additional information and examples, see the help: docker run -it splunk/splunk help\n"
 		exit 1
 	fi
 }
@@ -122,7 +122,8 @@ Environment Variables:
   * SPLUNK_USER - user under which to run Splunk (default: splunk)
   * SPLUNK_GROUP - group under which to run Splunk (default: splunk)
   * SPLUNK_HOME - home directory where Splunk gets installed (default: /opt/splunk)
-  * SPLUNK_START_ARGS - arguments to pass into the Splunk start command; you must include '--accept-license' to start Splunk (default: none)
+  * SPLUNK_START_ARGS - arguments to pass into the Splunk start command; you must include '--accept-license' to start Splunk (default: none)    
+  * SPLUNK_GENERAL_TERMS - with the value '--accept-current-at-splunk-com', indicates acceptance of the latest Splunk General Terms: https://www.splunk.com/en_us/legal/splunk-general-terms.html (default: none)
   * SPLUNK_PASSWORD - password to log into this Splunk instance, you must include a password (default: none)
   * SPLUNK_STANDALONE_URL, SPLUNK_INDEXER_URL, ... - comma-separated list of resolvable aliases to properly bring-up a distributed environment.
                                                      This is optional for the UF, but necessary if you want to forward logs to another containerized Splunk instance
