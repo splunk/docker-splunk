@@ -40,6 +40,7 @@ wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Pyth
 wget -O /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz.asc
 apt-get install dirmngr -y
 gpg --keyserver keys.openpgp.org --recv-keys $PYTHON_GPG_KEY_ID \
+    || gpg --keyserver hkps://keys.openpgp.org --recv-keys $PYTHON_GPG_KEY_ID \
     || gpg --keyserver pool.sks-keyservers.net --recv-keys $PYTHON_GPG_KEY_ID \
     || gpg --keyserver pgp.mit.edu --recv-keys $PYTHON_GPG_KEY_ID \
     || gpg --keyserver keyserver.pgp.com --recv-keys $PYTHON_GPG_KEY_ID
