@@ -25,10 +25,7 @@ LABEL name="splunk" \
       summary="UBI 8 Docker image of Splunk Enterprise" \
       description="Splunk Enterprise is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results."
 
-ARG BUSYBOX_URL
-
-ENV BUSYBOX_URL=${BUSYBOX_URL} \
-    PYTHON_VERSION=3.9.19 \
+ENV PYTHON_VERSION=3.9.19 \
     PYTHON_GPG_KEY_ID=E3FF2839C048B25C084DEBE9B26995E310250568
 
 COPY install.sh /install.sh
@@ -36,4 +33,4 @@ COPY install.sh /install.sh
 RUN mkdir /licenses \
     && curl -o /licenses/apache-2.0.txt https://www.apache.org/licenses/LICENSE-2.0.txt \
     && curl -o /licenses/EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf https://www.redhat.com/licenses/EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf \
-    && /install.sh && rm -rf /install.sh
+    && /install.sh
