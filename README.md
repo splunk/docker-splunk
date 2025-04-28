@@ -52,7 +52,15 @@ This command does the following:
 1. Names the container as `so1`.
 1. Exposes a port mapping from the host's `8000` port to the container's `8000` port
 1. Specifies a custom `SPLUNK_PASSWORD`.
-1. Accepts the license agreement with `SPLUNK_START_ARGS=--accept-license`. This agreement must be explicitly accepted on every container or Splunk Enterprise doesn't start.
+1. Accepts the license agreement with `SPLUNK_START_ARGS=--accept-license`. This agreement must be explicitly accepted on every container or Splunk Enterprise doesn't start.**
+
+**: Starting in 10.x image version, license acceptance requires an additional environment variable `SPLUNK_GENERAL_TERMS=--accept-current-at-splunk-com`. This should be used in addition to the `SPLUNK_START_ARGS` mentioned above. The resulting command should look like:
+```bash
+$ docker run -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
+             -e "SPLUNK_START_ARGS=--accept-license" \
+             -e "SPLUNK_GENERAL_TERMS=--accept-current-at-splunk-com" \
+             -it --name so1 splunk/splunk:latest
+```
 
 After the container starts up, you can access Splunk Web at <http://localhost:8000> with `admin:<password>`.
 

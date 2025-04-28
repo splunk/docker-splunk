@@ -24,7 +24,7 @@ setup() {
 		printf "Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms.\n"
 		printf "Please read and make sure you agree to the Splunk General Terms before you access or use this software.\n"
 		printf "Only once you've done so should you include the '--accept-current-at-splunk-com' and '--accept-license' flags to indicate your acceptance of the Splunk General Terms and launch this software.\n"
-		printf "For example: docker run -e SPLUNK_GENERAL_TERMS=--accept-current-at-splunk-com SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD splunk/splunk\n\n"
+		printf "For example: docker run -e SPLUNK_GENERAL_TERMS=--accept-current-at-splunk-com -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD splunk/splunk\n\n"
 		printf "For additional information and examples, see the help: docker run -it splunk/splunk help\n"
 		exit 1
 	fi
