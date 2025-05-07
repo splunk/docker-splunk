@@ -76,7 +76,7 @@ ldconfig
 # Cleanup
 microdnf remove -y make gcc openssl-devel findutils glibc-devel cpp \
                    libffi-devel libcurl-devel libssh-devel libxcrypt-devel \
-                   ncurses-devel zlib-devel
+                   ncurses-devel zlib-devel glibc-headers kernel-headers
 microdnf clean all
 
 # Enable busybox symlinks
