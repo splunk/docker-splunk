@@ -31,6 +31,7 @@ Execute the following to bring up your deployment:
 $ docker run --name so1 --hostname so1 -p 8000:8000 \
               -e "SPLUNK_PASSWORD=<password>" \
               -e "SPLUNK_START_ARGS=--accept-license" \
+              -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
               -it splunk/splunk:latest
 ```
 
@@ -47,6 +48,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_PASSWORD
     ports:
       - 8000:8000
@@ -72,6 +74,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_LICENSE_URI=http://company.com/path/to/splunk.lic
       - SPLUNK_PASSWORD
     ports:
@@ -90,6 +93,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_LICENSE_URI=/tmp/license/splunk.lic
       - SPLUNK_PASSWORD
     ports:
@@ -118,6 +122,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_HEC_TOKEN=abcd1234
       - SPLUNK_PASSWORD
     ports:
@@ -151,6 +156,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_APPS_URL=http://company.com/path/to/app.tgz
       - SPLUNK_PASSWORD
     ports:
@@ -177,6 +183,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_APPS_URL=https://splunkbase.splunk.com/app/2890/release/4.1.0/download
       - SPLUNKBASE_USERNAME=&lt;username&gt;
       - SPLUNKBASE_PASSWORD
@@ -206,6 +213,7 @@ $ docker run --name so1 --hostname so1 -p 8000:8000 \
               -e "SPLUNK_HTTP_ENABLESSL_PRIVKEY_PASSWORD=abcd1234" \
               -e "SPLUNK_PASSWORD=<password>" \
               -e "SPLUNK_START_ARGS=--accept-license" \
+              -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
               -v /home:/home \
               -it splunk/splunk:latest
 ```
@@ -218,6 +226,7 @@ Execute the following to bring up a Splunk Free standalone environment:
 $ docker run --name so1 --hostname so1 -p 8000:8000 \
               -e "SPLUNK_PASSWORD=<password>" \
               -e "SPLUNK_START_ARGS=--accept-license" \
+              -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
               -e "SPLUNK_LICENSE_URI=Free" \
               -it splunk/splunk:latest
 ```
@@ -301,6 +310,7 @@ services:
     container_name: uf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_STANDALONE_URL=so1
       - SPLUNK_ADD=udp 1514,monitor /var/log/*
       - SPLUNK_PASSWORD
@@ -317,6 +327,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_STANDALONE_URL=so1
       - SPLUNK_PASSWORD
     ports:
@@ -354,6 +365,7 @@ services:
     container_name: hf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_ROLE=splunk_heavy_forwarder
       - SPLUNK_INDEXER_URL=idx1-splunk.company.internal
       - SPLUNK_ADD=tcp 1514
@@ -392,6 +404,7 @@ services:
     container_name: hf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_ROLE=splunk_heavy_forwarder
       - SPLUNK_INDEXER_URL=idx1-splunk.company.internal
       - SPLUNK_DEPLOYMENT_SERVER=depserver1
@@ -410,6 +423,7 @@ services:
     container_name: depserver1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_ROLE=splunk_deployment_server
       - SPLUNK_APPS_URL=https://artifact.company.internal/splunk_app.tgz
       - SPLUNK_PASSWORD
@@ -450,6 +464,7 @@ services:
     container_name: sh1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
@@ -471,6 +486,7 @@ services:
     container_name: cm1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
@@ -492,6 +508,7 @@ services:
     container_name: idx1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
@@ -513,6 +530,7 @@ services:
     container_name: idx2
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
@@ -534,6 +552,7 @@ services:
     container_name: idx3
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
@@ -580,6 +599,7 @@ services:
     container_name: sh1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -601,6 +621,7 @@ services:
     container_name: sh2
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -622,6 +643,7 @@ services:
     container_name: sh3
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -643,6 +665,7 @@ services:
     container_name: dep1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -664,6 +687,7 @@ services:
     container_name: idx1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -711,6 +735,7 @@ services:
     container_name: sh1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -733,6 +758,7 @@ services:
     container_name: sh2
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -755,6 +781,7 @@ services:
     container_name: sh3
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -777,6 +804,7 @@ services:
     container_name: dep1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -799,6 +827,7 @@ services:
     container_name: cm1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -821,6 +850,7 @@ services:
     container_name: idx1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -843,6 +873,7 @@ services:
     container_name: idx2
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -865,6 +896,7 @@ services:
     container_name: idx3
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -897,6 +929,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_ROOT_ENDPOINT=/splunkweb
       - SPLUNK_PASSWORD
     ports:
