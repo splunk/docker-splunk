@@ -36,6 +36,7 @@ services:
     environment:
       - SPLUNK_ROLE=splunk_heavy_forwarder
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_PASSWORD=helloworld
       - SPLUNK_DSP_ENABLE=true
       - SPLUNK_DSP_CERT=/opt/splunk/etc/auth/mycerts/my_forwarder-keys.pem
@@ -80,6 +81,7 @@ services:
     environment:
       - SPLUNK_ROLE=splunk_heavy_forwarder
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_PASSWORD=helloworld
       - SPLUNK_DSP_ENABLE=true
       - SPLUNK_DSP_CERT=auto

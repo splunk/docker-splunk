@@ -53,6 +53,7 @@ services:
     container_name: sh1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -80,6 +81,7 @@ services:
     container_name: <labeling the container>
     environment:
       - SPLUNK_START_ARGS=--accept-license <required in order to start container>
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com <required in order to start container>
       - SPLUNK_INDEXER_URL=<list of each indexer's hostname>
       - SPLUNK_SEARCH_HEAD_URL= <list of each search head's hostname>
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=<hostname of which container to make the captain>

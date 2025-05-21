@@ -37,6 +37,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_PASSWORD=changem3N0w!
       - DEBUG=true
     ports:
@@ -97,6 +98,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_PASSWORD=<password>
       - DEBUG=true
     ports:
@@ -157,6 +159,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_PASSWORD=<password>
       - DEBUG=true
       - SPLUNK_UPGRADE=true

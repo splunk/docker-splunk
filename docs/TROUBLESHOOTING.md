@@ -71,7 +71,7 @@ The two primary environment variables that may be of assistance are `DEBUG` and 
 
 In order to use `DEBUG`, create a container and define `DEBUG=true` as so:
 ```
-$ docker run -it -e DEBUG=true -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD=<password> splunk/splunk:latest
+$ docker run -it -e DEBUG=true -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com -e SPLUNK_PASSWORD=<password> splunk/splunk:latest
 ansible-playbook 2.7.7
   config file = /opt/ansible/ansible.cfg
   configured module search path = [u'/opt/ansible/library', u'/opt/ansible/apps/library', u'/opt/ansible/ansible_commands']
@@ -93,7 +93,7 @@ If you check the container logs for this particular container, you'll notice the
 
 The `ANSIBLE_EXTRA_FLAGS` is another help environment variable that can be used to display more information or output from Ansible. For instance, one practical application of this could be:
 ```
-$ docker run -it -e "ANSIBLE_EXTRA_FLAGS=-vv" -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD=<password> splunk/splunk:latest
+$ docker run -it -e "ANSIBLE_EXTRA_FLAGS=-vv" -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com -e SPLUNK_PASSWORD=<password> splunk/splunk:latest
 ansible-playbook 2.7.7
   config file = /opt/ansible/ansible.cfg
   configured module search path = [u'/opt/ansible/library', u'/opt/ansible/apps/library', u'/opt/ansible/ansible_commands']
@@ -122,7 +122,7 @@ The `no-provision` is a fairly useless supported command - after launching the c
 
 This `no-provision` keyword is an argument that gets passed into the container's entrypoint script, so you can use it in the following manner:
 ```
-$ docker run -it -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_PASSWORD=<password> -e SPLUNK_HEC_TOKEN=abcd1234 --name spldebug splunk/splunk:latest no-provision
+$ docker run -it -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com -e SPLUNK_PASSWORD=<password> -e SPLUNK_HEC_TOKEN=abcd1234 --name spldebug splunk/splunk:latest no-provision
 ```
 
 While by itself this seems fairly useless, it can be a great way to debug and troubleshoot Ansible problems locally. In the case above, we've set a `SPLUNK_HEC_TOKEN` environment variable. Let's go inside of this container and kick off Ansible manually, and make sure that the HEC token is set properly and that Splunk uses it:
