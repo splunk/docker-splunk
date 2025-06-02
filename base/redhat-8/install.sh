@@ -33,7 +33,7 @@ microdnf -y --nodocs install wget sudo shadow-utils procps tar make gcc \
                              diffutils bzip2
                              
 # Patch security updates
-microdnf -y --nodocs update gnutls kernel-headers libdnf librepo libnghttp2 nettle \
+microdnf -y --nodocs update gnutls libdnf librepo libnghttp2 nettle \
                             libpwquality libxml2 systemd-libs lz4-libs curl \
                             rpm rpm-libs sqlite-libs cyrus-sasl-lib vim expat \
                             openssl-libs xz-libs zlib libsolv file-libs pcre \
@@ -79,7 +79,7 @@ ldconfig
 microdnf remove -y make gcc openssl-devel bzip2-devel findutils glibc-devel cpp binutils \
                    keyutils-libs-devel krb5-devel libcom_err-devel libffi-devel libcurl-devel \
                    libselinux-devel libsepol-devel libssh-devel libverto-devel libxcrypt-devel \
-                   ncurses-devel pcre2-devel zlib-devel diffutils bzip2
+                   ncurses-devel pcre2-devel zlib-devel diffutils bzip2 glibc-headers kernel-headers
 microdnf clean all
 
 groupadd sudo
