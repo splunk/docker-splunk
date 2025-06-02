@@ -9,18 +9,22 @@ SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 SPLUNK_PRODUCT := splunk
 SPLUNK_VERSION := 9.4.0
 SPLUNK_BUILD := 6b4ebe426ca6
-SPLUNK_ARCH ?= 
+BUILD_ARCH ?= 
 ifeq ($(shell arch), s390x)
-	SYSTEM_ARCH = s390x
+	SPLUNK_ARCH = s390x
 else ifeq ($(shell arch), arm64)
-	SYSTEM_ARCH = arm64
+	SPLUNK_ARCH = arm64
 else
-	SYSTEM_ARCH = amd64
+	SPLUNK_ARCH = amd64
 endif
-ifeq (${SPLUNK_ARCH},)
-	SPLUNK_ARCH = ${SYSTEM_ARCH}
+ifeq (${BUILD_ARCH},)
+	BUILD_ARCH = ${SPLUNK_ARCH}
 endif
-DOCKER_FLAGS = ${DOCKER_BUILD_FLAGS} --platform linux/${SPLUNK_ARCH}
+#Special handling for s390x
+ifeq (${BUILD_ARCH}, s390x)
+	BUILD_ARCH = amd64
+endif
+DOCKER_FLAGS = ${DOCKER_BUILD_FLAGS} --platform linux/${BUILD_ARCH}
 
 # Linux Splunk arguments
 SPLUNK_LINUX_FILENAME ?= splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-linux-${SPLUNK_ARCH}.tgz
