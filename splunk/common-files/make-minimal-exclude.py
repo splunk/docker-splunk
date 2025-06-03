@@ -5,7 +5,6 @@ import re, sys
 EXCLUDE_V7 = """*-manifest
 */bin/installit.py
 */bin/jsmin*
-*/bin/*mongo*
 */bin/node*
 */bin/pcregextest*
 */etc/*.lic*
@@ -30,16 +29,12 @@ EXCLUDE_V7 = """*-manifest
 version_string = re.match(".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+\.?[0-9]?-[0-9a-z]+-[lL]inux-([0-9a-z_-]+).tgz", sys.argv[1])
 major_version = None
 minor_version = None
+arch = None
 
 if version_string:
     major_version = version_string.group(1)
     minor_version = version_string.group(2)
     arch = version_string.group(3)
-
-if arch != "arm64":
-    print("*/bin/jars/*")
-    print("*/3rdparty/Copyright-for-mongo*")
-    print("*/etc/apps/splunk_archiver*")
 
 if major_version:
     if int(major_version) == 7:
@@ -58,4 +53,9 @@ if major_version:
             EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jsmin*', '')
     elif int(major_version) > 9:
         EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jsmin*', '')
+    if arch != "aarch64" and arch != "amd64":
+        print("*/bin/jars/*")
+        print("*/bin/*mongo*")
+        print("*/3rdparty/Copyright-for-mongo*")
+        print("*/etc/apps/splunk_archiver*")
     print(EXCLUDE_V7)
