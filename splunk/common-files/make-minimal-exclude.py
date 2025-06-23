@@ -53,6 +53,13 @@ if major_version:
     elif int(major_version) == 9:
         if int(minor_version) >= 4:
             EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jsmin*', '')
-    elif int(major_version) > 9:
+    elif int(major_version) == 10:
+        if int(minor_version) >= 2:
+            EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/node*', '')
+            EXCLUDE_V7 = EXCLUDE_V7.replace('*/lib/node_modules*', '')
+        EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jsmin*', '')
+    elif int(major_version) > 10:
+        EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/node*', '')
+        EXCLUDE_V7 = EXCLUDE_V7.replace('*/lib/node_modules*', '')
         EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jsmin*', '')
     print(EXCLUDE_V7)
