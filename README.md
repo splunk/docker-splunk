@@ -55,9 +55,9 @@ This command does the following:
 1. Specifies a custom `SPLUNK_PASSWORD`.
 1. Accepts the license agreement with `SPLUNK_START_ARGS=--accept-license` and `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com`. This agreement must be explicitly accepted on every container or Splunk Enterprise doesn't start.**
 
-**: Starting in 10.x image versions, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the Splunk General Terms, available [here](https://www.splunk.com/en_us/legal/splunk-general-terms.html).  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms.  Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software.
-
 After the container starts up, you can access Splunk Web at <http://localhost:8000> with `admin:<password>`.
+
+**: Starting in 10.x image versions, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the Splunk General Terms, available [here](https://www.splunk.com/en_us/legal/splunk-general-terms.html), as may be updated to from time to time.  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms.  Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software.
 
 To view the logs from the container created above, run:
 ```bash
