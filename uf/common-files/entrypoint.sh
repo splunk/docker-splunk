@@ -20,7 +20,7 @@ setup() {
 	# Check if the user accepted the license
 	if [[ "$SPLUNK_GENERAL_TERMS" != *"--accept-sgt-current-at-splunk-com"* ]] || [[ "$SPLUNK_START_ARGS" != *"--accept-license"* ]]; then
 		printf "License not accepted, please adjust SPLUNK_GENERAL_TERMS and/or SPLUNK_START_ARGS to indicate you have accepted the current/latest version of the license.\n"
-		printf "The license you are accepting is the Splunk General Terms, available here: https://www.splunk.com/en_us/legal/splunk-general-terms.html\n"
+		printf "The license you are accepting is the Splunk General Terms, available here: https://www.splunk.com/en_us/legal/splunk-general-terms.html, as may be updated from time to time.\n"
 		printf "Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms.\n"
 		printf "Please read and make sure you agree to the Splunk General Terms before you access or use this software.\n"
 		printf "Only once you've done so should you include the '--accept-sgt-current-at-splunk-com' and '--accept-license' flags to indicate your acceptance of the Splunk General Terms and launch this software.\n"
