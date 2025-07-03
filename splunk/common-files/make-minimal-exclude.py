@@ -57,9 +57,13 @@ if major_version:
         if int(minor_version) >= 2:
             EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/node*', '')
             EXCLUDE_V7 = EXCLUDE_V7.replace('*/lib/node_modules*', '')
+            EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jars/*', '')
+            EXCLUDE_V7 = EXCLUDE_V7.replace('*/etc/apps/splunk_archiver*', '')
         EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jsmin*', '')
     elif int(major_version) > 10:
         EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/node*', '')
         EXCLUDE_V7 = EXCLUDE_V7.replace('*/lib/node_modules*', '')
         EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jsmin*', '')
+        EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jars/*', '')
+        EXCLUDE_V7 = EXCLUDE_V7.replace('*/etc/apps/splunk_archiver*', '')
     print(EXCLUDE_V7)
