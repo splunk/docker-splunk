@@ -17,6 +17,7 @@ Let's dive into the nitty-gritty of how to tweak the setup of your containerized
 * [Create custom configs](#create-custom-configs)
 * [Enable SmartStore](#enable-smartstore)
     * [Configure cache manager](#configure-cache-manager)
+* [Enable SPL2](#enable-SPL2)
 * [Forward to Data Stream Processor](#forward-to-data-stream-processor)
 * [Use a deployment server](#use-a-deployment-server)
 * [Deploy distributed topology](#deploy-distributed-topology)
@@ -324,6 +325,22 @@ splunk:
         hotlist_recency_secs: 30
         hotlist_bloom_filter_recency_hours: 1
   ...
+```
+
+## Enable SPL2
+To use SPL2, you have to add additional startup parameters when running your Docker container:
+* `-e SPLUNK_LAUNCH_CONF="SPLUNK_ORCHESTRATOR_URL=http://localhost:9800"`
+* `-p 8089:8089`
+
+**Note:** The `-p 8089:8089` argument is only required if you want to send HTTP requests directly to the Orchestrator. It is not needed if you are only using the Splunk UI.
+
+A sample command to run your `docker-splunk` container would look like this:
+```bash
+docker run -d -p 8000:8000 -p 8089:8089 \
+  -e "SPLUNK_START_ARGS=--accept-license" \
+  -e "SPLUNK_PASSWORD=<password>" \
+  -e "SPLUNK_LAUNCH_CONF=SPLUNK_ORCHESTRATOR_URL=http://localhost:9800" \
+  --name splunk splunk/splunk:latest
 ```
 
 ## Forward to Data Stream Processor
