@@ -30,6 +30,7 @@ The provisioning of these disjoint containers is handled by the [Splunk-Ansible]
     * [Apply Splunk license](ADVANCED.md#apply-splunk-license)
     * [Create custom configs](ADVANCED.md#create-custom-configs)
     * [Enable SmartStore](ADVANCED.md#enable-smartstore)
+    * [Enable SPL2](ADVANCED.md#enable-SPL2)
     * [Use a deployment server](ADVANCED.md#use-a-deployment-server)
     * [Deploy distributed topology](ADVANCED.md#deploy-distributed-topology)
     * [Enable SSL communication](ADVANCED.md#enable-ssl-internal-communication)
