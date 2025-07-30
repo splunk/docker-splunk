@@ -2,6 +2,10 @@
 
 Let's dive into the nitty-gritty of how to tweak the setup of your containerized Splunk deployment. This section goes over in detail various features and functionality that a traditional Splunk Enterprise solution is capable of.
 
+Starting in 10.x image versions of Splunk Enterprise and Splunk Universal Forwarder, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the Splunk General Terms, available [here](https://www.splunk.com/en_us/legal/splunk-general-terms.html), as may be updated from time to time.  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms posted at the time of your access and use and acknowledging its applicability to the Splunk software. Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software. All examples below have been updated with this change.
+
+If you use the below examples and the `--accept-license` and `accept-sgt-current-at-splunk-com` flags you are indicating that you have read and accepted the current/latest version of the Splunk General Terms, as may be updated from time to time, and acknowledging its applicability to this software - as noted above.
+
 ## Navigation
 
 * [Runtime configuration](#runtime-configuration)
@@ -56,18 +60,21 @@ Environment variables specified at runtime will take precedence over anything de
 # Volume-mounting option using --volumes/-v flag
 $ docker run -d -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
              -e "SPLUNK_START_ARGS=--accept-license" \
+             -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
              -v "$(pwd)/default.yml:/tmp/defaults/default.yml" \
              splunk/splunk:latest
 
 # Volume-mounting option using --mount flag
 $ docker run -d -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
              -e "SPLUNK_START_ARGS=--accept-license" \
+             -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
              --mount type=bind,source="$(pwd)"/default.yml,target=/tmp/defaults/default.yml
              splunk/splunk:latest
 
 # URL option
 $ docker run -d -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
              -e "SPLUNK_START_ARGS=--accept-license" \
+             -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
              -e "SPLUNK_DEFAULTS_URL=http://company.net/path/to/default.yml" \
              splunk/splunk:latest
 ```
@@ -225,6 +232,7 @@ Apps can be installed by using the `SPLUNK_APPS_URL` environment variable when c
 ```bash
 $ docker run --name splunk -e "SPLUNK_PASSWORD=<password>" \
               -e "SPLUNK_START_ARGS=--accept-license" \
+              -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
               -e "SPLUNK_APPS_URL=http://company.com/path/to/app.tgz" \
               -it splunk/splunk:latest
 ```
@@ -236,6 +244,7 @@ Licenses can be added with the `SPLUNK_LICENSE_URI` environment variable when cr
 ```bash
 $ docker run --name splunk -e "SPLUNK_PASSWORD=<password>" \
               -e "SPLUNK_START_ARGS=--accept-license" \
+              -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
               -e "SPLUNK_LICENSE_URI=http://company.com/path/to/splunk.lic" \
               -it splunk/splunk:latest
 ```

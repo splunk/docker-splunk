@@ -3,6 +3,10 @@
 
 The Splunk Docker image supports native integration with DSP through forwarders. Both universal and heavy forwarders can be automatically provisioned to send traffic to DSP, wherein custom pipelines can be configured to redirect and reformat the data as desired.
 
+Starting in 10.x image versions of Splunk Enterprise and Splunk Universal Forwarder, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the Splunk General Terms, available [here](https://www.splunk.com/en_us/legal/splunk-general-terms.html), as may be updated from time to time.  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms posted at the time of your access and use and acknowledging its applicability to the Splunk software. Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software. All examples below have been updated with this change.
+
+If you use the below examples and the `--accept-license` and `accept-sgt-current-at-splunk-com` flags you are indicating that you have read and accepted the current/latest version of the Splunk General Terms, as may be updated from time to time, and acknowledging its applicability to this software - as noted above.
+
 ## Navigation
 
 * [Forwarding traffic](#forwarding-traffic)
@@ -36,6 +40,7 @@ services:
     environment:
       - SPLUNK_ROLE=splunk_heavy_forwarder
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_PASSWORD=helloworld
       - SPLUNK_DSP_ENABLE=true
       - SPLUNK_DSP_CERT=/opt/splunk/etc/auth/mycerts/my_forwarder-keys.pem
@@ -80,6 +85,7 @@ services:
     environment:
       - SPLUNK_ROLE=splunk_heavy_forwarder
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_PASSWORD=helloworld
       - SPLUNK_DSP_ENABLE=true
       - SPLUNK_DSP_CERT=auto

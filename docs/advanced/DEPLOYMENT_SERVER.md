@@ -5,6 +5,10 @@ This is particularly helpful and useful in the case of running multiple standalo
 
 **NOTE:** Installation of Splunk Enterprise Security (ES) and Splunk IT Service Intelligence (ITSI) is currently not supported with this image. Please contact Splunk Services for more information on using these applications with Splunk Enterprise in a container.
 
+Starting in 10.x image versions of Splunk Enterprise and Splunk Universal Forwarder, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the Splunk General Terms, available [here](https://www.splunk.com/en_us/legal/splunk-general-terms.html), as may be updated from time to time.  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms posted at the time of your access and use and acknowledging its applicability to the Splunk software. Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software. All examples below have been updated with this change.
+
+If you use the below examples and the `--accept-license` and `accept-sgt-current-at-splunk-com` flags you are indicating that you have read and accepted the current/latest version of the Splunk General Terms, as may be updated from time to time, and acknowledging its applicability to this software - as noted above.
+
 ## Navigation
 
 * [Examples](#examples)
@@ -39,6 +43,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_DEPLOYMENT_SERVER=depserver1
       - SPLUNK_PASSWORD
     ports:
@@ -54,6 +59,7 @@ services:
     container_name: depserver1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_ROLE=splunk_deployment_server
       - SPLUNK_APPS_URL=https://artifact.company.internal/splunk_app.tgz
       - SPLUNK_PASSWORD
@@ -89,6 +95,7 @@ services:
     container_name: hf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_ROLE=splunk_heavy_forwarder
       - SPLUNK_INDEXER_URL=idx1-splunk.company.internal
       - SPLUNK_DEPLOYMENT_SERVER=depserver1
@@ -107,6 +114,7 @@ services:
     container_name: depserver1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_ROLE=splunk_deployment_server
       - SPLUNK_APPS_URL=https://artifact.company.internal/splunk_app.tgz
       - SPLUNK_PASSWORD
@@ -142,6 +150,7 @@ services:
     container_name: uf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1-splunk.company.internal
       - SPLUNK_DEPLOYMENT_SERVER=depserver1
       - SPLUNK_ADD=tcp 1514
@@ -159,6 +168,7 @@ services:
     container_name: depserver1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_ROLE=splunk_deployment_server
       - SPLUNK_APPS_URL=https://artifact.company.internal/splunk_app.tgz
       - SPLUNK_PASSWORD
@@ -198,6 +208,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_DEPLOYMENT_SERVER=ds-1
       - SPLUNK_PASSWORD
     ports:
@@ -213,6 +224,7 @@ services:
     container_name: hf1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_ROLE=splunk_heavy_forwarder
       - SPLUNK_STANDALONE_URL=so1
       - SPLUNK_DEPLOYMENT_SERVER=ds-2
@@ -231,6 +243,7 @@ services:
     container_name: ds-1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_ROLE=splunk_deployment_server
       - SPLUNK_APPS_URL=https://artifact.company.internal/splunk_app_for_standalone.tgz
       - SPLUNK_PASSWORD
@@ -245,6 +258,7 @@ services:
     container_name: ds-2
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_ROLE=splunk_deployment_server
       - SPLUNK_APPS_URL=https://artifact.company.internal/splunk_app_for_forwarder.tgz
       - SPLUNK_PASSWORD

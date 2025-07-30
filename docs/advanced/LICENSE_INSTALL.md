@@ -3,6 +3,9 @@ The Splunk Docker image supports the ability to bring your own Enterprise licens
 
 There are primarily two different ways to apply a license when starting your container: either through a file/directory volume-mounted inside the container, or through an external URL for dynamic downloads. The environment variable `SPLUNK_LICENSE_URI` supports both of these methods.
 
+Starting in 10.x image versions of Splunk Enterprise and Splunk Universal Forwarder, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the Splunk General Terms, available [here](https://www.splunk.com/en_us/legal/splunk-general-terms.html), as may be updated from time to time.  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms posted at the time of your access and use and acknowledging its applicability to the Splunk software. Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software. All examples below have been updated with this change.
+
+If you use the below examples and the `--accept-license` and `accept-sgt-current-at-splunk-com` flags you are indicating that you have read and accepted the current/latest version of the Splunk General Terms, as may be updated from time to time, and acknowledging its applicability to this software - as noted above.
 
 ## Navigation
 
@@ -32,6 +35,7 @@ services:
     hostname: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_LICENSE_URI=/run/secrets/splunk_license
       - SPLUNK_PASSWORD
     ports:
@@ -55,6 +59,7 @@ services:
     hostname: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_LICENSE_URI=/tmp/splunk.lic
       - SPLUNK_PASSWORD
     ports:
@@ -84,6 +89,7 @@ services:
     hostname: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_LICENSE_URI=http://webserver/path/to/splunk.lic
       - SPLUNK_PASSWORD
     ports:
@@ -101,7 +107,7 @@ Not to be confused with an actual free Splunk enterprise license, but [Splunk Fr
 
 To bring up a single instance using Splunk Free, you can run the following command:
 ```
-$ docker run --name so1 --hostname so1 -p 8000:8000 -e SPLUNK_PASSWORD=<password> -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_LICENSE_URI=Free -it splunk/splunk:latest
+$ docker run --name so1 --hostname so1 -p 8000:8000 -e SPLUNK_PASSWORD=<password> -e SPLUNK_START_ARGS=--accept-license -e SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com -e SPLUNK_LICENSE_URI=Free -it splunk/splunk:latest
 ```
 
 ## Using a license master
@@ -130,6 +136,7 @@ services:
     container_name: lm1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_STANDALONE_URL=so1
       - SPLUNK_LICENSE_MASTER_URL=lm1
       - SPLUNK_ROLE=splunk_license_master
@@ -147,6 +154,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_STANDALONE_URL=so1
       - SPLUNK_LICENSE_MASTER_URL=lm1
       - SPLUNK_ROLE=splunk_standalone
@@ -179,6 +187,7 @@ services:
     container_name: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_STANDALONE_URL=so1
       - SPLUNK_LICENSE_MASTER_URL=http://central-license-master.internal.com:8088
       - SPLUNK_ROLE=splunk_standalone

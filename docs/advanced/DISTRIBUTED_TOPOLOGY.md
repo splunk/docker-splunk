@@ -2,6 +2,10 @@
 
 ***Note:** Splunk does not offer support for Docker or any orchestration platforms like Kubernetes, Docker Swarm, Apache Mesos, etc. Support covers only the published Splunk Docker images. At this time, we strongly recommend that only very experienced and advanced customers use Docker to run Splunk clusters.*
 
+Starting in 10.x image versions of Splunk Enterprise and Splunk Universal Forwarder, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the Splunk General Terms, available [here](https://www.splunk.com/en_us/legal/splunk-general-terms.html), as may be updated from time to time.  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms posted at the time of your access and use and acknowledging its applicability to the Splunk software. Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software. All examples below have been updated with this change.
+
+If you use the below examples and the `--accept-license` and `accept-sgt-current-at-splunk-com` flags you are indicating that you have read and accepted the current/latest version of the Splunk General Terms, as may be updated from time to time, and acknowledging its applicability to this software - as noted above.
+
 While Splunk does not support orchestrators or the YAML templates required to deploy and manage clusters and other advanced configurations, we provide several examples of these different configurations in the "test_scenarios" folder. These are for prototyping purposes only.
 
 One of the most common configurations of Splunk Enterprise is the C3 configuration
@@ -53,6 +57,7 @@ services:
     container_name: sh1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3,idx4
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -80,6 +85,7 @@ services:
     container_name: <labeling the container>
     environment:
       - SPLUNK_START_ARGS=--accept-license <required in order to start container>
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com <required in order to start container>
       - SPLUNK_INDEXER_URL=<list of each indexer's hostname>
       - SPLUNK_SEARCH_HEAD_URL= <list of each search head's hostname>
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=<hostname of which container to make the captain>

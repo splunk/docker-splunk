@@ -5,6 +5,10 @@ App installation can be done a variety of ways: either through a file/directory 
 
 **NOTE:** Installation of Splunk Enterprise Security (ES) and Splunk IT Service Intelligence (ITSI) is currently not supported with this image. Please contact Splunk Services for more information on using these applications with Splunk Enterprise in a container.
 
+Starting in 10.x image versions of Splunk Enterprise and Splunk Universal Forwarder, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the Splunk General Terms, available [here](https://www.splunk.com/en_us/legal/splunk-general-terms.html), as may be updated from time to time.  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms posted at the time of your access and use and acknowledging its applicability to the Splunk software. Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software. All examples below have been updated with this change.
+
+If you use the below examples and the `--accept-license` and `accept-sgt-current-at-splunk-com` flags you are indicating that you have read and accepted the current/latest version of the Splunk General Terms, as may be updated from time to time, and acknowledging its applicability to this software - as noted above.
+
 ## Navigation
 
 * [Volume-mount app directory](#volume-mount-app-directory)
@@ -25,10 +29,10 @@ $ find . -type f
 We can bind-mount this upon container start and use it as a regular Splunk app:
 ```bash
 # Volume-mounting option using --volumes/-v flag
-$ docker run -it -v "$(pwd)/splunk_app_example:/opt/splunk/etc/apps/splunk_app_example/" --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
+$ docker run -it -v "$(pwd)/splunk_app_example:/opt/splunk/etc/apps/splunk_app_example/" --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -e SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com -it splunk/splunk:latest
 
 # Volume-mounting option using --mount flag
-$ docker run -it --mount type=bind,source="$(pwd)"/splunk_app_example,target=/opt/splunk/etc/apps/splunk_app_example/ --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -it splunk/splunk:latest
+$ docker run -it --mount type=bind,source="$(pwd)"/splunk_app_example,target=/opt/splunk/etc/apps/splunk_app_example/ --name so1 --hostname so1 -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" -e "SPLUNK_START_ARGS=--accept-license" -e SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com -it splunk/splunk:latest
 ```
 
 You should be able to view the `splunk_app_example` in SplunkWeb after the container successfully finished provisioning.
@@ -48,6 +52,7 @@ services:
     hostname: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_APPS_URL=https://splunkbase.splunk.com/app/2890/release/4.1.0/download
       - SPLUNKBASE_USERNAME=<sb-username>
       - SPLUNKBASE_PASSWORD=<sb-password>
@@ -68,6 +73,7 @@ services:
     hostname: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_APPS_URL=https://webserver/apps/app.spl
       - SPLUNK_PASSWORD=<password>
     ports:
@@ -88,6 +94,7 @@ services:
     hostname: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_APPS_URL=/tmp/app.tgz
       - SPLUNK_PASSWORD=<password>
     ports:
@@ -108,6 +115,7 @@ services:
     hostname: so1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_APPS_URL=/tmp/app.tgz,https://webserver/apps/app.spl,https://splunkbase.splunk.com/app/2890/release/4.1.0/download
       - SPLUNKBASE_USERNAME=<sb-username>
       - SPLUNKBASE_PASSWORD=<sb-password>
@@ -141,6 +149,7 @@ services:
     container_name: sh1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2
       - SPLUNK_SEARCH_HEAD_URL=sh1,sh2
       - SPLUNK_ROLE=splunk_search_head
@@ -160,6 +169,7 @@ services:
     container_name: sh2
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2
       - SPLUNK_SEARCH_HEAD_URL=sh1,sh2
       - SPLUNK_ROLE=splunk_search_head
@@ -179,6 +189,7 @@ services:
     container_name: idx1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2
       - SPLUNK_SEARCH_HEAD_URL=sh1,sh2
       - SPLUNK_ROLE=splunk_indexer
@@ -198,6 +209,7 @@ services:
     container_name: idx2
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2
       - SPLUNK_SEARCH_HEAD_URL=sh1,sh2
       - SPLUNK_ROLE=splunk_indexer
@@ -230,6 +242,7 @@ services:
     container_name: dep1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -250,6 +263,7 @@ services:
     container_name: sh1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -269,6 +283,7 @@ services:
     container_name: sh2
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -288,6 +303,7 @@ services:
     container_name: sh3
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -307,6 +323,7 @@ services:
     container_name: idx1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -326,6 +343,7 @@ services:
     container_name: idx2
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2
       - SPLUNK_SEARCH_HEAD_URL=sh2,sh3
       - SPLUNK_SEARCH_HEAD_CAPTAIN_URL=sh1
@@ -357,6 +375,7 @@ services:
     container_name: sh1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
@@ -376,6 +395,7 @@ services:
     container_name: cm1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
@@ -396,6 +416,7 @@ services:
     container_name: idx1
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
@@ -415,6 +436,7 @@ services:
     container_name: idx2
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh1
       - SPLUNK_CLUSTER_MASTER_URL=cm1
@@ -434,6 +456,7 @@ services:
     container_name: idx3
     environment:
       - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_INDEXER_URL=idx1,idx2,idx3
       - SPLUNK_SEARCH_HEAD_URL=sh1,sh2,sh3
       - SPLUNK_CLUSTER_MASTER_URL=cm1
