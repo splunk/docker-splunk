@@ -337,20 +337,33 @@ splunk:
 ```
 
 ## Enable SPL2
-To use SPL2, you have to add additional startup parameters when running your Docker container:
+Splunk 10.2 and later:
+* `-p 8089:8089` (only if you plan to send HTTP requests directly to the Orchestrator)
+
+Example (10.2+):
+```bash
+docker run -d -p 8000:8000 -p 8089:8089 \
+  -e "SPLUNK_START_ARGS=--accept-license" \
+  -e "SPLUNK_PASSWORD=<password>" \
+  --name splunk splunk/splunk:latest
+```
+
+Legacy (Splunk 10.1.x and earlier):
+Add:
 * `-e SPLUNK_LAUNCH_CONF="SPLUNK_ORCHESTRATOR_URL=http://localhost:9800"`
 * `-p 8089:8089`
 
-**Note:** The `-p 8089:8089` argument is only required if you want to send HTTP requests directly to the Orchestrator. It is not needed if you are only using the Splunk UI.
-
-A sample command to run your `docker-splunk` container would look like this:
+Example (<10.2):
 ```bash
 docker run -d -p 8000:8000 -p 8089:8089 \
   -e "SPLUNK_START_ARGS=--accept-license" \
   -e "SPLUNK_PASSWORD=<password>" \
   -e "SPLUNK_LAUNCH_CONF=SPLUNK_ORCHESTRATOR_URL=http://localhost:9800" \
-  --name splunk splunk/splunk:latest
+  --name splunk splunk/splunk:10.1.5
 ```
+
+Note: The `-p 8089:8089` argument is only required if you want to send HTTP requests directly to the Orchestrator. It is not needed if you are only using the Splunk UI.
+Starting with Splunk 10.2, a default value for `SPLUNK_ORCHESTRATOR_URL` is provided (`http://localhost:9800`) so you no longer need to set `SPLUNK_LAUNCH_CONF` for SPL2 enablement. For Splunk versions prior to 10.2, continue to set the variable explicitly as shown below
 
 ## Forward to Data Stream Processor
 See the [DSP integration document](advanced/DSP.md) to learn how to directly send data from a forwarder to [Splunk Data Stream Processor](https://www.splunk.com/en_us/software/stream-processing.html).
