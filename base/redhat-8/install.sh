@@ -30,7 +30,7 @@ export LANG=en_US.utf8
 microdnf -y --nodocs install wget sudo shadow-utils procps tar make gcc \
                              openssl-devel bzip2-devel libffi-devel findutils \
                              libssh-devel libcurl-devel ncurses-devel \
-                             diffutils bzip2
+                             diffutils bzip2 findutils
                              
 # Patch security updates
 microdnf -y --nodocs update gnutls libdnf librepo libnghttp2 nettle \
