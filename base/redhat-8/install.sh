@@ -30,7 +30,7 @@ export LANG=en_US.utf8
 microdnf -y --nodocs install wget sudo shadow-utils procps tar make gcc \
                              openssl-devel bzip2-devel libffi-devel findutils \
                              libssh-devel libcurl-devel ncurses-devel \
-                             diffutils bzip2 findutils
+                             diffutils bzip2
                              
 # Patch security updates
 microdnf -y --nodocs update gnutls libdnf librepo libnghttp2 nettle \
@@ -77,7 +77,7 @@ find /usr/lib/ -depth \( -type f -a -name 'wininst-*.exe' \) -exec rm -rf '{}' \
 ldconfig
 
 # Cleanup
-microdnf remove -y make gcc openssl-devel bzip2-devel findutils glibc-devel cpp binutils \
+microdnf remove -y make gcc openssl-devel bzip2-devel glibc-devel cpp binutils \
                    keyutils-libs-devel krb5-devel libcom_err-devel libffi-devel libcurl-devel \
                    libselinux-devel libsepol-devel libssh-devel libverto-devel libxcrypt-devel \
                    ncurses-devel pcre2-devel zlib-devel diffutils bzip2 glibc-headers kernel-headers
