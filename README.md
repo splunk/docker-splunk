@@ -46,9 +46,9 @@ Start a single containerized instance of Splunk Enterprise with the command belo
 
 ```bash
 $ docker run -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
-             -e "SPLUNK_START_ARGS=--accept-license" \
-             -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
-             -it --name so1 splunk/splunk:latest
+    -e "SPLUNK_START_ARGS=--accept-license" \
+    -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
+    -it --name so1 splunk/splunk:latest
 ```
 
 This command does the following:
@@ -95,7 +95,7 @@ To install an app, run:
 
 ```bash
 docker exec -u splunk so1 /opt/splunk/bin/splunk install \
- /path/to/app.tar -auth "admin:${SPLUNK_PASSWORD}"
+    /path/to/app.tar -auth "admin:${SPLUNK_PASSWORD}"
 
 # Alternatively, apps can be installed at Docker run-time
 docker run -e SPLUNK_APPS_URL=http://web/app.tgz ...
