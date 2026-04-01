@@ -25,8 +25,8 @@ LABEL name="splunk" \
       summary="UBI 8 Docker image of Splunk Enterprise" \
       description="Splunk Enterprise is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results."
 
-ENV PYTHON_VERSION=3.9.19 \
-    PYTHON_GPG_KEY_ID=E3FF2839C048B25C084DEBE9B26995E310250568
+ENV PYTHON_VERSION=3.13.12 \
+    PYTHON_GPG_KEY_ID=A821E680E5FA6305
 
 COPY install.sh /install.sh
 
