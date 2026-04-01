@@ -64,9 +64,9 @@ ln -sf /usr/bin/pip${PY_SHORT} /usr/bin/pip3
 
 # Install splunk-ansible dependencies
 cd /
-/usr/bin/python3.9 -m pip install --upgrade pip
-pip -q --no-cache-dir install --upgrade requests_unixsocket requests six wheel Mako urllib3 certifi jmespath future avro cryptography lxml protobuf setuptools ansible
-rm -rf /usr/lib/python3.9/site-packages/ansible_collections/netbox/
+/usr/bin/python3 -m pip install --upgrade pip
+pip -q --no-cache-dir install --upgrade requests_unixsocket requests six wheel Mako urllib3 certifi jmespath future avro cryptography lxml protobuf setuptools ansible~=11.0
+rm -rf /usr/lib/python3.13/site-packages/ansible_collections/{grafana,community/digitalocean}
 
 # Remove tests packaged in python libs
 find /usr/lib/ -depth \( -type d -a -not -wholename '*/ansible/plugins/test' -a \( -name test -o -name tests -o -name idle_test \) \) -exec rm -rf '{}' \;
