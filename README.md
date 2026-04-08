@@ -26,12 +26,14 @@ Red Hat images will continue to be published.
 
 ## Purpose
 
-#### What is Splunk Enterprise?
+### What is Splunk Enterprise?
+
 [Splunk Enterprise](https://www.splunk.com/en_us/software/splunk-enterprise.html) is a platform for operational intelligence. Our software lets you collect, analyze, and act upon the untapped value of big data that your technology infrastructure, security systems, and business applications generate. It gives you insights to drive operational performance and business results.
 
 See [Splunk Products](https://www.splunk.com/en_us/software.html) for more information about the features and capabilities of Splunk products and how you can [bring them into your organization](https://www.splunk.com/en_us/enterprise-data-platform.html).
 
-#### What is Docker-Splunk?
+### What is Docker-Splunk?
+
 This is the official source code repository for building Docker images of Splunk Enterprise and Splunk Universal Forwarder. By introducing containerization, we can marry the ideals of infrastructure-as-code and declarative directives to manage and run Splunk Enterprise.
 
 The provisioning of these containers is handled by the [Splunk-Ansible](https://github.com/splunk/splunk-ansible) project. Refer to the [Splunk-Ansible documentation](https://splunk.github.io/splunk-ansible/) and the [Ansible User Guide](https://docs.ansible.com/ansible/latest/user_guide/index.html) for more details.
@@ -41,30 +43,38 @@ The provisioning of these containers is handled by the [Splunk-Ansible](https://
 ## Quickstart
 
 Start a single containerized instance of Splunk Enterprise with the command below, replacing `<password>` with a password string that conforms to the [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile).
+
 ```bash
 $ docker run -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
-             -e "SPLUNK_START_ARGS=--accept-license" \
-             -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
-             -it --name so1 splunk/splunk:latest
+    -e "SPLUNK_START_ARGS=--accept-license" \
+    -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
+    -it --name so1 splunk/splunk:latest
 ```
 
 This command does the following:
+
 1. Starts a Docker container using the `splunk/splunk:latest` image.
 1. Names the container as `so1`.
 1. Exposes a port mapping from the host's `8000` port to the container's `8000` port
 1. Specifies a custom `SPLUNK_PASSWORD`.
 1. Accepts the license agreement with `SPLUNK_START_ARGS=--accept-license` and `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com`. This agreement must be explicitly accepted on every container or Splunk Enterprise doesn't start.**
 
+> [!NOTE]
+>
+> If you're using a Mac/Apple Silicon CPU/ARM as a host system, add `--platform linux/amd64` to the command to run the container. This requires Rosetta or the appropriate emulation layer for your operating system.
+
 After the container starts up, you can access Splunk Web at <http://localhost:8000> with `admin:<password>`.
 
-**: Starting in 10.x image versions of Splunk Enterprise and Splunk Universal Forwarder, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the Splunk General Terms, available [here](https://www.splunk.com/en_us/legal/splunk-general-terms.html), as may be updated from time to time.  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms posted at the time of your access and use and acknowledging its applicability to the Splunk software. Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software. All examples below have been updated with this change.
+**: Starting in 10.x image versions of Splunk Enterprise and Splunk Universal Forwarder, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the [Splunk General Terms, available here](https://www.splunk.com/en_us/legal/splunk-general-terms.html), as may be updated from time to time.  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms posted at the time of your access and use and acknowledging its applicability to the Splunk software. Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software. All examples below have been updated with this change.
 
 To view the logs from the container created above, run:
+
 ```bash
-$ docker logs -f so1
+docker logs -f so1
 ```
 
 To enter the container and run Splunk CLI commands, run:
+
 ```bash
 # Defaults to the user "ansible"
 docker exec -it so1 /bin/bash
@@ -74,6 +84,7 @@ docker exec -u splunk -it so1 bash
 ```
 
 To enable TCP 10514 for listening, run:
+
 ```bash
 docker exec -u splunk so1 /opt/splunk/bin/splunk add tcp 10514 \
     -sourcetype syslog -resolvehost true \
@@ -81,9 +92,10 @@ docker exec -u splunk so1 /opt/splunk/bin/splunk add tcp 10514 \
 ```
 
 To install an app, run:
+
 ```bash
 docker exec -u splunk so1 /opt/splunk/bin/splunk install \
-	/path/to/app.tar -auth "admin:${SPLUNK_PASSWORD}"
+    /path/to/app.tar -auth "admin:${SPLUNK_PASSWORD}"
 
 # Alternatively, apps can be installed at Docker run-time
 docker run -e SPLUNK_APPS_URL=http://web/app.tgz ...
@@ -91,31 +103,36 @@ docker run -e SPLUNK_APPS_URL=http://web/app.tgz ...
 
 See [Deploy and run Splunk Enterprise inside a Docker container](https://docs.splunk.com/Documentation/Splunk/latest/Installation/DeployandrunSplunkEnterpriseinsideDockercontainers) for more information.
 
----
+----
 
 ## Documentation
+
 Visit the [Docker-Splunk documentation](https://splunk.github.io/docker-splunk/) page for full usage instructions, including installation, examples, and advanced deployment scenarios.
 
----
+----
 
 ## Support
+
 Use the [GitHub issue tracker](https://github.com/splunk/docker-splunk/issues) to submit bugs or request features.
 
 If you have additional questions or need more support, you can:
+
 * Post a question to [Splunk Answers](http://answers.splunk.com)
-* Join the [#docker](https://splunk-usergroups.slack.com/messages/C1RH09ERM/) room in the [Splunk Slack channel](http://splunk-usergroups.slack.com). If you're a new Splunk customer you can register for Slack [here](http://splk.it/slack)
-* If you are a Splunk Enterprise customer with a valid support entitlement contract and have a Splunk-related question, you can also open a support case on the https://www.splunk.com/ support portal
+* Join the [#docker](https://splunk-usergroups.slack.com/messages/C1RH09ERM/) room in the [Splunk Slack channel](http://splunk-usergroups.slack.com). If you're a new Splunk customer you can [register for Slack](http://splk.it/slack).
+* If you are a Splunk Enterprise customer with a valid support entitlement contract and have a Splunk-related question, you can also open a support case on the <https://www.splunk.com/> support portal
 
 See the official [support guidelines](docs/SUPPORT.md) for more detailed information.
 
----
+----
 
 ## Contributing
+
 We welcome feedback and contributions from the community! See our [contribution guidelines](docs/CONTRIBUTING.md) for more information on how to get involved.
 
----
+----
 
 ## License
+
 Copyright 2018-2024 Splunk.
 
 Distributed under the terms of our [license](docs/LICENSE.md), splunk-ansible is free and open source software.
@@ -125,4 +142,5 @@ The software in this container is licensed under and subject to the [Splunk Gene
 If you do not agree, do not access or use this software.
 
 ## Authors
+
 Splunk Inc. and the Splunk Community

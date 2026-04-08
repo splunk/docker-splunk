@@ -1,27 +1,33 @@
 ## Navigation
 
-* [Requirements](#requirements)
-* [Install](#install)
-* [Deploy](#deploy)
-    * [Standalone deployment](#standalone-deployment)
-    * [Distributed deployment](#distributed-deployment)
-* [See also](#see-also)
+- [Navigation](#navigation)
+- [Requirements](#requirements)
+- [Install](#install)
+- [Deploy](#deploy)
+  - [Standalone deployment](#standalone-deployment)
+  - [Distributed deployment](#distributed-deployment)
+    - [Splunk Enterprise](#splunk-enterprise)
+    - [Splunk Universal Forwarder](#splunk-universal-forwarder)
+- [See also](#see-also)
 
 ## Requirements
-In order to run this Docker image, you must meet the official [System requirements](SUPPORT.md#system-requirements). Failure to do so will render your deployment in an unsupported state. See [Support violation](SUPPORT.md##support-violation) for details.
+
+In order to run this Docker image, you must meet the official [System requirements](SUPPORT.md#system-requirements). Failure to do so will render your deployment in an unsupported state. See [Support violation](SUPPORT.md#support-violation) for details.
 
 ## Install
+
 Run the following commands to pull the latest images down from Docker Hub and into your local environment:
-```
-$ docker pull splunk/splunk:latest
-$ docker pull splunk/universalforwarder:latest
+
+```bash
+docker pull splunk/splunk:latest
+docker pull splunk/universalforwarder:latest
 ```
 
 ## Deploy
 
 This section explains how to start basic standalone and distributed deployments. See the [Examples](EXAMPLES.md) page for instructions on creating additional types of deployments.
 
-Starting in 10.x image versions of Splunk Enterprise and Splunk Universal Forwarder, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the Splunk General Terms, available [here](https://www.splunk.com/en_us/legal/splunk-general-terms.html), as may be updated from time to time.  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms posted at the time of your access and use and acknowledging its applicability to the Splunk software. Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software. All examples below have been updated with this change.
+Starting in 10.x image versions of Splunk Enterprise and Splunk Universal Forwarder, license acceptance requires an additional `SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com` argument. This indicates that users have read and accepted the current/latest version of the [Splunk General Terms, available here](https://www.splunk.com/en_us/legal/splunk-general-terms.html), as may be updated from time to time.  Unless you have jointly executed with Splunk a negotiated version of these General Terms that explicitly supersedes this agreement, by accessing or using Splunk software, you are agreeing to the Splunk General Terms posted at the time of your access and use and acknowledging its applicability to the Splunk software. Please read and make sure you agree to the Splunk General Terms before you access or use this software.  Only after doing so should you include the `--accept-license` and `--accept-sgt-current-at-splunk-com` flags to indicate your acceptance of the Splunk General Terms and launch this software. All examples below have been updated with this change.
 
 If you use the below examples and the `--accept-license` and `accept-sgt-current-at-splunk-com` flags you are indicating that you have read and accepted the current/latest version of the Splunk General Terms, as may be updated from time to time, and acknowledging its applicability to this software - as noted above.
 
@@ -30,13 +36,20 @@ If you use the below examples and the `--accept-license` and `accept-sgt-current
 Start a single containerized instance of Splunk Enterprise with the command below, replacing `<password>` with a password string that conforms to the [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile).
 
 ```bash
-$ docker run -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
-             -e "SPLUNK_START_ARGS=--accept-license" \
-             -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
-             -it splunk/splunk:latest
+$ docker run \
+    -p 8000:8000 \
+    -e "SPLUNK_PASSWORD=<password>" \
+    -e "SPLUNK_START_ARGS=--accept-license" \
+    -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
+    -it splunk/splunk:latest
 ```
 
+> [!NOTE]
+>
+> If you're using a Mac/Apple Silicon CPU/ARM as a host system, add `--platform linux/amd64` to the command to run the container. This requires Rosetta or the appropriate emulation layer for your operating system.
+
 This command does the following:
+
 1. Starts a Docker container using the `splunk/splunk:latest` image.
 1. Exposes a port mapping from the host's `8000` port to the container's `8000` port
 1. Specifies a custom `SPLUNK_PASSWORD`.
@@ -52,12 +65,14 @@ Start a Splunk Universal Forwarder running in a container to stream logs to a Sp
 
 First, create a [network](https://docs.docker.com/engine/reference/commandline/network_create/) to enable communication between each of the services.
 
-```
-$ docker network create --driver bridge --attachable skynet
+```bash
+docker network create --driver bridge --attachable skynet
 ```
 
 #### Splunk Enterprise
+
 Start a single, standalone instance of Splunk Enterprise in the network created above, replacing `<password>` with a password string that conforms to the [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile).
+
 ```bash
 $ docker run --network skynet --name so1 --hostname so1 -p 8000:8000 \
               -e "SPLUNK_PASSWORD=<password>" \
@@ -67,6 +82,7 @@ $ docker run --network skynet --name so1 --hostname so1 -p 8000:8000 \
 ```
 
 This command does the following:
+
 1. Starts a Docker container using the `splunk/splunk:latest` image.
 1. Launches the container in the formerly-created bridge network `skynet`.
 1. Names the container and the host as `so1`.
@@ -77,7 +93,9 @@ This command does the following:
 After the container starts up successfully, you can access Splunk Web at <http://localhost:8000> with `admin:<password>`.
 
 #### Splunk Universal Forwarder
+
 Start a single, standalone instance of Splunk Universal Forwarder in the network created above, replacing `<password>` with a password string that conforms to the [Splunk Enterprise password requirements](https://docs.splunk.com/Documentation/Splunk/latest/Security/Configurepasswordsinspecfile).
+
 ```bash
 $ docker run --network skynet --name uf1 --hostname uf1 \
               -e "SPLUNK_PASSWORD=<password>" \
@@ -88,6 +106,7 @@ $ docker run --network skynet --name uf1 --hostname uf1 \
 ```
 
 This command does the following:
+
 1. Starts a Docker container using the `splunk/universalforwarder:latest` image.
 1. Launches the container in the formerly-created bridge network `skynet`.
 1. Names the container and the host as `uf1`.
@@ -103,6 +122,6 @@ If everything went smoothly, you can log in to your Splunk Enterprise instance a
 
 ## See also
 
-* [More examples of standalone and distributed deployments](EXAMPLES.md)
-* [Design and architecture of docker-splunk](ARCHITECTURE.md)
-* [Adding advanced complexity to your containerized Splunk deployments](ADVANCED.md)
+- [More examples of standalone and distributed deployments](EXAMPLES.md)
+- [Design and architecture of docker-splunk](ARCHITECTURE.md)
+- [Adding advanced complexity to your containerized Splunk deployments](ADVANCED.md)
