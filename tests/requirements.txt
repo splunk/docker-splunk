@@ -1,6 +1,6 @@
 pytest==4.4.0
 pyrsistent==0.16.1
-requests
+requests==2.31.0
 docker
 PyYAML
 docker-compose

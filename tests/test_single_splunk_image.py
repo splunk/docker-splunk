@@ -2778,3 +2778,33 @@ disabled = 1''' in std_out
         assert self.check_splunkd("admin", self.password)
         # Check Splunkd using the new users
         assert self.check_splunkd("jerry", "seinfeld")
+
+    def test_compose_1uf_uds(self):
+        container_name = self.generate_random_string()
+        self.DIR = os.path.join(self.FIXTURES_DIR, container_name)
+        cid = None
+        try:
+            cid = self.client.create_container(self.UF_IMAGE_NAME, tty=True, command="start",
+                                               volumes=["/tmp/defaults/"], name=container_name,
+                                               environment={"DEBUG": "true", "SPLUNK_START_ARGS": "--accept-license",
+                                                            "SPLUNK_PASSWORD": "Changeme", "ENABLE_TCP_MODE": "false"},
+                                               host_config=self.client.create_host_config(binds=[
+                                                   os.path.join(self.FIXTURES_DIR, container_name) + ":/tmp/defaults/"])
+                                               )
+            cid = cid.get("Id")
+            self.client.start(cid)
+            assert self.wait_for_containers(1, name=container_name)
+            output = self.get_container_logs(cid)
+            assert "Allows UDS" in output
+            assert self.check_uds_socket_file(container_name)
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if cid:
+                self.client.remove_container(cid, v=True, force=True)
+            try:
+                os.remove(os.path.join(self.DIR, "default.yml"))
+                os.rmdir(self.DIR)
+            except OSError:
+                pass
