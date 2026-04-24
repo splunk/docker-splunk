@@ -29,16 +29,25 @@ export LANG=en_US.utf8
 # Install utility packages
 microdnf -y --nodocs install wget sudo shadow-utils procps tar make gcc \
                              openssl-devel libffi-devel findutils libssh-devel \
-                             libcurl-devel ncurses-devel diffutils zlib-devel
+                             libcurl-devel ncurses-devel diffutils zlib-devel \
+                             which java-1.8.0-openjdk
 # Patch security updates
 microdnf -y --nodocs update gnutls kernel-headers libdnf librepo libnghttp2 nettle \
                             libpwquality libxml2 systemd-libs lz4-libs curl \
                             rpm rpm-libs sqlite-libs cyrus-sasl-lib vim expat \
                             openssl-libs xz-libs zlib libsolv file-libs pcre \
-                            libarchive libgcrypt libksba libstdc++ json-c gnupg
+                            libarchive libgcrypt libksba libstdc++ json-c gnupg \
+                            which java-1.8.0-openjdk
 
 # TODO: install busybox via EPEL? Will this even work?
 # currently seeing errors when installing/building via source
+
+# set JAVA_HOME
+sudo bash -c 'cat <<EOF > /etc/profile.d/java_home.sh
+export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+export PATH=\$JAVA_HOME/bin:\$PATH
+EOF'
+sudo chmod +x /etc/profile.d/java_home.sh
 
 # Install Python and necessary packages
 PY_SHORT=${PYTHON_VERSION%.*}

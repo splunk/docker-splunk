@@ -30,14 +30,22 @@ export LANG=en_US.utf8
 microdnf -y --nodocs install wget sudo shadow-utils procps tar make gcc \
                              openssl-devel bzip2-devel libffi-devel findutils \
                              libssh-devel libcurl-devel ncurses-devel \
-                             diffutils bzip2
+                             diffutils bzip2 which java-1.8.0-openjdk
                              
 # Patch security updates
 microdnf -y --nodocs update gnutls libdnf librepo libnghttp2 nettle \
                             libpwquality libxml2 systemd-libs lz4-libs curl \
                             rpm rpm-libs sqlite-libs cyrus-sasl-lib vim expat \
                             openssl-libs xz-libs zlib libsolv file-libs pcre \
-                            libarchive libgcrypt libksba libstdc++ json-c gnupg
+                            libarchive libgcrypt libksba libstdc++ json-c gnupg \
+                            which java-1.8.0-openjdk
+
+# set JAVA_HOME
+sudo bash -c 'cat <<EOF > /etc/profile.d/java_home.sh
+export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+export PATH=\$JAVA_HOME/bin:\$PATH
+EOF'
+sudo chmod +x /etc/profile.d/java_home.sh
 
 # Reinstall tzdata (originally stripped from minimal image): https://bugzilla.redhat.com/show_bug.cgi?id=1903219
 microdnf -y --nodocs reinstall tzdata || microdnf -y --nodocs update tzdata
