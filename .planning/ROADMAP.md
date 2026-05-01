@@ -8,7 +8,7 @@
 
 | # | Phase | Goal | Requirements | Plans |
 |---|-------|------|--------------|-------|
-| 1 | Cosign Image Signing | All release images signed in GitLab CI | SIGN-01..04, PIPE-01..04 | 1-2 |
+| 1 | Cosign Image Signing | All release images signed in GitLab CI | SIGN-01..04, PIPE-01..04 | 2 plans |
 | 2 | Syft SBOM Generation | CycloneDX SBOM for operator images | SBOM-01..04 | 2 plans |
 | 3 | Custom BOM & Release Integration | Full BOM + docs + release artifact attachment | BOM-01..04, DOC-01..02 | 2 plans |
 
@@ -29,6 +29,12 @@
 **Key risks:**
 - ECR token expiry during long pipelines
 - Multi-registry signing (must sign on both ECR and DockerHub independently)
+
+**Plans:** 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Create sign-release-images.sh script and commit cosign.pub
+- [ ] 01-02-PLAN.md — Wire sign-release-images job, register verification report, remove future-release caveats
 
 ---
 
