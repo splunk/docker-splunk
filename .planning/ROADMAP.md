@@ -33,8 +33,8 @@
 **Plans:** 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Create sign-release-images.sh script and commit cosign.pub
-- [ ] 01-02-PLAN.md — Wire sign-release-images job, register verification report, remove future-release caveats
+- [x] 01-01-PLAN.md — Create sign-release-images.sh script and commit cosign.pub
+- [x] 01-02-PLAN.md — Wire sign-release-images job, register verification report, remove future-release caveats
 
 ---
 
