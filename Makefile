@@ -4,6 +4,7 @@ NONQUOTE_IMAGE_VERSION := $(patsubst "%",%,$(IMAGE_VERSION))
 DOCKER_BUILD_FLAGS ?=
 SPLUNK_ANSIBLE_REPO ?= https://github.com/splunk/splunk-ansible.git
 SPLUNK_ANSIBLE_BRANCH ?= develop
+SPLUNK_ANSIBLE_REF ?= $(SPLUNK_ANSIBLE_BRANCH)
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
@@ -49,10 +50,21 @@ all: splunk uf splunk-py23 uf-py23
 
 ansible:
 	@if [ -d "splunk-ansible" ]; then \
-		echo "Ansible directory exists - skipping clone"; \
+		echo "Ansible directory exists - verifying requested ref"; \
 	else \
-		git clone ${SPLUNK_ANSIBLE_REPO} --branch ${SPLUNK_ANSIBLE_BRANCH}; \
+		git clone "$(SPLUNK_ANSIBLE_REPO)" splunk-ansible; \
 	fi
+	@cd splunk-ansible && \
+		if [ -n "$$(git status --porcelain --untracked-files=all | grep -v ' version.txt$$')" ]; then \
+			echo "splunk-ansible contains local changes; refusing to replace it"; \
+			exit 1; \
+		fi && \
+		if git cat-file -e '$(SPLUNK_ANSIBLE_REF)^{commit}' 2>/dev/null; then \
+			git checkout --detach "$(SPLUNK_ANSIBLE_REF)"; \
+		else \
+			git fetch --depth 1 origin "$(SPLUNK_ANSIBLE_REF)" && \
+			git checkout --detach FETCH_HEAD; \
+		fi
 	@cd splunk-ansible && git rev-parse HEAD > version.txt
 	@cat splunk-ansible/version.txt
 
