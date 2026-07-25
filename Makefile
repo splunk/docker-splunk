@@ -43,7 +43,7 @@ else
 endif
 
 
-.PHONY: tests interactive_tutorials
+.PHONY: tests interactive_tutorials test_shutdown
 
 all: splunk uf splunk-py23 uf-py23
 
@@ -388,7 +388,10 @@ run_large_tests_redhat8:
 	@echo 'Running the super awesome large tests; RedHat 8'
 	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_large_redhat8.xml
 
-test_setup:
+test_shutdown:
+	python3 -m unittest -v tests/test_splunk_shutdown.py
+
+test_setup: test_shutdown
 	@echo 'Install test requirements'
 	pip install --upgrade pip
 	pip install -r $(shell pwd)/tests/requirements.txt --upgrade
