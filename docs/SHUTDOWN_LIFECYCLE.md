@@ -25,8 +25,9 @@ Unsupported arguments or source values return `2`.
 `SPLUNK_SHUTDOWN_TIMEOUT_SECONDS` controls the local stop deadline and defaults
 to 600 seconds. It must be a positive integer and must fit inside the
 Kubernetes termination grace period with time remaining for signal delivery
-and forced cleanup. GNU `timeout` bounds the stop command and returns `124`
-when the deadline expires.
+and forced cleanup. GNU `timeout` sends TERM when the deadline expires, allows
+up to 10 additional seconds for the stop process to exit, and then sends KILL.
+The shutdown result is `124` when the configured deadline expires.
 
 ## State and ownership
 

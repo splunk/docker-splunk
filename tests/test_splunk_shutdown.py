@@ -14,6 +14,9 @@ REPOSITORY_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHUTDOWN_SCRIPT = os.path.join(
     REPOSITORY_ROOT, "splunk", "common-files", "splunk-shutdown"
 )
+CHECKSTATE_SCRIPT = os.path.join(
+    REPOSITORY_ROOT, "splunk", "common-files", "checkstate.sh"
+)
 
 
 def make_runtime(stop_exit_code=0, stop_delay_seconds=0):
@@ -163,6 +166,60 @@ class SplunkShutdownTest(unittest.TestCase):
             os.path.exists(os.path.join(artifact_dir, "splunk-shutdown.lock"))
         )
         self.assertFalse(os.path.exists(call_log))
+
+    def test_unsupported_source_is_rejected_before_ownership(self):
+        _, artifact_dir, call_log, environment = self.runtime()
+
+        result = run_shutdown(environment, "captain")
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("unsupported source", result.stderr)
+        self.assertFalse(
+            os.path.exists(os.path.join(artifact_dir, "splunk-shutdown.lock"))
+        )
+        self.assertFalse(os.path.exists(call_log))
+
+    def test_missing_timeout_is_recorded_without_running_stop(self):
+        runtime_dir, artifact_dir, call_log, environment = self.runtime()
+        command_dir = os.path.join(runtime_dir, "commands-without-timeout")
+        os.makedirs(command_dir)
+        for command in ("id", "mkdir", "mv", "rm"):
+            command_path = shutil.which(command)
+            self.assertIsNotNone(command_path)
+            os.symlink(command_path, os.path.join(command_dir, command))
+        environment["PATH"] = command_dir
+
+        result = run_shutdown(environment)
+
+        self.assertEqual(result.returncode, 127)
+        self.assertIn("timeout command is unavailable", result.stderr)
+        self.assertEqual(
+            read_text(os.path.join(artifact_dir, "splunk-shutdown.lock", "result")),
+            "127\n",
+        )
+        self.assertFalse(os.path.exists(call_log))
+
+    def test_stopping_state_is_not_container_ready(self):
+        _, artifact_dir, _, environment = self.runtime()
+        state_file = os.path.join(artifact_dir, "splunk-container.state")
+        with open(state_file, "w") as stream:
+            stream.write("stopping\n")
+        environment.update(
+            {
+                "NO_HEALTHCHECK": "",
+                "SPLUNKD_SSL_ENABLE": "false",
+            }
+        )
+
+        result = subprocess.run(
+            [CHECKSTATE_SCRIPT],
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+        )
+
+        self.assertEqual(result.returncode, 1)
 
     def test_image_and_term_handler_use_stable_shutdown_contract(self):
         entrypoint = read_text(
