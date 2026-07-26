@@ -4,7 +4,7 @@ NONQUOTE_IMAGE_VERSION := $(patsubst "%",%,$(IMAGE_VERSION))
 DOCKER_BUILD_FLAGS ?=
 SPLUNK_ANSIBLE_REPO ?= https://github.com/splunk/splunk-ansible.git
 SPLUNK_ANSIBLE_BRANCH ?= develop
-SPLUNK_ANSIBLE_REF ?= $(SPLUNK_ANSIBLE_BRANCH)
+SPLUNK_ANSIBLE_REF ?= 8455e865820688d127133051d8a9705ea2d3bfcf
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk

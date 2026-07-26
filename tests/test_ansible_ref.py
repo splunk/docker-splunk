@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+VALIDATED_SHC_ANSIBLE_REF = "8455e865820688d127133051d8a9705ea2d3bfcf"
 
 
 def run(command, cwd, check=True):
@@ -58,6 +59,18 @@ class TestAnsibleRef(unittest.TestCase):
             ],
             self.build,
             check=check,
+        )
+
+    def test_default_ref_is_validated_shc_commit(self):
+        makefile = (REPOSITORY_ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn(
+            f"SPLUNK_ANSIBLE_REF ?= {VALIDATED_SHC_ANSIBLE_REF}",
+            makefile,
+        )
+        self.assertNotIn(
+            "SPLUNK_ANSIBLE_REF ?= $(SPLUNK_ANSIBLE_BRANCH)",
+            makefile,
         )
 
     def test_checks_out_and_records_exact_commit(self):
