@@ -13,11 +13,12 @@
 # limitations under the License.
 
 ARG SPLUNK_BASE_IMAGE=base-debian-10
+ARG SPLUNK_BASE_IMAGE_VERSION=latest
 
 #
 # Download and unpack Splunk Enterprise
 #
-FROM ${SPLUNK_BASE_IMAGE}:latest as package
+FROM ${SPLUNK_BASE_IMAGE}:${SPLUNK_BASE_IMAGE_VERSION} as package
 ARG SPLUNK_BUILD_URL
 COPY splunk/common-files/make-minimal-exclude.py /tmp
 RUN python /tmp/make-minimal-exclude.py ${SPLUNK_BUILD_URL} > /tmp/splunk-minimal-exclude.list \
@@ -39,7 +40,7 @@ COPY splunk/common-files/apps /extras/splunk-etc/apps/
 #
 # Minimal Splunk base image with many files excluded, intended for internal and experimental use
 #
-FROM ${SPLUNK_BASE_IMAGE}:latest as minimal
+FROM ${SPLUNK_BASE_IMAGE}:${SPLUNK_BASE_IMAGE_VERSION} as minimal
 LABEL maintainer="support@splunk.com"
 ENV SPLUNK_HOME=/opt/splunk \
     SPLUNK_GROUP=splunk \

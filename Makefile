@@ -102,6 +102,7 @@ minimal-debian-9: base-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-9 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target minimal -t minimal-debian-9:${IMAGE_VERSION} .	
 
@@ -109,6 +110,7 @@ minimal-debian-10: base-debian-10
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-10 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target minimal -t minimal-debian-10:${IMAGE_VERSION} .	
 
@@ -116,6 +118,7 @@ minimal-centos-7: base-centos-7
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-centos-7 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target minimal -t minimal-centos-7:${IMAGE_VERSION} .	
 
@@ -123,6 +126,7 @@ minimal-centos-8: base-centos-8
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-centos-8 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target minimal -t minimal-centos-8:${IMAGE_VERSION} .
 
@@ -130,6 +134,7 @@ minimal-redhat-8: base-redhat-8
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target minimal -t minimal-redhat-8:${IMAGE_VERSION} .
 
@@ -140,6 +145,7 @@ bare-debian-9: base-debian-9
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-9 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target bare -t bare-debian-9:${IMAGE_VERSION} .	
 
@@ -147,6 +153,7 @@ bare-debian-10: base-debian-10
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-10 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target bare -t bare-debian-10:${IMAGE_VERSION} .	
 
@@ -154,6 +161,7 @@ bare-centos-7: base-centos-7
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-centos-7 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target bare -t bare-centos-7:${IMAGE_VERSION} .
 
@@ -161,6 +169,7 @@ bare-centos-8: base-centos-8
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-centos-8 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target bare -t bare-centos-8:${IMAGE_VERSION} .	
 
@@ -168,6 +177,7 @@ bare-redhat-8: base-redhat-8
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		--target bare -t bare-redhat-8:${IMAGE_VERSION} .
 
@@ -178,6 +188,7 @@ splunk-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-9 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		-t splunk-debian-9:${IMAGE_VERSION} .
 
@@ -185,6 +196,7 @@ splunk-debian-10: base-debian-10 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-10 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		-t splunk-debian-10:${IMAGE_VERSION} .
 
@@ -192,6 +204,7 @@ splunk-centos-7: base-centos-7 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-centos-7 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		-t splunk-centos-7:${IMAGE_VERSION} .
 
@@ -199,6 +212,7 @@ splunk-centos-8: base-centos-8 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-centos-8 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		-t splunk-centos-8:${IMAGE_VERSION} .
 
@@ -206,6 +220,7 @@ splunk-redhat-8: base-redhat-8 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		-t splunk-redhat-8:${IMAGE_VERSION} .
 
@@ -213,6 +228,7 @@ splunk-redhat-9: base-redhat-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f splunk/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-redhat-9 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${SPLUNK_LINUX_BUILD_URL} \
 		-t splunk-redhat-9:${IMAGE_VERSION} .
 
@@ -230,6 +246,7 @@ ufbare-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-9 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		--target bare -t ufbare-debian-9:${IMAGE_VERSION} .
 
@@ -237,6 +254,7 @@ ufbare-debian-10: base-debian-10 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-10 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		--target bare -t ufbare-debian-10:${IMAGE_VERSION} .
 
@@ -244,6 +262,7 @@ uf-debian-9: base-debian-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-9 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-debian-9:${IMAGE_VERSION} .
 
@@ -251,6 +270,7 @@ uf-debian-10: base-debian-10 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-debian-10 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-debian-10:${IMAGE_VERSION} .
 
@@ -258,6 +278,7 @@ uf-centos-7: base-centos-7 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-centos-7 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-centos-7:${IMAGE_VERSION} .
 
@@ -265,6 +286,7 @@ uf-centos-8: base-centos-8 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-centos-8 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-centos-8:${IMAGE_VERSION} .
 
@@ -272,6 +294,7 @@ uf-redhat-8: base-redhat-8 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-redhat-8:${IMAGE_VERSION} .
 
@@ -279,6 +302,7 @@ uf-redhat-8-armv8: base-redhat-8-armv8 ansible
 	docker buildx build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-redhat-8-armv8 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-redhat-8-armv8:${IMAGE_VERSION} .
 
@@ -286,6 +310,7 @@ uf-redhat-9: base-redhat-9 ansible
 	docker build ${DOCKER_BUILD_FLAGS} \
 		-f uf/common-files/Dockerfile \
 		--build-arg SPLUNK_BASE_IMAGE=base-redhat-9 \
+		--build-arg SPLUNK_BASE_IMAGE_VERSION=${NONQUOTE_IMAGE_VERSION} \
 		--build-arg SPLUNK_BUILD_URL=${UF_LINUX_BUILD_URL} \
 		-t uf-redhat-9:${IMAGE_VERSION} .
 
