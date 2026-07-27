@@ -44,10 +44,10 @@ microdnf -y --nodocs update gnutls kernel-headers libdnf librepo libnghttp2 nett
 PY_SHORT=${PYTHON_VERSION%.*}
 wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
 wget -O /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz.asc
-gpg --keyserver keys.openpgp.org --recv-keys $PYTHON_GPG_KEY_ID \
-    || gpg --keyserver pool.sks-keyservers.net --recv-keys $PYTHON_GPG_KEY_ID \
-    || gpg --keyserver pgp.mit.edu --recv-keys $PYTHON_GPG_KEY_ID \
-    || gpg --keyserver keyserver.pgp.com --recv-keys $PYTHON_GPG_KEY_ID
+wget -O /tmp/python-release-key.asc \
+    https://keys.openpgp.org/vks/v1/by-fingerprint/${PYTHON_GPG_KEY_FINGERPRINT}
+gpg --batch --import /tmp/python-release-key.asc
+rm /tmp/python-release-key.asc
 gpg --verify /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc /tmp/python.tgz
 rm /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc
 mkdir -p /tmp/pyinstall
