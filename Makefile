@@ -44,7 +44,7 @@ else
 endif
 
 
-.PHONY: tests interactive_tutorials test_shutdown
+.PHONY: tests interactive_tutorials test_shutdown test_shutdown_container
 
 all: splunk uf splunk-py23 uf-py23
 
@@ -427,6 +427,11 @@ run_large_tests_redhat8:
 
 test_shutdown:
 	python3 -m unittest -v tests/test_splunk_shutdown.py
+
+test_shutdown_container:
+	@test -n "$(SHUTDOWN_TEST_IMAGE)" || \
+		(echo "SHUTDOWN_TEST_IMAGE is required" >&2; exit 2)
+	tests/test_splunk_shutdown_container.sh "$(SHUTDOWN_TEST_IMAGE)"
 
 test_setup: test_shutdown
 	@echo 'Install test requirements'
