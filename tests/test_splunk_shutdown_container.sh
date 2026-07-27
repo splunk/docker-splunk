@@ -45,6 +45,12 @@ cleanup() {
 	for container in "${containers[@]}"; do
 		docker rm -f "${container}" >/dev/null 2>&1 || true
 	done
+	docker run --rm \
+		--user root \
+		--entrypoint /bin/sh \
+		-v "${runtime_root}:/qualification" \
+		"${image}" \
+		-c 'chmod -R a+rwX /qualification' >/dev/null 2>&1 || true
 	rm -rf "${runtime_root}"
 }
 trap cleanup EXIT
