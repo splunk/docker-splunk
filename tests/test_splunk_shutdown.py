@@ -3,6 +3,7 @@
 
 import os
 import pwd
+import signal
 import shutil
 import subprocess
 import tempfile
@@ -239,6 +240,60 @@ class SplunkShutdownTest(unittest.TestCase):
         self.assertIn('"splunk/common-files/splunk-shutdown"', dockerfile)
         self.assertIn("/sbin/splunk-shutdown", dockerfile)
         self.assertIn("command -v timeout", dockerfile)
+
+    def test_term_handler_exits_entrypoint_after_shutdown(self):
+        runtime_dir = tempfile.mkdtemp(prefix="splunk-entrypoint-term-test-")
+        self.addCleanup(shutil.rmtree, runtime_dir)
+        shutdown_log = os.path.join(runtime_dir, "shutdown-calls")
+        fake_shutdown = os.path.join(runtime_dir, "splunk-shutdown")
+        with open(fake_shutdown, "w") as script:
+            script.write(
+                "#!/bin/sh\n"
+                "printf '%s\\n' \"$*\" >> \"{}\"\n"
+                "exit 0\n".format(shutdown_log)
+            )
+        os.chmod(fake_shutdown, 0o755)
+
+        entrypoint_copy = os.path.join(runtime_dir, "entrypoint.sh")
+        entrypoint_source = read_text(
+            os.path.join(
+                REPOSITORY_ROOT, "splunk", "common-files", "entrypoint.sh"
+            )
+        )
+        with open(entrypoint_copy, "w") as script:
+            script.write(
+                entrypoint_source.replace(
+                    "/sbin/splunk-shutdown",
+                    fake_shutdown,
+                )
+            )
+        os.chmod(entrypoint_copy, 0o755)
+
+        process = subprocess.Popen(
+            [entrypoint_copy, "no-provision"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+            start_new_session=True,
+        )
+        try:
+            # Wait until the no-provision path is blocked in its long-running
+            # wait, which matches the steady-state PID 1 behavior in the
+            # container.
+            time.sleep(1)
+            process.send_signal(signal.SIGTERM)
+            return_code = process.wait(timeout=5)
+            self.assertEqual(return_code, 0)
+            self.assertEqual(
+                read_text(shutdown_log).splitlines(),
+                ["--source=term"],
+            )
+        finally:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.communicate(timeout=5)
 
 
 if __name__ == "__main__":

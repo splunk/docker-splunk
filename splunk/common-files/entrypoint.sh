@@ -32,7 +32,14 @@ setup() {
 
 teardown() {
 	# TERM and preStop share one idempotent, bounded local shutdown operation.
-	/sbin/splunk-shutdown --source=term || true
+	# Reset the traps before running the bounded stop so a second signal cannot
+	# enter the handler recursively. PID 1 must exit after the stop completes;
+	# otherwise Kubernetes waits for the entire termination grace period even
+	# though splunkd is already stopped.
+	trap - SIGINT SIGTERM
+	local shutdown_result=0
+	/sbin/splunk-shutdown --source=term || shutdown_result=$?
+	exit "${shutdown_result}"
 }
 
 trap teardown SIGINT SIGTERM
@@ -214,4 +221,3 @@ case "$1" in
 		help $@
 		;;
 esac
-
