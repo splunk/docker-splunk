@@ -28,6 +28,13 @@ Kubernetes termination grace period with time remaining for signal delivery
 and forced cleanup. GNU `timeout` bounds the stop command and returns `124`
 when the deadline expires.
 
+The paired Splunk Operator lifecycle contract uses 660 seconds for a
+startup- or liveness-probe restart: the 600-second image deadline plus a
+60-second kubelet margin. Planned Pod deletion keeps its longer, independently
+configurable grace. If the image timeout is increased, the startup and
+liveness probe grace must also be increased; readiness probes do not terminate
+containers and have no termination grace.
+
 ## State and ownership
 
 The operation stores bounded, non-secret evidence under
@@ -41,8 +48,8 @@ The operation stores bounded, non-secret evidence under
 Creating `splunk-shutdown.lock` is the single-owner decision. A concurrent
 caller does not issue another stop. A later caller returns the recorded result,
 so stop failure is not silently converted into success. The entrypoint TERM
-trap logs that evidence but retains its existing best-effort container-exit
-behavior.
+trap exits PID 1 with the shutdown result after the bounded operation finishes;
+it does not remain alive for the rest of the Kubernetes grace period.
 
 The lock is intentionally retained for the remaining life of the container.
 The `restart` entrypoint action is a different operation: it stops and starts
@@ -56,3 +63,10 @@ concurrent callers, repeated calls, stop failure, timeout, missing tooling, and
 the stopping-state transition. Kubernetes qualification must additionally
 measure Service and EndpointSlice withdrawal, actual stop duration, grace
 expiration, force deletion, and node-loss recovery.
+
+On the current fixed Splunk runtime, a direct TERM qualification of an
+established non-captain completed the local stop in 42 seconds, exited with
+status zero, restarted the container exactly once without changing the Pod UID,
+and restored the three-member SHC and all three client endpoints. This is a
+bounded observation, not a guarantee that every workload will stop in 42
+seconds; the configured deadline remains the acceptance boundary.
