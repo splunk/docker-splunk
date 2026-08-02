@@ -25,9 +25,11 @@ Unsupported arguments or source values return `2`.
 `SPLUNK_SHUTDOWN_TIMEOUT_SECONDS` controls the local stop deadline and defaults
 to 600 seconds. It must be a positive integer and must fit inside the
 Kubernetes termination grace period with time remaining for signal delivery
-and forced cleanup. GNU `timeout` sends TERM when the deadline expires, allows
-up to 10 additional seconds for the stop process to exit, and then sends KILL.
-The shutdown result is `124` when the configured deadline expires.
+and forced cleanup. `SPLUNK_SHUTDOWN_KILL_AFTER_SECONDS` controls the interval
+between TERM and KILL after that deadline and defaults to 10 seconds. GNU
+`timeout` sends TERM when the deadline expires, allows that additional
+interval for the stop process to exit, and then sends KILL. The shutdown
+result is `124` when the configured deadline expires.
 
 ## State and ownership
 
@@ -40,10 +42,12 @@ The operation stores bounded, non-secret evidence under
 - `splunk-shutdown.lock/result` records the stop exit status.
 
 Creating `splunk-shutdown.lock` is the single-owner decision. A concurrent
-caller does not issue another stop. A later caller returns the recorded result,
-so stop failure is not silently converted into success. The entrypoint TERM
-trap logs that evidence but retains its existing best-effort container-exit
-behavior.
+caller does not issue another stop. It waits through the configured shutdown
+deadline plus the TERM-to-KILL interval for the owner's atomic result and then
+returns the same result, so PID 1 cannot exit while a concurrent preStop-owned
+stop is still running and stop failure is not silently converted into success.
+If the owner disappears without a result, the follower returns `124` at that
+bound instead of waiting indefinitely.
 
 The lock is intentionally retained for the remaining life of the container.
 The `restart` entrypoint action is a different operation: it stops and starts

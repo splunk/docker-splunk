@@ -152,6 +152,7 @@ Environment Variables:
   * SPLUNK_GROUP - group under which to run Splunk (default: splunk)
   * SPLUNK_HOME - home directory where Splunk gets installed (default: /opt/splunk)
   * SPLUNK_SHUTDOWN_TIMEOUT_SECONDS - maximum time allowed for a local Splunk stop before it is terminated (default: 600)
+  * SPLUNK_SHUTDOWN_KILL_AFTER_SECONDS - additional time between TERM and KILL after the shutdown deadline (default: 10)
   * SPLUNK_START_ARGS - arguments to pass into the Splunk start command; you must include '--accept-license' to start Splunk (default: none)
   * SPLUNK_GENERAL_TERMS - with the value '--accept-sgt-current-at-splunk-com', indicates acceptance of the latest Splunk General Terms: https://www.splunk.com/en_us/legal/splunk-general-terms.html (default: none)
   * SPLUNK_PASSWORD - password to log into this Splunk instance, you must include a password (default: none)

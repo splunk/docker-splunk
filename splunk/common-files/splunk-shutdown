@@ -38,13 +38,33 @@ case "${source_name}" in
 		;;
 esac
 
-timeout_seconds="${SPLUNK_SHUTDOWN_TIMEOUT_SECONDS:-600}"
+normalize_decimal() {
+	normalized_value="$1"
+	while [ "${normalized_value#0}" != "${normalized_value}" ]; do
+		normalized_value="${normalized_value#0}"
+	done
+	if [ -z "${normalized_value}" ]; then
+		normalized_value=0
+	fi
+	printf '%s' "${normalized_value}"
+}
+
+timeout_seconds="$(normalize_decimal "${SPLUNK_SHUTDOWN_TIMEOUT_SECONDS:-600}")"
 case "${timeout_seconds}" in
 	""|*[!0-9]*|0)
 		echo "splunk-shutdown: SPLUNK_SHUTDOWN_TIMEOUT_SECONDS must be a positive integer" >&2
 		exit 2
 		;;
 esac
+
+kill_after_seconds="$(normalize_decimal "${SPLUNK_SHUTDOWN_KILL_AFTER_SECONDS:-10}")"
+case "${kill_after_seconds}" in
+	""|*[!0-9]*|0)
+		echo "splunk-shutdown: SPLUNK_SHUTDOWN_KILL_AFTER_SECONDS must be a positive integer" >&2
+		exit 2
+		;;
+esac
+shutdown_wait_seconds=$((timeout_seconds + kill_after_seconds))
 
 artifact_dir="${CONTAINER_ARTIFACT_DIR:-/opt/container_artifact}"
 state_file="${artifact_dir}/splunk-container.state"
@@ -71,13 +91,32 @@ if ! mkdir -p "${artifact_dir}"; then
 fi
 
 if ! mkdir "${lock_dir}" 2>/dev/null; then
-	if [ -r "${result_file}" ]; then
-		IFS= read -r existing_result < "${result_file}"
-		echo "splunk-shutdown: shutdown already completed result=${existing_result} source=${source_name}"
-		exit "${existing_result}"
-	fi
-	echo "splunk-shutdown: shutdown already in progress source=${source_name}"
-	exit 0
+	echo "splunk-shutdown: shutdown already in progress; waiting source=${source_name} timeout_seconds=${shutdown_wait_seconds}"
+	waited_seconds=0
+	while :; do
+		if [ -r "${result_file}" ]; then
+			IFS= read -r existing_result < "${result_file}"
+			case "${existing_result}" in
+				""|*[!0-9]*)
+					echo "splunk-shutdown: invalid recorded shutdown result: ${existing_result}" >&2
+					exit 1
+					;;
+			esac
+			if [ "${existing_result}" -gt 255 ]; then
+				echo "splunk-shutdown: invalid recorded shutdown result: ${existing_result}" >&2
+				exit 1
+			fi
+			echo "splunk-shutdown: shutdown already completed result=${existing_result} source=${source_name}"
+			exit "${existing_result}"
+		fi
+		if [ "${waited_seconds}" -ge "${shutdown_wait_seconds}" ]; then
+			break
+		fi
+		sleep 1
+		waited_seconds=$((waited_seconds + 1))
+	done
+	echo "splunk-shutdown: timed out waiting for shutdown owner source=${source_name}" >&2
+	exit 124
 fi
 
 owner_record="pid=$$ source=${source_name}"
@@ -103,11 +142,11 @@ splunk_user="${SPLUNK_USER:-splunk}"
 echo "splunk-shutdown: stop started source=${source_name} timeout_seconds=${timeout_seconds}"
 
 if [ "$(id -un)" = "${splunk_user}" ]; then
-	timeout --signal=TERM --kill-after=10s "${timeout_seconds}s" \
+	timeout --signal=TERM --kill-after="${kill_after_seconds}s" "${timeout_seconds}s" \
 		"${splunk_home}/bin/splunk" stop
 	stop_result=$?
 else
-	timeout --signal=TERM --kill-after=10s "${timeout_seconds}s" \
+	timeout --signal=TERM --kill-after="${kill_after_seconds}s" "${timeout_seconds}s" \
 		sudo -u "${splunk_user}" "${splunk_home}/bin/splunk" stop
 	stop_result=$?
 fi

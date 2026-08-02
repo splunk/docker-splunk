@@ -49,6 +49,7 @@ def make_runtime(stop_exit_code=0, stop_delay_seconds=0):
             "SPLUNK_HOME": splunk_home,
             "SPLUNK_USER": pwd.getpwuid(os.getuid()).pw_name,
             "SPLUNK_SHUTDOWN_TIMEOUT_SECONDS": "10",
+            "SPLUNK_SHUTDOWN_KILL_AFTER_SECONDS": "1",
             "SPLUNK_TEST_CALL_LOG": call_log,
             "SPLUNK_TEST_STATE_AT_STOP": state_at_stop,
             "SPLUNK_TEST_STOP_DELAY_SECONDS": str(stop_delay_seconds),
@@ -125,8 +126,59 @@ class SplunkShutdownTest(unittest.TestCase):
 
         self.assertEqual(owner.returncode, 0, (owner_stdout, owner_stderr))
         self.assertEqual(follower.returncode, 0)
-        self.assertIn("already in progress", follower.stdout)
+        self.assertIn("already in progress; waiting", follower.stdout)
+        self.assertIn("already completed result=0", follower.stdout)
         self.assertEqual(read_text(call_log).splitlines(), ["stop"])
+
+    def test_concurrent_follower_preserves_owner_failure(self):
+        _, artifact_dir, call_log, environment = self.runtime(
+            stop_exit_code=7, stop_delay_seconds=1
+        )
+
+        owner = subprocess.Popen(
+            [SHUTDOWN_SCRIPT, "--source=prestop"],
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+        )
+        owner_file = os.path.join(artifact_dir, "splunk-shutdown.lock", "owner")
+        deadline = time.time() + 5
+        while not os.path.exists(owner_file) and time.time() < deadline:
+            time.sleep(0.01)
+
+        follower = run_shutdown(environment, "term")
+        owner_stdout, owner_stderr = owner.communicate(timeout=5)
+
+        self.assertEqual(owner.returncode, 7, (owner_stdout, owner_stderr))
+        self.assertEqual(follower.returncode, 7)
+        self.assertIn("already in progress; waiting", follower.stdout)
+        self.assertIn("already completed result=7", follower.stdout)
+        self.assertEqual(read_text(call_log).splitlines(), ["stop"])
+
+    def test_abandoned_owner_wait_is_bounded(self):
+        _, artifact_dir, call_log, environment = self.runtime()
+        environment["SPLUNK_SHUTDOWN_TIMEOUT_SECONDS"] = "1"
+        os.mkdir(os.path.join(artifact_dir, "splunk-shutdown.lock"))
+
+        result = run_shutdown(environment, "term")
+
+        self.assertEqual(result.returncode, 124)
+        self.assertIn("timed out waiting for shutdown owner", result.stderr)
+        self.assertFalse(os.path.exists(call_log))
+
+    def test_invalid_recorded_result_is_rejected(self):
+        _, artifact_dir, call_log, environment = self.runtime()
+        lock_dir = os.path.join(artifact_dir, "splunk-shutdown.lock")
+        os.mkdir(lock_dir)
+        with open(os.path.join(lock_dir, "result"), "w") as result_file:
+            result_file.write("999\n")
+
+        result = run_shutdown(environment, "term")
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("invalid recorded shutdown result", result.stderr)
+        self.assertFalse(os.path.exists(call_log))
 
     def test_stop_failure_is_preserved_without_second_stop(self):
         _, artifact_dir, call_log, environment = self.runtime(stop_exit_code=7)
@@ -158,6 +210,32 @@ class SplunkShutdownTest(unittest.TestCase):
     def test_invalid_timeout_is_rejected_before_ownership(self):
         _, artifact_dir, call_log, environment = self.runtime()
         environment["SPLUNK_SHUTDOWN_TIMEOUT_SECONDS"] = "not-a-number"
+
+        result = run_shutdown(environment)
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("positive integer", result.stderr)
+        self.assertFalse(
+            os.path.exists(os.path.join(artifact_dir, "splunk-shutdown.lock"))
+        )
+        self.assertFalse(os.path.exists(call_log))
+
+    def test_zero_with_leading_zeroes_is_rejected_before_ownership(self):
+        _, artifact_dir, call_log, environment = self.runtime()
+        environment["SPLUNK_SHUTDOWN_TIMEOUT_SECONDS"] = "000"
+
+        result = run_shutdown(environment)
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("positive integer", result.stderr)
+        self.assertFalse(
+            os.path.exists(os.path.join(artifact_dir, "splunk-shutdown.lock"))
+        )
+        self.assertFalse(os.path.exists(call_log))
+
+    def test_invalid_kill_after_is_rejected_before_ownership(self):
+        _, artifact_dir, call_log, environment = self.runtime()
+        environment["SPLUNK_SHUTDOWN_KILL_AFTER_SECONDS"] = "0"
 
         result = run_shutdown(environment)
 
@@ -237,6 +315,7 @@ class SplunkShutdownTest(unittest.TestCase):
         self.assertIn("/sbin/splunk-shutdown --source=term", entrypoint)
         self.assertNotIn("${SPLUNK_HOME}/bin/splunk stop || true", entrypoint)
         self.assertIn("SPLUNK_SHUTDOWN_TIMEOUT_SECONDS", entrypoint)
+        self.assertIn("SPLUNK_SHUTDOWN_KILL_AFTER_SECONDS", entrypoint)
         self.assertIn('"splunk/common-files/splunk-shutdown"', dockerfile)
         self.assertIn("/sbin/splunk-shutdown", dockerfile)
         self.assertIn("command -v timeout", dockerfile)

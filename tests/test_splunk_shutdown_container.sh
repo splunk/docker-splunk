@@ -208,10 +208,50 @@ run_concurrent_callers() {
 
 	assert_file_equals "${case_dir}/artifacts/splunk-shutdown.lock/result" "0"
 	assert_stop_called_once "${case_dir}"
-	grep -q "shutdown already in progress source=term" \
+	grep -q "shutdown already in progress; waiting source=term" \
 		"${case_dir}/follower.out" ||
 		fail "concurrent follower did not observe the owner"
+	grep -q "shutdown already completed result=0 source=term" \
+		"${case_dir}/follower.out" ||
+		fail "concurrent follower did not reuse the owner result"
 	echo "PASS concurrent callers"
+}
+
+run_concurrent_failure() {
+	local container case_dir
+	start_case concurrent-failure 2 7 5
+	container="${STARTED_CONTAINER}"
+	case_dir="${STARTED_CASE_DIR}"
+	docker exec "${container}" \
+		/sbin/splunk-shutdown --source=prestop \
+		> "${case_dir}/owner.out" 2> "${case_dir}/owner.err" &
+	local owner_pid=$!
+
+	for _ in {1..40}; do
+		[[ -f "${case_dir}/artifacts/splunk-shutdown.lock/owner" ]] && break
+		sleep 0.05
+	done
+	[[ -f "${case_dir}/artifacts/splunk-shutdown.lock/owner" ]] ||
+		fail "concurrent failure owner was not recorded"
+	local follower_result=0
+	docker exec "${container}" \
+		/sbin/splunk-shutdown --source=term \
+		> "${case_dir}/follower.out" 2> "${case_dir}/follower.err" ||
+		follower_result=$?
+	local owner_result=0
+	wait "${owner_pid}" || owner_result=$?
+	docker stop --time 15 "${container}" >/dev/null
+
+	[[ "${owner_result}" == "7" ]] ||
+		fail "concurrent owner result = ${owner_result}, want 7"
+	[[ "${follower_result}" == "7" ]] ||
+		fail "concurrent follower result = ${follower_result}, want 7"
+	assert_file_equals "${case_dir}/artifacts/splunk-shutdown.lock/result" "7"
+	assert_stop_called_once "${case_dir}"
+	grep -q "shutdown already completed result=7 source=term" \
+		"${case_dir}/follower.out" ||
+		fail "concurrent follower did not preserve owner failure"
+	echo "PASS concurrent failure preservation"
 }
 
 run_failure_preservation() {
@@ -269,6 +309,7 @@ run_timeout_preservation() {
 run_direct_term
 run_prestop_then_term
 run_concurrent_callers
+run_concurrent_failure
 run_failure_preservation
 run_timeout_preservation
 
