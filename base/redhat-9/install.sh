@@ -44,12 +44,19 @@ microdnf -y --nodocs update gnutls kernel-headers libdnf librepo libnghttp2 nett
 PY_SHORT=${PYTHON_VERSION%.*}
 wget -O /tmp/python.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
 wget -O /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz.asc
-gpg --keyserver keys.openpgp.org --recv-keys $PYTHON_GPG_KEY_ID \
-    || gpg --keyserver pool.sks-keyservers.net --recv-keys $PYTHON_GPG_KEY_ID \
-    || gpg --keyserver pgp.mit.edu --recv-keys $PYTHON_GPG_KEY_ID \
-    || gpg --keyserver keyserver.pgp.com --recv-keys $PYTHON_GPG_KEY_ID
+wget -O /tmp/python-signing-key.asc \
+    "https://keys.openpgp.org/vks/v1/by-fingerprint/${PYTHON_GPG_FINGERPRINT}"
+actual_fingerprint="$(
+    gpg --show-keys --with-colons /tmp/python-signing-key.asc |
+        awk -F: '$1 == "fpr" { print $10; exit }'
+)"
+if [ "$actual_fingerprint" != "$PYTHON_GPG_FINGERPRINT" ]; then
+    echo "Python signing key fingerprint mismatch" >&2
+    exit 1
+fi
+gpg --batch --import /tmp/python-signing-key.asc
 gpg --verify /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc /tmp/python.tgz
-rm /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc
+rm /tmp/Python-gpg-sig-${PYTHON_VERSION}.tgz.asc /tmp/python-signing-key.asc
 mkdir -p /tmp/pyinstall
 tar -xzC /tmp/pyinstall/ --strip-components=1 -f /tmp/python.tgz
 rm /tmp/python.tgz
