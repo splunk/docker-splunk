@@ -6,6 +6,11 @@ SPLUNK_ANSIBLE_REPO ?= https://github.com/splunk/splunk-ansible.git
 SPLUNK_ANSIBLE_BRANCH ?= develop
 SPLUNK_ANSIBLE_REF ?= 9dff0999c93fd129d31ba08609423ac2bd600aeb
 SPLUNK_COMPOSE ?= cluster_absolute_unit.yaml
+TEST_PYTHON ?= python3
+TEST_VENV ?= $(CURDIR)/.test-venv
+TEST_VENV_BIN := $(TEST_VENV)/bin
+TEST_PYTEST := $(TEST_VENV_BIN)/pytest
+TEST_ENV := PATH="$(TEST_VENV_BIN):$$PATH"
 # Set Splunk version/build parameters here to define downstream URLs and file names
 SPLUNK_PRODUCT := splunk
 SPLUNK_VERSION := 9.4.0
@@ -44,7 +49,7 @@ else
 endif
 
 
-.PHONY: tests interactive_tutorials test_ansible_ref test_base_image_security test_shutdown test_shutdown_container
+.PHONY: tests interactive_tutorials test_ansible_ref test_base_image_security test_shutdown test_shutdown_container test_test_bootstrap test_clean
 
 all: splunk uf splunk-py23 uf-py23
 
@@ -411,58 +416,66 @@ test_debian10: clean ansible splunk-debian-10 uf-debian-10 test_setup run_small_
 
 run_small_tests_centos7:
 	@echo 'Running the super awesome small tests; CentOS 7'
-	pytest -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform centos-7 --junitxml test-results/centos7-result/testresults_small_centos7.xml
+	$(TEST_ENV) "$(TEST_PYTEST)" -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform centos-7 --junitxml test-results/centos7-result/testresults_small_centos7.xml
 
 run_large_tests_centos7:
 	@echo 'Running the super awesome large tests; CentOS 7'
-	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform centos-7 --junitxml test-results/centos7-result/testresults_large_centos7.xml
+	$(TEST_ENV) "$(TEST_PYTEST)" -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform centos-7 --junitxml test-results/centos7-result/testresults_large_centos7.xml
 
 run_small_tests_redhat8:
 	@echo 'Running the super awesome small tests; RedHat 8'
-	pytest -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_small_redhat8.xml
+	$(TEST_ENV) "$(TEST_PYTEST)" -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_small_redhat8.xml
 
 run_large_tests_redhat8:
 	@echo 'Running the super awesome large tests; RedHat 8'
-	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_large_redhat8.xml
+	$(TEST_ENV) "$(TEST_PYTEST)" -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform redhat-8 --junitxml test-results/redhat8-result/testresults_large_redhat8.xml
 
 test_shutdown:
-	python3 -m unittest -v tests/test_splunk_shutdown.py
+	"$(TEST_PYTHON)" -m unittest -v tests/test_splunk_shutdown.py
 
 test_ansible_ref:
-	python3 -m unittest -v tests/test_ansible_ref.py
+	"$(TEST_PYTHON)" -m unittest -v tests/test_ansible_ref.py
 
 test_base_image_security:
-	python3 -m unittest -v tests/test_base_image_security.py
+	"$(TEST_PYTHON)" -m unittest -v tests/test_base_image_security.py
+
+test_test_bootstrap:
+	"$(TEST_PYTHON)" -m unittest -v tests/test_test_bootstrap.py
 
 test_shutdown_container:
 	@test -n "$(SHUTDOWN_TEST_IMAGE)" || \
 		(echo "SHUTDOWN_TEST_IMAGE is required" >&2; exit 2)
 	tests/test_splunk_shutdown_container.sh "$(SHUTDOWN_TEST_IMAGE)"
 
-test_setup: test_shutdown test_ansible_ref test_base_image_security
-	@echo 'Install test requirements'
-	pip install --upgrade pip
-	pip install -r $(shell pwd)/tests/requirements.txt --upgrade
-	mkdir test-results/centos7-result || true
-	mkdir test-results/debian9-result || true
-	mkdir test-results/debian10-result || true
-	mkdir test-results/redhat8-result || true
+test_setup: test_shutdown test_ansible_ref test_base_image_security test_test_bootstrap
+	@echo 'Install locked test requirements in $(TEST_VENV)'
+	command -v "$(TEST_PYTHON)" >/dev/null
+	"$(TEST_PYTHON)" -m venv "$(TEST_VENV)"
+	"$(TEST_VENV_BIN)/python" -m pip install --disable-pip-version-check --upgrade -r "$(CURDIR)/tests/bootstrap-requirements.txt"
+	PIP_CONSTRAINT="$(CURDIR)/tests/bootstrap-requirements.txt" "$(TEST_VENV_BIN)/python" -m pip install --disable-pip-version-check -r "$(CURDIR)/tests/requirements.txt"
+	"$(TEST_VENV_BIN)/python" -m pip check
+	$(TEST_ENV) "$(TEST_PYTEST)" --version
+	$(TEST_ENV) docker-compose version
+	mkdir -p test-results/centos7-result test-results/debian9-result test-results/debian10-result test-results/redhat8-result
+
+test_clean:
+	rm -rf "$(TEST_VENV)"
 
 run_small_tests_debian9:
 	@echo 'Running the super awesome small tests; Debian 9'
-	pytest -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform debian-9 --junitxml test-results/debian9-result/testresults_small_debian9.xml
+	$(TEST_ENV) "$(TEST_PYTEST)" -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform debian-9 --junitxml test-results/debian9-result/testresults_small_debian9.xml
 
 run_large_tests_debian9:
 	@echo 'Running the super awesome large tests; Debian 9'
-	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform debian-9 --junitxml test-results/debian9-result/testresults_large_debian9.xml
+	$(TEST_ENV) "$(TEST_PYTEST)" -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform debian-9 --junitxml test-results/debian9-result/testresults_large_debian9.xml
 
 run_small_tests_debian10:
 	@echo 'Running the super awesome small tests; Debian 10'
-	pytest -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform debian-10 --junitxml test-results/debian10-result/testresults_small_debian10.xml
+	$(TEST_ENV) "$(TEST_PYTEST)" -n 2 --reruns 1 -sv tests/test_single_splunk_image.py --platform debian-10 --junitxml test-results/debian10-result/testresults_small_debian10.xml
 
 run_large_tests_debian10:
 	@echo 'Running the super awesome large tests; Debian 10'
-	pytest -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform debian-10 --junitxml test-results/debian10-result/testresults_large_debian10.xml
+	$(TEST_ENV) "$(TEST_PYTEST)" -n 2 --reruns 1 -sv tests/test_distributed_splunk_image.py --platform debian-10 --junitxml test-results/debian10-result/testresults_large_debian10.xml
 
 save_containers:
 	@echo 'Saving the following containers:${CONTAINERS_TO_SAVE}'

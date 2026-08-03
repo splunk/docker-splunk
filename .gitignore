@@ -9,3 +9,4 @@ splunk-ansible
 *clair-scanner*
 .env
 venv
+.test-venv/

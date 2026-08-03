@@ -1,0 +1,6 @@
+# Pin the installer and PyYAML 5.4.1 build toolchain. PIP_CONSTRAINT passes
+# these versions into pip's isolated source-build environment.
+Cython==0.29.37
+pip==24.3.1
+setuptools==65.6.3
+wheel==0.38.4
