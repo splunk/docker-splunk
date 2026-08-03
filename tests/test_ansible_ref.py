@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-VALIDATED_SHC_ANSIBLE_REF = "ae8ecf4af1eb4c143a441e440626a17a5dfeaf6a"
+VALIDATED_SHC_ANSIBLE_REF = "59a5d00c86b542ec3c74979cbd898e4a54a278aa"
 
 
 def run(command, cwd, check=True):
