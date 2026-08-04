@@ -1,7 +1,12 @@
 FROM 667741767953.dkr.ecr.us-west-2.amazonaws.com/splunk/splunk:10.5.2605
-# Noah-patched Splunk image: adds set_noah_symmkey_password.yml to splunk_common tasks
-# and includes it in main.yml before enable_admin_auth to ensure [noahService] pass4SymmKey
-# is consistent with [general] pass4SymmKey when splunk cmd splunkd rest starts.
+# Noah-patched Splunk image:
+# - adds set_noah_symmkey_password.yml to write [noahService] pass4SymmKey before
+#   enable_admin_auth so splunkd rest sees consistent passkeys and does not abort.
+# - patches set_noah_advertised_addr.yml to remove the splunkd restart that followed
+#   writing advertisedAddr. splunkd is already running when this task executes and
+#   has computed its FQDN from environ.py; the restart was unnecessary and caused
+#   validatedb cycles (~10 min) that pushed first-boot time past 40 min and triggered
+#   OOM-kills (exit 137) when validatedb exceeded the container memory limit.
 USER root
 COPY splunk-ansible/roles/splunk_common/tasks/set_noah_symmkey_password.yml \
     /opt/ansible/roles/splunk_common/tasks/set_noah_symmkey_password.yml
@@ -9,7 +14,10 @@ COPY splunk-ansible/roles/splunk_common/tasks/main.yml \
     /opt/ansible/roles/splunk_common/tasks/main.yml
 COPY splunk-ansible/roles/splunk_common/tasks/enable_admin_auth.yml \
     /opt/ansible/roles/splunk_common/tasks/enable_admin_auth.yml
+COPY splunk-ansible/roles/splunk_common/tasks/set_noah_advertised_addr.yml \
+    /opt/ansible/roles/splunk_common/tasks/set_noah_advertised_addr.yml
 RUN chmod 555 /opt/ansible/roles/splunk_common/tasks/set_noah_symmkey_password.yml \
     /opt/ansible/roles/splunk_common/tasks/main.yml \
-    /opt/ansible/roles/splunk_common/tasks/enable_admin_auth.yml
+    /opt/ansible/roles/splunk_common/tasks/enable_admin_auth.yml \
+    /opt/ansible/roles/splunk_common/tasks/set_noah_advertised_addr.yml
 USER ansible
