@@ -33,6 +33,10 @@ setup() {
 teardown() {
 	# TERM and preStop share one idempotent, bounded local shutdown operation.
 	/sbin/splunk-shutdown --source=term || true
+	# `wait` is interrupted by SIGTERM and otherwise returns 143 after this trap,
+	# which makes Kubernetes record an intentional pod deletion as Error. Once
+	# the bounded shutdown attempt has completed, terminate the container cleanly.
+	exit 0
 }
 
 trap teardown SIGINT SIGTERM
@@ -215,4 +219,3 @@ case "$1" in
 		help $@
 		;;
 esac
-
