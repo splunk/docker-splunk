@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-VALIDATED_SHC_ANSIBLE_REF = "8455e865820688d127133051d8a9705ea2d3bfcf"
+NOAH_ANSIBLE_REF = "bb5321b2dc1ce6fbfb29937013afbf4feb5f10b5"
 
 
 def run(command, cwd, check=True):
@@ -61,16 +61,26 @@ class TestAnsibleRef(unittest.TestCase):
             check=check,
         )
 
-    def test_default_ref_is_validated_shc_commit(self):
+    def test_default_ref_is_noah_role_commit(self):
         makefile = (REPOSITORY_ROOT / "Makefile").read_text(encoding="utf-8")
 
         self.assertIn(
-            f"SPLUNK_ANSIBLE_REF ?= {VALIDATED_SHC_ANSIBLE_REF}",
+            f"SPLUNK_ANSIBLE_REF ?= {NOAH_ANSIBLE_REF}",
             makefile,
         )
         self.assertNotIn(
             "SPLUNK_ANSIBLE_REF ?= $(SPLUNK_ANSIBLE_BRANCH)",
             makefile,
+        )
+
+    def test_normal_image_build_copies_the_complete_ansible_tree(self):
+        dockerfile = (
+            REPOSITORY_ROOT / "splunk" / "common-files" / "Dockerfile"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            "COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}",
+            dockerfile,
         )
 
     def test_checks_out_and_records_exact_commit(self):
