@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-NOAH_ANSIBLE_REF = "cbfb8e8dd5a5192b4a36483039172feb97b0aea4"
+NOAH_ANSIBLE_REF = "40aa2ca51eed717f71f3d2200e9c7b571ce211ce"
 
 
 def run(command, cwd, check=True):
