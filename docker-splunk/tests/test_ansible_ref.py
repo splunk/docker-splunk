@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-NOAH_ANSIBLE_REF = "bb5321b2dc1ce6fbfb29937013afbf4feb5f10b5"
+NOAH_ANSIBLE_REF = "cbfb8e8dd5a5192b4a36483039172feb97b0aea4"
 
 
 def run(command, cwd, check=True):
@@ -82,6 +82,15 @@ class TestAnsibleRef(unittest.TestCase):
             "COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}",
             dockerfile,
         )
+
+    def test_noah_image_replaces_the_complete_ansible_tree(self):
+        dockerfile = (REPOSITORY_ROOT / "Dockerfile.noah-splunk").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("COPY splunk-ansible /opt/ansible", dockerfile)
+        self.assertNotIn("configure_noah.yml", dockerfile)
+        self.assertNotIn("python3 - <<", dockerfile)
 
     def test_checks_out_and_records_exact_commit(self):
         self.make_ansible(self.first_commit)
