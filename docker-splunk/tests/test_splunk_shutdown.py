@@ -234,6 +234,8 @@ class SplunkShutdownTest(unittest.TestCase):
         )
 
         self.assertIn("/sbin/splunk-shutdown --source=term", entrypoint)
+        teardown = entrypoint.split("teardown() {", 1)[1].split("}", 1)[0]
+        self.assertIn("exit 0", teardown)
         self.assertNotIn("${SPLUNK_HOME}/bin/splunk stop || true", entrypoint)
         self.assertIn("SPLUNK_SHUTDOWN_TIMEOUT_SECONDS", entrypoint)
         self.assertIn('"splunk/common-files/splunk-shutdown"', dockerfile)

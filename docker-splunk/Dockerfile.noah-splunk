@@ -1,109 +1,19 @@
 FROM 667741767953.dkr.ecr.us-west-2.amazonaws.com/vivekr/splunk-cloud:10.5.2605.0-c278328a3fc1
-# Noah-patched Splunk image built on the production splunk-cloud base:
-#
-# - configure_noah.yml: consolidated Noah task — writes [noahService] fields (disabled=true
-#   for pre-auth, heartbeatPeriod, pass4SymmKey), pre-writes [general] serverName and
-#   shcclustering fields to make set_server_name.yml idempotent, and writes advertisedAddr
-#   so Noah routes distributed search to the correct pod FQDN. Replaces the scattered
-#   set_noah_symmkey_password.yml and set_noah_advertised_addr.yml from prior images.
-#
-# - main.yml (patched in-place): inserts configure_noah.yml include before enable_admin_auth.
-#   Surgical patch — preserves all production tasks (set_kvservice_connection_string.yml,
-#   set_cloud_instance.yml, etc.) that a full-file replace would silently drop.
-#
-# - environ.py (patched in-place): adds noah_advertised_addr = "https://<fqdn>:8089"
-#   when SPLUNK_NOAH_ENABLED is set. FQDN is derived from the already-computed server_name
-#   (POD_NAME + SPLUNK_HEADLESS_SERVICE_NAME + POD_NAMESPACE + cluster domain).
-#
-# - restart_splunk.yml: "stop && start" instead of "restart --answer-yes" to skip validatedb
-#   (~10 min) which exceeded the 8Gi container limit and caused OOM-kills (exit 137).
 
+# The base image supplies the Noah-capable splunkd build. The complete,
+# commit-pinned splunk-ansible checkout supplies provisioning for both classic
+# and Noah roles. Keeping the whole tree preserves normal role dependencies
+# and makes the image contents match the reviewed Ansible commit exactly.
 USER root
 
-# 1. Drop in configure_noah.yml — the single consolidated Noah configuration task.
-COPY splunk-ansible/roles/splunk_common/tasks/configure_noah.yml \
-    /opt/ansible/roles/splunk_common/tasks/configure_noah.yml
-
-# 2. Patch main.yml in-place: insert configure_noah.yml include before enable_admin_auth.yml.
-#    The production image's main.yml is patched surgically so that platform-specific tasks
-#    (set_kvservice_connection_string.yml, set_cloud_instance.yml) are preserved unchanged.
-RUN python3 - <<'PYEOF'
-import sys
-
-path = "/opt/ansible/roles/splunk_common/tasks/main.yml"
-with open(path) as f:
-    content = f.read()
-
-needle = "- include_tasks: enable_admin_auth.yml"
-insert = (
-    "- include_tasks: configure_noah.yml\n"
-    "  when:\n"
-    "    - \"'conf' in splunk and splunk.conf\"\n"
-    "    - \"splunk.conf.server is defined\"\n"
-    "    - \"splunk.conf.server.content is defined\"\n"
-    "    - \"splunk.conf.server.content.noahService is defined\"\n"
-    "\n"
-)
-
-if needle not in content:
-    print("ERROR: expected anchor not found in main.yml:", needle, file=sys.stderr)
-    sys.exit(1)
-
-if "configure_noah.yml" in content:
-    print("configure_noah.yml already present in main.yml, skipping patch")
-else:
-    content = content.replace(needle, insert + needle, 1)
-    with open(path, "w") as f:
-        f.write(content)
-    print("Patched main.yml: inserted configure_noah.yml before enable_admin_auth.yml")
-PYEOF
-
-# 3. Patch environ.py in-place: add noah_advertised_addr when SPLUNK_NOAH_ENABLED is set.
-#    The production image already sets server_name from SPLUNK_HEADLESS_SERVICE_NAME; we
-#    extend that block to also derive the Noah advertised address from the same FQDN.
-RUN python3 - <<'PYEOF'
-import sys
-
-path = "/opt/ansible/inventory/environ.py"
-with open(path) as f:
-    content = f.read()
-
-# The production image sets server_name in this form (single assignment, no local variable).
-old = '        vars_scope["splunk"]["server_name"] = "{}.{}.{}.svc.{}".format(podName, headlessServiceName, namespace, clusterDomain)'
-new = (
-    '        vars_scope["splunk"]["server_name"] = "{}.{}.{}.svc.{}".format(podName, headlessServiceName, namespace, clusterDomain)\n'
-    '        if os.environ.get("SPLUNK_NOAH_ENABLED", ""):\n'
-    '            vars_scope["splunk"]["noah_advertised_addr"] = "https://{}:8089".format(vars_scope["splunk"]["server_name"])'
-)
-
-if old not in content:
-    print("ERROR: expected pattern not found in environ.py", file=sys.stderr)
-    sys.exit(1)
-
-if "noah_advertised_addr" in content:
-    print("noah_advertised_addr already present in environ.py, skipping patch")
-else:
-    content = content.replace(old, new, 1)
-    with open(path, "w") as f:
-        f.write(content)
-    print("Patched environ.py: added noah_advertised_addr derivation")
-PYEOF
-
-# 4. Replace restart_splunk.yml handler: use stop+start instead of restart --answer-yes
-#    to skip validatedb (~10 min) which exceeded the 8Gi container memory limit and caused
-#    OOM-kills (exit 137) during SHC captain bootstrap, member join, and serverName changes.
-COPY splunk-ansible/roles/splunk_common/handlers/restart_splunk.yml \
-    /opt/ansible/roles/splunk_common/handlers/restart_splunk.yml
-
-RUN chmod 555 \
-    /opt/ansible/roles/splunk_common/tasks/configure_noah.yml \
-    /opt/ansible/roles/splunk_common/handlers/restart_splunk.yml
-
-# 5. Install idempotent SHC shutdown contract (SHC reliability: preStop/TERM overlap fix).
-#    The base splunk-cloud image has the old single-call teardown; replace both files so
-#    concurrent SIGTERM and preStop lifecycle hooks share one bounded, idempotent stop.
+COPY splunk-ansible /opt/ansible
 COPY splunk/common-files/splunk-shutdown /sbin/splunk-shutdown
-COPY splunk/common-files/entrypoint.sh   /sbin/entrypoint.sh
-RUN chmod 755 /sbin/splunk-shutdown /sbin/entrypoint.sh
+COPY splunk/common-files/entrypoint.sh /sbin/entrypoint.sh
+
+RUN chmod -R 555 /opt/ansible \
+    && chgrp ansible /opt/ansible /opt/ansible/ansible.cfg \
+    && chmod 775 /opt/ansible \
+    && chmod 664 /opt/ansible/ansible.cfg \
+    && chmod 755 /sbin/splunk-shutdown /sbin/entrypoint.sh
 
 USER ansible
