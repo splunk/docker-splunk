@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import re, sys
+import re
+import sys
 
 EXCLUDE_V7 = """*-manifest
 */bin/installit.py
@@ -30,7 +31,7 @@ EXCLUDE_V7 = """*-manifest
 */share/splunk/pdf*
 *mrsparkle*"""
 
-version_string = re.match(".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+\.?[0-9]?-[0-9a-z]+-[lL]inux-[0-9a-z_-]+.tgz", sys.argv[1])
+version_string = re.match(r".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+\.?[0-9]?-[0-9a-z]+-[lL]inux-[0-9a-z_-]+.tgz", sys.argv[1])
 major_version = None
 minor_version = None
 
@@ -56,9 +57,9 @@ if major_version:
     elif int(major_version) == 10:
         if int(minor_version) >= 1:
             EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/node*', '')
-            EXCLUDE_V7 = EXCLUDE_V7.replace('*/lib/node_modules*', '')
-        if int(minor_version) >= 2:
+            EXCLUDE_V7 = EXCLUDE_V7.replace("*/lib/node_modules*", "")
             EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jars/*', '')
+        if int(minor_version) >= 2:
             EXCLUDE_V7 = EXCLUDE_V7.replace('*/etc/apps/splunk_archiver*', '')
         EXCLUDE_V7 = EXCLUDE_V7.replace('*/bin/jsmin*', '')
     elif int(major_version) > 10:
