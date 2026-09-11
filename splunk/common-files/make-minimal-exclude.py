@@ -31,7 +31,7 @@ EXCLUDE_V7 = """*-manifest
 */share/splunk/pdf*
 *mrsparkle*"""
 
-version_string = re.match(".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+\.?[0-9]?-[0-9a-z]+-[lL]inux-[0-9a-z_-]+.tgz", sys.argv[1])
+version_string = re.match(r".*splunk-([0-9]+)\.([0-9]+)\.[0-9]+\.?[0-9]?-[0-9a-z]+-[lL]inux-[0-9a-z_-]+.tgz", sys.argv[1])
 major_version = None
 minor_version = None
 
