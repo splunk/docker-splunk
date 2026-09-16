@@ -22,8 +22,8 @@ ARG SPLUNK_BUILD_URL
 COPY splunk/common-files/make-minimal-exclude.py /tmp
 RUN python /tmp/make-minimal-exclude.py ${SPLUNK_BUILD_URL} > /tmp/splunk-minimal-exclude.list \
     && echo "Downloading Splunk and validating the checksum at: ${SPLUNK_BUILD_URL}" \
-    && wget -qO /tmp/`basename ${SPLUNK_BUILD_URL}` ${SPLUNK_BUILD_URL} \
-    && wget -qO /tmp/splunk.tgz.sha512 ${SPLUNK_BUILD_URL}.sha512 \
+    && wget -t 5 --waitretry=5 --retry-on-http-error=500,502,503,504 -qO /tmp/`basename ${SPLUNK_BUILD_URL}` ${SPLUNK_BUILD_URL} \
+    && wget -t 5 --waitretry=5 --retry-on-http-error=500,502,503,504 -qO /tmp/splunk.tgz.sha512 ${SPLUNK_BUILD_URL}.sha512 \
     && cd /tmp \
     && echo "$(cat /tmp/splunk.tgz.sha512)" | sha512sum --check  --status \
     && rm /tmp/splunk.tgz.sha512 \
