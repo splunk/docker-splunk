@@ -1,0 +1,125 @@
+#!/bin/sh
+
+# Copyright 2026 Splunk
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -u
+
+source_name="unknown"
+case "${1:-}" in
+	--source=*)
+		source_name="${1#--source=}"
+		;;
+	"")
+		;;
+	*)
+		echo "splunk-shutdown: unsupported argument: $1" >&2
+		exit 2
+		;;
+esac
+
+case "${source_name}" in
+	term|prestop|manual|unknown)
+		;;
+	*)
+		echo "splunk-shutdown: unsupported source: ${source_name}" >&2
+		exit 2
+		;;
+esac
+
+timeout_seconds="${SPLUNK_SHUTDOWN_TIMEOUT_SECONDS:-600}"
+case "${timeout_seconds}" in
+	""|*[!0-9]*|0)
+		echo "splunk-shutdown: SPLUNK_SHUTDOWN_TIMEOUT_SECONDS must be a positive integer" >&2
+		exit 2
+		;;
+esac
+
+artifact_dir="${CONTAINER_ARTIFACT_DIR:-/opt/container_artifact}"
+state_file="${artifact_dir}/splunk-container.state"
+lock_dir="${artifact_dir}/splunk-shutdown.lock"
+owner_file="${lock_dir}/owner"
+result_file="${lock_dir}/result"
+
+write_atomic() {
+	target_file="$1"
+	value="$2"
+	temporary_file="${target_file}.tmp.$$"
+	if ! printf '%s\n' "${value}" > "${temporary_file}"; then
+		return 1
+	fi
+	if ! mv -f "${temporary_file}" "${target_file}"; then
+		rm -f "${temporary_file}"
+		return 1
+	fi
+}
+
+if ! mkdir -p "${artifact_dir}"; then
+	echo "splunk-shutdown: cannot create artifact directory ${artifact_dir}" >&2
+	exit 1
+fi
+
+if ! mkdir "${lock_dir}" 2>/dev/null; then
+	if [ -r "${result_file}" ]; then
+		IFS= read -r existing_result < "${result_file}"
+		echo "splunk-shutdown: shutdown already completed result=${existing_result} source=${source_name}"
+		exit "${existing_result}"
+	fi
+	echo "splunk-shutdown: shutdown already in progress source=${source_name}"
+	exit 0
+fi
+
+owner_record="pid=$$ source=${source_name}"
+if ! write_atomic "${owner_file}" "${owner_record}"; then
+	echo "splunk-shutdown: cannot record shutdown owner" >&2
+	exit 1
+fi
+
+if ! write_atomic "${state_file}" "stopping"; then
+	echo "splunk-shutdown: cannot record stopping state" >&2
+	write_atomic "${result_file}" "1" || true
+	exit 1
+fi
+
+if ! command -v timeout >/dev/null 2>&1; then
+	echo "splunk-shutdown: timeout command is unavailable" >&2
+	write_atomic "${result_file}" "127" || true
+	exit 127
+fi
+
+splunk_home="${SPLUNK_HOME:-/opt/splunk}"
+splunk_user="${SPLUNK_USER:-splunk}"
+echo "splunk-shutdown: stop started source=${source_name} timeout_seconds=${timeout_seconds}"
+
+if [ "$(id -un)" = "${splunk_user}" ]; then
+	timeout --signal=TERM --kill-after=10s "${timeout_seconds}s" \
+		"${splunk_home}/bin/splunk" stop
+	stop_result=$?
+else
+	timeout --signal=TERM --kill-after=10s "${timeout_seconds}s" \
+		sudo -u "${splunk_user}" "${splunk_home}/bin/splunk" stop
+	stop_result=$?
+fi
+
+if ! write_atomic "${result_file}" "${stop_result}"; then
+	echo "splunk-shutdown: cannot record stop result=${stop_result}" >&2
+	exit 1
+fi
+
+if [ "${stop_result}" -eq 0 ]; then
+	echo "splunk-shutdown: stop completed source=${source_name} result=0"
+else
+	echo "splunk-shutdown: stop failed source=${source_name} result=${stop_result}" >&2
+fi
+exit "${stop_result}"

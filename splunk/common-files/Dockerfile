@@ -94,7 +94,7 @@ ENV SPLUNK_ROLE=splunk_standalone \
 
 USER root
 
-COPY [ "splunk/common-files/entrypoint.sh", "splunk/common-files/createdefaults.py", "splunk/common-files/checkstate.sh", "/sbin/" ]
+COPY [ "splunk/common-files/entrypoint.sh", "splunk/common-files/createdefaults.py", "splunk/common-files/checkstate.sh", "splunk/common-files/splunk-shutdown", "/sbin/" ]
 COPY splunk-ansible ${SPLUNK_ANSIBLE_HOME}
 
 # Set sudo rights
@@ -113,7 +113,8 @@ RUN sed -i -e 's/%sudo\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%sudo ALL=NOPASSWD:ALL\nans
     && chmod 775 ${SPLUNK_ANSIBLE_HOME} \
     && chmod 664 ${SPLUNK_ANSIBLE_HOME}/ansible.cfg \
     && sed -i '/^\[defaults\]/a\interpreter_python = /usr/bin/python3' ${SPLUNK_ANSIBLE_HOME}/ansible.cfg \
-    && chmod 755 /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh
+    && chmod 755 /sbin/entrypoint.sh /sbin/createdefaults.py /sbin/checkstate.sh /sbin/splunk-shutdown \
+    && command -v timeout
 
 USER ${ANSIBLE_USER}
 HEALTHCHECK --interval=30s --timeout=30s --start-period=3m --retries=5 CMD /sbin/checkstate.sh || exit 1
