@@ -33,11 +33,7 @@ microdnf -y --nodocs install wget sudo shadow-utils procps tar make gcc \
                              diffutils bzip2
                              
 # Patch security updates
-microdnf -y --nodocs update gnutls libdnf librepo libnghttp2 nettle \
-                            libpwquality libxml2 systemd-libs lz4-libs curl \
-                            rpm rpm-libs sqlite-libs cyrus-sasl-lib vim expat \
-                            openssl-libs xz-libs zlib libsolv file-libs pcre \
-                            libarchive libgcrypt libksba libstdc++ json-c gnupg
+microdnf -y --nodocs update
 
 # Reinstall tzdata (originally stripped from minimal image): https://bugzilla.redhat.com/show_bug.cgi?id=1903219
 microdnf -y --nodocs reinstall tzdata || microdnf -y --nodocs update tzdata
